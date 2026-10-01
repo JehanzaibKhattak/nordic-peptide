@@ -1,0 +1,14 @@
+"use client";
+
+import { useCart } from "@/lib/cart-store";
+import { currencyForCountry, formatMoney, type DisplayCurrency } from "@/lib/money";
+import { useHydrated } from "@/lib/use-hydrated";
+
+// Display currency follows the ship-to country; EUR until hydrated so SSR and
+// first client render match.
+export function useCurrency() {
+  const country = useCart((s) => s.country);
+  const mounted = useHydrated();
+  const currency: DisplayCurrency = mounted ? currencyForCountry(country) : "EUR";
+  return { currency, country: mounted ? country : "ES", fmt: (cents: number) => formatMoney(cents, currency), mounted };
+}

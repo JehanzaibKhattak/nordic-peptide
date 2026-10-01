@@ -1,0 +1,258 @@
+{
+  "brand": {
+    "name": "Nordic Peptide Skin",
+    "tagline": "Peptide skincare, made simple."
+  },
+  "banner": "Same-day dispatch before 16:00 · Free EU shipping over €75",
+  "nav": {
+    "shop": "Shop",
+    "serums": "Serums",
+    "bundles": "Bundles",
+    "testing": "Batch testing",
+    "journal": "Journal",
+    "contact": "Contact",
+    "cart": "Cart",
+    "shipTo": "Ship to",
+    "language": "Language"
+  },
+  "home": {
+    "heroTitle": "Peptide skincare.\nFormulated, tested, delivered.",
+    "heroSub": "Clinically-inspired serums and creams built around well-studied signal peptides. Every batch is stability and microbial tested, and the results are published.",
+    "ctaPrimary": "Browse the collection",
+    "ctaSecondary": "See batch tests",
+    "reviews": "{rating}/5 from {count} reviews",
+    "trust": {
+      "formulated": "Formulated with named peptides",
+      "formulatedSub": "Matrixyl, Argireline, copper peptides — concentrations stated",
+      "tested": "Every batch tested",
+      "testedSub": "Stability, microbial and pH reports published",
+      "dispatch": "Same-day dispatch",
+      "dispatchSub": "Order before 16:00 CET on weekdays",
+      "delivery": "Fast EU & UK delivery",
+      "deliverySub": "2–4 business days standard, tracked"
+    },
+    "collection": "The collection",
+    "all": "All",
+    "viewAll": "View all",
+    "whyTitle": "Why people choose us",
+    "why": {
+      "a": "Transparent formulas",
+      "aSub": "Full INCI list and peptide percentages on every product page. No proprietary blends.",
+      "b": "Tested, not just claimed",
+      "bSub": "Independent lab reports for each batch, searchable by the number on your box.",
+      "c": "Routine-first design",
+      "cSub": "Textures layer cleanly and play well with retinoids, vitamin C and SPF."
+    },
+    "stats": {
+      "batches": "Batches tested",
+      "cutoff": "Dispatch cutoff",
+      "delivery": "Avg. delivery days",
+      "repeat": "Repeat customers"
+    },
+    "faqTitle": "Frequently asked questions",
+    "journalTitle": "From the journal",
+    "readMore": "Read more"
+  },
+  "product": {
+    "popular": "Popular",
+    "from": "From {price}",
+    "addToCart": "Add to cart",
+    "added": "Added to cart",
+    "inStock": "In stock",
+    "lowStock": "Only {n} left",
+    "outOfStock": "Out of stock",
+    "chooseSize": "Choose size",
+    "whichSize": "Which product is right for me?",
+    "perMl": "{price}/ml",
+    "qty": "Quantity",
+    "stats": {
+      "peptides": "Key peptides",
+      "tested": "Tested by",
+      "reviews": "Reviews"
+    },
+    "delivery": {
+      "title": "Fast delivery to {country}",
+      "change": "Change",
+      "arrives": "Arrives {range}",
+      "cutoffIn": "Order within {time} for same-day dispatch",
+      "cutoffPassed": "Cutoff passed — ships next business day",
+      "discreet": "Plain packaging — recyclable, no product name on the outside"
+    },
+    "tabs": {
+      "ingredients": "Ingredients",
+      "howToUse": "How to use",
+      "details": "Details"
+    },
+    "trustRows": {
+      "tested": "Batch tested — stability, microbial & pH",
+      "shipping": "Tracked shipping across EU & UK",
+      "payment": "Secure payment — Visa, Mastercard, Apple Pay, Google Pay",
+      "returns": "30-day returns on unopened products"
+    },
+    "faq": "Product questions",
+    "alsoNeed": "Complete your routine",
+    "related": "Related products",
+    "notice": "Cosmetic product. For external use only. Patch test before first use and avoid contact with eyes. Discontinue if irritation occurs.",
+    "specs": {
+      "keyPeptides": "Key peptides",
+      "skinTypes": "Suitable for",
+      "texture": "Texture",
+      "ph": "pH",
+      "pao": "Period after opening",
+      "shelfLife": "Shelf life",
+      "sku": "SKU",
+      "inci": "Full ingredients (INCI)"
+    },
+    "sizeGuide": {
+      "title": "Which product is right for me?",
+      "intro": "A quick guide — not a substitute for a dermatologist.",
+      "a": "Fine lines & firmness → Matrixyl Firming Serum or Copper Peptide Night Cream.",
+      "b": "Expression lines (forehead, crow's feet) → Argireline Smoothing Serum.",
+      "c": "Dullness & dryness → Hydra-Peptide Daily Cream or the Barrier Repair Mask.",
+      "d": "Under-eye area → Peptide Eye Complex.",
+      "e": "New to peptides? Start with the Starter Routine bundle and the 15 ml sizes."
+    }
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "continue": "Continue shopping",
+    "coupon": "Coupon code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shippingEstimate": "Estimated shipping to {country}",
+    "free": "Free",
+    "discount": "Discount",
+    "total": "Total",
+    "checkout": "Checkout",
+    "freeShippingProgress": "Add {amount} more for free shipping",
+    "freeShippingUnlocked": "You've unlocked free standard shipping",
+    "invalidCoupon": "That code isn't valid."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "step1": "Step 1 of 2 · Details",
+    "step2": "Step 2 of 2 · Payment",
+    "contact": "Contact",
+    "email": "Email",
+    "shippingAddress": "Shipping address",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "line1": "Address",
+    "line2": "Apartment, suite (optional)",
+    "city": "City",
+    "postcode": "Postcode",
+    "country": "Country",
+    "phone": "Phone (optional)",
+    "shippingMethod": "Shipping method",
+    "standard": "Standard",
+    "express": "Express",
+    "eta": "{min}–{max} business days",
+    "billingSame": "Billing address same as shipping",
+    "billingAddress": "Billing address",
+    "agreeTerms": "I agree to the Terms of Sale and have read the Privacy Policy.",
+    "continueToPayment": "Continue to payment",
+    "orderSummary": "Order summary",
+    "secure": "Secure checkout · 256-bit TLS",
+    "reservedFor": "Your order is reserved for <time></time> — complete payment before it expires",
+    "reservedHelp": "We hold stock for you while you pay. If the timer runs out, the order is released and you can start again.",
+    "expiredTitle": "Reservation expired",
+    "expiredBody": "This order was released because payment wasn't completed in time.",
+    "backToStore": "Back to store",
+    "completeOrder": "Complete your order",
+    "methodsLine": "Pay securely by card, Apple Pay or Google Pay.",
+    "statementNotice": "Your card statement will show <b>{entity}</b>.",
+    "paymentMethod": "Payment method",
+    "card": "Card",
+    "pay": "Pay {amount}",
+    "paying": "Processing…",
+    "providerError": "We couldn't start the payment. Please try again in a moment.",
+    "agreeLine": "By clicking Pay you agree to our Terms of Sale and acknowledge the Privacy Policy.",
+    "shipTo": "Ship to",
+    "billing": "Billing",
+    "tax": "Tax (estimated)",
+    "encrypted": "Encrypted",
+    "mock": {
+      "cardNumber": "Card number",
+      "expiry": "MM / YY",
+      "cvc": "CVC",
+      "name": "Name on card",
+      "hint": "Test mode: 4242 4242 4242 4242 succeeds · 4000 0000 0000 0002 declines · 4000 0000 0000 0341 succeeds after a delay",
+      "declined": "Your card was declined. Please try another card."
+    }
+  },
+  "order": {
+    "title": "Order {number}",
+    "thanks": "Thank you — your order is confirmed",
+    "paidBody": "A confirmation has been sent to {email}. We'll email you again when it ships.",
+    "pendingTitle": "Waiting for payment",
+    "pendingBody": "If you've just paid, this page will update automatically.",
+    "expiredTitle": "This order has expired",
+    "expiredBody": "No payment was taken. You can place a new order from the shop.",
+    "fulfilledTitle": "Your order has shipped",
+    "tracking": "Tracking number: {no}",
+    "cancelledTitle": "Order cancelled",
+    "refundedTitle": "Order refunded",
+    "items": "Items",
+    "shipTo": "Shipping to",
+    "payNow": "Complete payment",
+    "status": "Status"
+  },
+  "testing": {
+    "title": "Batch testing",
+    "intro": "Every production batch is tested by an independent laboratory for stability, microbial safety and pH. Find your batch number on the base of the bottle or box.",
+    "search": "Search by batch number",
+    "batch": "Batch",
+    "product": "Product",
+    "lab": "Laboratory",
+    "issued": "Issued",
+    "report": "Report",
+    "noResults": "No batches match that number.",
+    "download": "Download PDF"
+  },
+  "journal": {
+    "title": "Journal",
+    "intro": "Notes on peptides, formulation and skincare routines."
+  },
+  "contact": {
+    "title": "Contact us",
+    "intro": "Questions about an order or a product? We reply within one business day.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send message",
+    "sent": "Thanks — we've received your message."
+  },
+  "legal": {
+    "terms": "Terms of Sale",
+    "privacy": "Privacy Policy",
+    "shipping": "Shipping",
+    "refunds": "Returns & Refunds",
+    "cookies": "Cookie Policy"
+  },
+  "footer": {
+    "shop": "Shop",
+    "info": "Info",
+    "legal": "Legal",
+    "contact": "Contact",
+    "disclaimer": "Our products are cosmetics intended to cleanse, protect and improve the appearance of skin. They are not medicines and are not intended to diagnose, treat or prevent any condition.",
+    "company": "{entity} · Registered in England & Wales · VAT registered",
+    "payments": "We accept"
+  },
+  "consent": {
+    "title": "Cookies",
+    "body": "We use necessary cookies to run the store and, with your consent, analytics cookies to understand how it's used.",
+    "accept": "Accept all",
+    "necessary": "Necessary only"
+  },
+  "common": {
+    "home": "Home",
+    "back": "Back",
+    "loading": "Loading…",
+    "close": "Close",
+    "save": "Save",
+    "search": "Search"
+  }
+}

@@ -1,0 +1,159 @@
+// Nordic Peptide Skin — Prisma schema
+// SQLite in dev. Kept Postgres-compatible: no SQLite-only types, no enums
+// (status/form columns are strings validated in TS, see src/lib/types.ts),
+// arrays stored as Json.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      Json // { en, es, de?, nl? }
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  sku              String   @unique
+  name             Json
+  shortDescription Json
+  description      Json // markdown per locale
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  isPopular        Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  form             String // SERUM | CREAM | EYE | MASK | BUNDLE | ACCESSORY
+  // { keyPeptides: string[], inci: string, skinTypes: string[], texture, ph, pao, shelfLife, usage }
+  specs            Json
+  images           Json // string[]
+  relatedIds       Json // string[]
+  faqs             Json // { [locale]: {q,a}[] }
+  variants         Variant[]
+  batchTests       BatchTest[]
+  orderItems       OrderItem[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Variant {
+  id         String      @id @default(cuid())
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label      String // "30 ml"
+  sizeMl     Decimal
+  priceCents Int
+  currency   String      @default("EUR")
+  stock      Int         @default(0)
+  sku        String      @unique
+  sortOrder  Int         @default(0)
+  orderItems OrderItem[]
+}
+
+// Per-batch testing record (stability, microbial, dermatological) — the
+// cosmetic equivalent of the spec's COA library.
+model BatchTest {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batchNo   String   @unique
+  labName   String
+  tests     Json // [{ name, result }]
+  pdfPath   String?
+  issuedAt  DateTime
+}
+
+model Order {
+  id              String    @id @default(cuid())
+  orderNumber     String    @unique // "NPS" + 8 digits
+  status          String    @default("PENDING") // PENDING|RESERVED|PAID|FULFILLED|CANCELLED|REFUNDED|EXPIRED
+  locale          String    @default("en")
+  currency        String    @default("EUR")
+  subtotalCents   Int
+  shippingCents   Int
+  discountCents   Int       @default(0)
+  taxCents        Int       @default(0)
+  totalCents      Int
+  email           String
+  shippingAddress Json
+  billingAddress  Json
+  shippingMethod  String
+  shippingCountry String
+  couponCode      String?
+  paymentMethod   String? // card
+  paymentProvider String? // adapter id
+  providerRef     String?
+  affiliate       Json? // { ktSubid, affId, sub1..sub5, source, capturedAt }
+  trackingNo      String?
+  reservedUntil   DateTime?
+  items           OrderItem[]
+  events          OrderEvent[]
+  sessions        CheckoutSession[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  variantId    String
+  variant      Variant  @relation(fields: [variantId], references: [id])
+  name         String
+  variantLabel String
+  image        String?
+  qty          Int
+  unitCents    Int
+  lineCents    Int
+}
+
+// Audit trail: status changes, payment events, postbacks, emails.
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model CheckoutSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String   @default("OPEN") // OPEN|USED|EXPIRED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  code       String  @id
+  type       String // PERCENT | FIXED
+  value      Int // percent or cents
+  minCents   Int     @default(0)
+  active     Boolean @default(true)
+  usageLimit Int?
+  used       Int     @default(0)
+}
+
+// Admin-editable settings; overrides env defaults.
+model Setting {
+  key   String @id
+  value Json
+}
