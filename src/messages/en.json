@@ -1,39 +1,42 @@
 {
   "brand": {
-    "name": "Nordic Peptide Skin",
-    "tagline": "Peptide skincare, made simple."
+    "name": "Avion-PEPT",
+    "tagline": "Verified peptides, dispatched with care."
   },
   "banner": "Browse preview · Online purchasing is not available yet",
   "nav": {
-    "shop": "Shop",
+    "shop": "Products",
     "serums": "Serums",
     "bundles": "Bundles",
-    "testing": "Batch testing",
-    "journal": "Journal",
+    "testing": "Purity tests",
+    "journal": "Research notes",
+    "calculator": "Peptide calculator",
     "contact": "Contact",
     "cart": "Cart",
     "shipTo": "Ship to",
     "language": "Language"
   },
   "home": {
-    "heroTitle": "Peptide skincare.\nFormulated, tested, delivered.",
-    "heroSub": "Clinically-inspired serums and creams built around well-studied signal peptides. Every batch is stability and microbial tested, and the results are published.",
+    "heroTitle": "Research peptides Europe",
+    "heroTitleSecond": "verified, dispensed with care.",
+    "heroSub": "Avion-PEPT is a European source for research-grade peptides. Products are independently tested, dispatched before 16:00, and typically arrive within 1–2 days. Plainly packaged and batch documented.",
     "ctaPrimary": "Browse the collection",
-    "ctaSecondary": "See batch tests",
+    "ctaSecondary": "Check purity tests",
     "reviews": "{rating}/5 from {count} reviews",
     "trust": {
-      "formulated": "Formulated with named peptides",
-      "formulatedSub": "Matrixyl, Argireline, copper peptides — concentrations stated",
-      "tested": "Every batch tested",
-      "testedSub": "Stability, microbial and pH reports published",
+      "purity": "99%+ purity",
+      "puritySub": "Every batch, every time",
+      "verified": "Third-party verified",
+      "verifiedSub": "COA included with every order",
       "dispatch": "Same-day dispatch",
-      "dispatchSub": "Order before 16:00 CET on weekdays",
-      "delivery": "Fast EU & UK delivery",
-      "deliverySub": "2–4 business days standard, tracked"
+      "dispatchSub": "Order before 16:00",
+      "delivery": "1–2 day delivery",
+      "deliverySub": "Across Europe via PostNL & DHL"
     },
     "collection": "The collection",
     "all": "All",
-    "viewAll": "View all",
+    "collectionEyebrow": "From our catalogue",
+    "viewAll": "View all products",
     "whyTitle": "Why people choose us",
     "why": {
       "a": "Transparent formulas",
@@ -49,7 +52,8 @@
       "delivery": "Avg. delivery days",
       "repeat": "Repeat customers"
     },
-    "faqTitle": "Frequently asked questions",
+    "faqEyebrow": "Common questions",
+    "faqTitle": "Questions we hear most",
     "journalTitle": "From the journal",
     "readMore": "Read more"
   },
@@ -240,11 +244,27 @@
   "footer": {
     "shop": "Shop",
     "info": "Info",
+    "companyHeading": "Company",
+    "about": "Avion-PEPT — peptide skincare, thoughtfully formulated and transparently tested. Explore the collection and find the routine that works for you.",
+    "contactUs": "Get in touch",
     "legal": "Legal",
     "contact": "Contact",
     "disclaimer": "Our products are cosmetics intended to cleanse, protect and improve the appearance of skin. They are not medicines and are not intended to diagnose, treat or prevent any condition.",
-    "company": "{entity} · Registered in England & Wales · VAT registered",
+    "company": "{entity} · All rights reserved",
     "payments": "We accept"
+  },
+  "calculator": {
+    "title": "Avion-PEPT Calculation",
+    "intro": "Estimate the average molecular mass of a linear peptide from its one-letter amino-acid sequence.",
+    "sequenceLabel": "Amino-acid sequence",
+    "placeholder": "For example: ACDEFGHIK",
+    "hint": "Enter up to 400 standard amino-acid codes. Spaces and line breaks are ignored.",
+    "invalid": "Use only the 20 standard one-letter amino-acid codes (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y).",
+    "resultLabel": "Estimated average molecular mass",
+    "residueCount": "{count, plural, one {# residue} other {# residues}}",
+    "emptyResult": "Your result will appear here when a valid sequence is entered.",
+    "calculationNote": "Estimate for an unmodified, linear sequence, including terminal water mass. Cyclization, salts, terminal modifications, and measured batch composition can change the result.",
+    "disclaimer": "For laboratory research calculations only. This tool does not calculate doses, solution concentrations, or administration instructions. It is not for human or animal use. Verify calculations with qualified laboratory references."
   },
   "consent": {
     "title": "Cookies",

@@ -1,4 +1,4 @@
-# Nordic Peptide Skin — storefront
+# Avion-PEPT — storefront
 
 Cosmetic peptide skincare store: catalogue, product pages with size variants, cart drawer, two-step checkout with a reservation timer, pluggable card payments (mock + Stripe), Keitaro affiliate tracking, batch-test library, journal, and a minimal admin. Runs fully locally with no external accounts.
 

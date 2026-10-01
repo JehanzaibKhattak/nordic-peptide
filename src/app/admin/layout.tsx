@@ -6,7 +6,7 @@ import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
-export const metadata: Metadata = { title: "Admin · Nordic Peptide Skin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin · Avion-PEPT", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {

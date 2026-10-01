@@ -128,7 +128,7 @@
     @apply font-sans;
   }
 }
-/* --- Nordic Peptide Skin brand tokens (override shadcn neutrals) --- */
+/* --- Avion-PEPT brand tokens (override shadcn neutrals) --- */
 :root {
   --background: oklch(0.985 0.004 120);
   --foreground: oklch(0.24 0.02 160);

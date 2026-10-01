@@ -1,36 +1,39 @@
 {
-  "brand": { "tagline": "Cuidado de la piel con péptidos, sin complicaciones." },
+  "brand": { "name": "Avion-PEPT", "tagline": "Péptidos verificados, enviados con cuidado." },
   "banner": "Vista previa · Las compras online aún no están disponibles",
   "nav": {
-    "shop": "Tienda",
+    "shop": "Productos",
     "serums": "Sérums",
     "bundles": "Packs",
-    "testing": "Análisis de lotes",
-    "journal": "Blog",
+    "testing": "Pruebas de pureza",
+    "journal": "Notas de investigación",
+    "calculator": "Calculadora de péptidos",
     "contact": "Contacto",
     "cart": "Carrito",
     "shipTo": "Enviar a",
     "language": "Idioma"
   },
   "home": {
-    "heroTitle": "Cuidado con péptidos.\nFormulado, analizado, entregado.",
-    "heroSub": "Sérums y cremas de inspiración clínica basados en péptidos señal bien estudiados. Cada lote se analiza para estabilidad y seguridad microbiana, y publicamos los resultados.",
+    "heroTitle": "Péptidos de investigación en Europa",
+    "heroTitleSecond": "verificados y enviados con cuidado.",
+    "heroSub": "Avion-PEPT ofrece péptidos de investigación en Europa. Los productos se analizan de forma independiente, se envían antes de las 16:00 y suelen llegar en 1–2 días. Embalaje discreto y documentación por lote.",
     "ctaPrimary": "Ver la colección",
-    "ctaSecondary": "Ver análisis de lotes",
+    "ctaSecondary": "Consultar pruebas de pureza",
     "reviews": "{rating}/5 de {count} opiniones",
     "trust": {
-      "formulated": "Formulado con péptidos identificados",
-      "formulatedSub": "Matrixyl, Argireline, péptidos de cobre — concentraciones indicadas",
-      "tested": "Cada lote analizado",
-      "testedSub": "Informes de estabilidad, microbiología y pH publicados",
+      "purity": "Más del 99 % de pureza",
+      "puritySub": "Cada lote, siempre",
+      "verified": "Verificado por terceros",
+      "verifiedSub": "CoA incluido en cada pedido",
       "dispatch": "Envío el mismo día",
-      "dispatchSub": "Pedidos antes de las 16:00 CET en días laborables",
-      "delivery": "Entrega rápida en UE y Reino Unido",
-      "deliverySub": "2–4 días laborables estándar, con seguimiento"
+      "dispatchSub": "Pide antes de las 16:00",
+      "delivery": "Entrega en 1–2 días",
+      "deliverySub": "En toda Europa con PostNL y DHL"
     },
     "collection": "La colección",
     "all": "Todo",
-    "viewAll": "Ver todo",
+    "collectionEyebrow": "De nuestro catálogo",
+    "viewAll": "Ver todos los productos",
     "whyTitle": "Por qué nos eligen",
     "why": {
       "a": "Fórmulas transparentes",
@@ -46,7 +49,8 @@
       "delivery": "Días de entrega (media)",
       "repeat": "Clientes que repiten"
     },
-    "faqTitle": "Preguntas frecuentes",
+    "faqEyebrow": "Preguntas frecuentes",
+    "faqTitle": "Las preguntas que más nos hacen",
     "journalTitle": "Del blog",
     "readMore": "Leer más"
   },
@@ -225,11 +229,27 @@
   "footer": {
     "shop": "Tienda",
     "info": "Información",
+    "companyHeading": "Empresa",
+    "about": "Avion-PEPT — cuidado de la piel con péptidos, formulado con atención y analizado con transparencia. Descubre la colección y encuentra tu rutina.",
+    "contactUs": "Escríbenos",
     "legal": "Legal",
     "contact": "Contacto",
     "disclaimer": "Nuestros productos son cosméticos destinados a limpiar, proteger y mejorar el aspecto de la piel. No son medicamentos ni están destinados a diagnosticar, tratar o prevenir ninguna afección.",
-    "company": "{entity} · Registrada en Inglaterra y Gales · Con registro de IVA",
+    "company": "{entity} · Todos los derechos reservados",
     "payments": "Aceptamos"
+  },
+  "calculator": {
+    "title": "Cálculo Avion-PEPT",
+    "intro": "Estima la masa molecular media de un péptido lineal a partir de su secuencia de aminoácidos de una letra.",
+    "sequenceLabel": "Secuencia de aminoácidos",
+    "placeholder": "Por ejemplo: ACDEFGHIK",
+    "hint": "Introduce hasta 400 códigos estándar de aminoácidos. Se ignoran los espacios y saltos de línea.",
+    "invalid": "Utiliza solo los 20 códigos estándar de una letra (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y).",
+    "resultLabel": "Masa molecular media estimada",
+    "residueCount": "{count, plural, one {# residuo} other {# residuos}}",
+    "emptyResult": "El resultado aparecerá al introducir una secuencia válida.",
+    "calculationNote": "Estimación para una secuencia lineal sin modificaciones, incluida la masa del agua terminal. La ciclación, las sales, las modificaciones terminales y la composición medida del lote pueden cambiar el resultado.",
+    "disclaimer": "Solo para cálculos de investigación de laboratorio. Esta herramienta no calcula dosis, concentraciones de soluciones ni instrucciones de administración. No es para uso humano o animal. Verifica los cálculos con referencias de laboratorio cualificadas."
   },
   "consent": {
     "title": "Cookies",

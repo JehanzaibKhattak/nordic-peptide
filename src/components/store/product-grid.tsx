@@ -27,17 +27,17 @@ export function ProductGrid({
   return (
     <div>
       {filterable && (
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-7 flex flex-nowrap gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[{ slug: "all", name: { en: t("all") } }, ...categories].map((c) => (
             <button
               key={c.slug}
               onClick={() => setActive(c.slug)}
               className={cn(
-                "rounded-full border px-4 py-1.5 text-sm transition-colors",
-                active === c.slug ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary",
+                "shrink-0 rounded-full border border-[#e7dfd0] bg-white/75 px-4 py-2 text-sm font-medium text-[#7a897c] transition-colors hover:bg-white",
+                active === c.slug && "border-primary bg-[#e7e5d8] text-primary",
               )}
             >
-              {c.slug === "all" ? t("all") : lt(c.name, locale)}
+              {c.slug === "all" ? <><span aria-hidden="true">⚗️</span> {t("all")}</> : lt(c.name, locale)}
             </button>
           ))}
         </div>

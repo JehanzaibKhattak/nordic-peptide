@@ -58,7 +58,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <Gtm id={process.env.GTM_ID} />
           <AffiliateCapture />
-          <Header categories={categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }))} />
+          <Header />
           <main className="min-h-[60dvh]">{children}</main>
           <Footer
             categories={categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }))}

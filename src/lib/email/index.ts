@@ -10,7 +10,7 @@ export type SendEmailInput = { to: string; subject: string; react: ReactElement 
 
 export async function sendEmail({ to, subject, react }: SendEmailInput): Promise<{ id: string; mode: "resend" | "dev" }> {
   const html = await render(react);
-  const from = process.env.EMAIL_FROM ?? "Nordic Peptide Skin <orders@example.com>";
+  const from = process.env.EMAIL_FROM ?? "Avion-PEPT <orders@example.com>";
 
   if (process.env.RESEND_API_KEY) {
     const { Resend } = await import("resend");

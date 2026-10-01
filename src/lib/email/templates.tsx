@@ -22,7 +22,7 @@ const styles = {
 };
 
 const money = (c: number) => `€${(c / 100).toFixed(2)}`;
-const brand = () => process.env.BRAND_NAME ?? "Nordic Peptide Skin";
+const brand = () => process.env.BRAND_NAME ?? "Avion-PEPT";
 
 function Items({ order }: { order: OrderWithItems }) {
   return (

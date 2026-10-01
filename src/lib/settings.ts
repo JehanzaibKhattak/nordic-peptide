@@ -16,8 +16,8 @@ export type Settings = {
 };
 
 const defaults = (): Settings => ({
-  brandName: process.env.BRAND_NAME ?? "Nordic Peptide Skin",
-  legalEntityName: process.env.LEGAL_ENTITY_NAME ?? "Nordic Peptide Skin Ltd",
+  brandName: process.env.BRAND_NAME ?? "Avion-PEPT",
+  legalEntityName: process.env.LEGAL_ENTITY_NAME ?? "Avion-PEPT",
   cutoffHour: 16,
   reservationMinutes: Number(process.env.RESERVATION_MINUTES ?? 30),
   affiliatePayoutCents: Number(process.env.AFFILIATE_PAYOUT_CENTS ?? 1500),
