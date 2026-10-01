@@ -8,7 +8,6 @@ import { FaqAccordion } from "@/components/store/faq-accordion";
 import { JsonLd } from "@/components/store/json-ld";
 import { getCategories, getProducts } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
-import { listArticles } from "@/lib/articles";
 import { toCard } from "@/lib/card";
 
 const HOME_FAQS = {
@@ -38,7 +37,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   setRequestLocale(locale);
   const [t, categories, products, settings] = await Promise.all([getTranslations(), getCategories(), getProducts(), getSettings()]);
-  const articles = listArticles(locale).slice(0, 3);
   const faqs = HOME_FAQS[locale as "en" | "es"] ?? HOME_FAQS.en;
   const cats = categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }));
   const cards = products.map(toCard);
@@ -131,22 +129,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <FaqAccordion title={t("home.faqTitle")} faqs={faqs} />
       </section>
 
-      {/* Journal */}
-      {articles.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-10">
-          <h2 className="text-2xl font-semibold tracking-tight">{t("home.journalTitle")}</h2>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            {articles.map((a) => (
-              <Link key={a.slug} href={`/journal/${a.slug}`} className="rounded-2xl border bg-card p-6 transition-shadow hover:shadow-md">
-                <p className="text-xs text-muted-foreground">{a.date}</p>
-                <p className="mt-2 font-semibold leading-snug">{a.title}</p>
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{a.excerpt}</p>
-                <p className="mt-4 text-sm font-medium">{t("home.readMore")} →</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </>
   );
 }
