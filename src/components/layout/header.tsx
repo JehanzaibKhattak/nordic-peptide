@@ -1,9 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { ShoppingBag } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
-import { useCart, cartCount } from "@/lib/cart-store";
+import { useCart } from "@/lib/cart-store";
 import { t as lt } from "@/lib/types";
 import { flagEmoji } from "@/config/shipping";
 import { CountryDialog } from "./country-dialog";
@@ -11,6 +10,7 @@ import { LocaleSwitcher } from "./locale-switcher";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useHydrated } from "@/lib/use-hydrated";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 type Cat = { slug: string; name: Record<string, string> };
 
@@ -18,11 +18,8 @@ export function Header({ categories }: { categories: Cat[] }) {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
-  const items = useCart((s) => s.items);
   const country = useCart((s) => s.country);
-  const open = useCart((s) => s.open);
   const mounted = useHydrated();
-  const count = mounted ? cartCount(items) : 0;
 
   const nav = [
     { href: "/shop", label: t("nav.shop") },
@@ -64,14 +61,7 @@ export function Header({ categories }: { categories: Cat[] }) {
             </Button>
           </CountryDialog>
           <LocaleSwitcher />
-          <Button variant="ghost" size="sm" className="relative" onClick={open} aria-label={t("nav.cart")}>
-            <ShoppingBag className="size-5" />
-            {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
-                {count}
-              </span>
-            )}
-          </Button>
+          {!BROWSE_ONLY && <Link href="/cart" className="rounded-full px-3 py-2 text-sm hover:bg-secondary" aria-label={t("nav.cart")}>{t("nav.cart")}</Link>}
         </div>
       </div>
       <nav className="flex gap-4 overflow-x-auto px-4 pb-2 text-sm md:hidden">

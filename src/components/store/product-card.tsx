@@ -10,6 +10,7 @@ import { useCart } from "@/lib/cart-store";
 import { t as lt } from "@/lib/types";
 import { useCurrency } from "./use-currency";
 import { pushEvent } from "@/components/layout/gtm";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 export type CardProduct = {
   id: string;
@@ -59,9 +60,13 @@ export function ProductCard({ product }: { product: CardProduct }) {
         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{lt(product.category.name, locale)}</p>
         <Link href={`/products/${product.slug}`} className="mt-1 text-sm font-semibold leading-snug hover:underline">{name}</Link>
         <p className="mt-1 text-sm text-muted-foreground">{multi ? t("from", { price: fmt(cheapest.priceCents) }) : fmt(cheapest.priceCents)}</p>
-        <Button className="mt-3 w-full" variant="secondary" size="sm" onClick={onAdd} disabled={!cheapest || cheapest.stock <= 0}>
-          {cheapest && cheapest.stock > 0 ? t("addToCart") : t("outOfStock")}
-        </Button>
+        {BROWSE_ONLY ? (
+          <p className="mt-3 text-center text-xs text-muted-foreground">{t("previewOnly")}</p>
+        ) : (
+          <Button className="mt-3 w-full" variant="secondary" size="sm" onClick={onAdd} disabled={!cheapest || cheapest.stock <= 0}>
+            {cheapest && cheapest.stock > 0 ? t("addToCart") : t("outOfStock")}
+          </Button>
+        )}
       </div>
     </div>
   );

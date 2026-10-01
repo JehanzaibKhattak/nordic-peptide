@@ -1,47 +1,73 @@
 import { cache } from "react";
+import type { Category, Prisma } from "@prisma/client";
 import { db } from "./db";
+import staticCatalog from "./static-catalog.json";
 
-// Read-side queries used by pages. All cheap indexed reads; no heavy work on page load.
+// The no-database deployment serves this bundled catalog for browsing only.
+// Once DATABASE_URL is configured, all reads use the live database instead.
+type ProductWithVariants = Prisma.ProductGetPayload<{
+  include: { category: true; variants: { orderBy: { sortOrder: "asc" } } };
+}>;
+type ProductWithDetails = Prisma.ProductGetPayload<{
+  include: {
+    category: true;
+    variants: { orderBy: { sortOrder: "asc" } };
+    batchTests: { orderBy: { issuedAt: "desc" }; take: 1 };
+  };
+}>;
 
-export const getCategories = cache(() => db.category.findMany({ orderBy: { sortOrder: "asc" } }));
+const hasDatabase = () => Boolean(process.env.DATABASE_URL);
+const categories = staticCatalog.categories as unknown as Category[];
+const products = staticCatalog.products as unknown as ProductWithDetails[];
 
-export const getProducts = cache((categorySlug?: string) =>
-  db.product.findMany({
+export const getCategories = cache(async (): Promise<Category[]> =>
+  hasDatabase() ? db.category.findMany({ orderBy: { sortOrder: "asc" } }) : categories,
+);
+
+export const getProducts = cache(async (categorySlug?: string): Promise<ProductWithVariants[]> => {
+  if (!hasDatabase()) return products.filter((p) => p.isActive && (!categorySlug || p.category.slug === categorySlug));
+  return db.product.findMany({
     where: { isActive: true, ...(categorySlug ? { category: { slug: categorySlug } } : {}) },
     include: { category: true, variants: { orderBy: { sortOrder: "asc" } } },
     orderBy: [{ isPopular: "desc" }, { createdAt: "asc" }],
-  }),
-);
+  });
+});
 
-export const getProductBySlug = cache((slug: string) =>
-  db.product.findUnique({
+export const getProductBySlug = cache(async (slug: string): Promise<ProductWithDetails | null> => {
+  if (!hasDatabase()) return products.find((p) => p.slug === slug) ?? null;
+  return db.product.findUnique({
     where: { slug },
     include: {
       category: true,
       variants: { orderBy: { sortOrder: "asc" } },
       batchTests: { orderBy: { issuedAt: "desc" }, take: 1 },
     },
-  }),
-);
+  });
+});
 
-export const getProductsByIds = cache((ids: string[]) =>
-  ids.length
-    ? db.product.findMany({
-        where: { id: { in: ids }, isActive: true },
-        include: { category: true, variants: { orderBy: { sortOrder: "asc" } } },
-      })
-    : Promise.resolve([]),
-);
+export const getProductsByIds = cache(async (ids: string[]): Promise<ProductWithVariants[]> => {
+  if (!ids.length) return [];
+  if (!hasDatabase()) return products.filter((p) => p.isActive && ids.includes(p.id));
+  return db.product.findMany({
+    where: { id: { in: ids }, isActive: true },
+    include: { category: true, variants: { orderBy: { sortOrder: "asc" } } },
+  });
+});
 
-export const getBatchTests = cache((q?: string) =>
-  db.batchTest.findMany({
+type BatchTestWithProduct = Prisma.BatchTestGetPayload<{ include: { product: true } }>;
+export const getBatchTests = cache(async (q?: string): Promise<BatchTestWithProduct[]> => {
+  if (!hasDatabase()) {
+    return products.flatMap((product) => product.batchTests.map((test) => ({ ...test, issuedAt: new Date(test.issuedAt), product } as BatchTestWithProduct)))
+      .filter((test) => !q || test.batchNo.includes(q.toUpperCase()));
+  }
+  return db.batchTest.findMany({
     where: q ? { batchNo: { contains: q.toUpperCase() } } : undefined,
     include: { product: true },
     orderBy: { issuedAt: "desc" },
-  }),
-);
+  });
+});
 
-export type ProductWithVariants = Awaited<ReturnType<typeof getProducts>>[number];
+export type ProductRecord = ProductWithVariants;
 
 export function lowestPrice(p: { variants: { priceCents: number }[] }) {
   return Math.min(...p.variants.map((v) => v.priceCents));

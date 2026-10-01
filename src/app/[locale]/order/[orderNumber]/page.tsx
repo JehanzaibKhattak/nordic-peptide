@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { expireStaleOrders } from "@/lib/orders";
 import { OrderStatus } from "@/components/checkout/order-status";
 import type { Address } from "@/lib/types";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 export async function generateMetadata({ params }: { params: Promise<{ orderNumber: string }> }) {
   const { orderNumber } = await params;
@@ -12,6 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ orderNumb
 }
 
 export default async function OrderPage({ params }: { params: Promise<{ locale: string; orderNumber: string }> }) {
+  if (BROWSE_ONLY) notFound();
   const { locale, orderNumber } = await params;
   setRequestLocale(locale);
   await expireStaleOrders();

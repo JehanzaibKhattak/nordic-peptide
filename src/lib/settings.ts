@@ -30,6 +30,7 @@ const defaults = (): Settings => ({
 
 export async function getSettings(): Promise<Settings> {
   const base = defaults();
+  if (!process.env.DATABASE_URL) return base;
   const rows = await db.setting.findMany();
   const over: Partial<Settings> = {};
   for (const r of rows) (over as Record<string, unknown>)[r.key] = r.value;

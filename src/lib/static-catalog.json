@@ -1,0 +1,1722 @@
+{
+  "categories": [
+    {
+      "id": "serums",
+      "slug": "serums",
+      "name": {
+        "en": "Serums",
+        "es": "Sérums",
+        "de": "Seren",
+        "nl": "Serums"
+      },
+      "sortOrder": 1
+    },
+    {
+      "id": "creams",
+      "slug": "creams",
+      "name": {
+        "en": "Creams",
+        "es": "Cremas",
+        "de": "Cremes",
+        "nl": "Crèmes"
+      },
+      "sortOrder": 2
+    },
+    {
+      "id": "eye-and-masks",
+      "slug": "eye-and-masks",
+      "name": {
+        "en": "Eye & Masks",
+        "es": "Ojos y mascarillas",
+        "de": "Augen & Masken",
+        "nl": "Oog & maskers"
+      },
+      "sortOrder": 3
+    },
+    {
+      "id": "bundles",
+      "slug": "bundles",
+      "name": {
+        "en": "Bundles",
+        "es": "Packs",
+        "de": "Sets",
+        "nl": "Bundels"
+      },
+      "sortOrder": 4
+    }
+  ],
+  "products": [
+    {
+      "id": "matrixyl-firming-serum",
+      "slug": "matrixyl-firming-serum",
+      "sku": "NPS-SER-MTX",
+      "name": {
+        "en": "Matrixyl Firming Serum",
+        "es": "Sérum Reafirmante Matrixyl"
+      },
+      "shortDescription": {
+        "en": "A lightweight daily serum with 5% Matrixyl 3000 and hyaluronic acid for a firmer, smoother-looking complexion.",
+        "es": "Sérum diario ligero con 5% de Matrixyl 3000 y ácido hialurónico para una piel de aspecto más firme y uniforme."
+      },
+      "description": {
+        "en": "Our best-selling serum pairs **Matrixyl 3000** (palmitoyl tripeptide-1 and palmitoyl tetrapeptide-7) with multi-weight hyaluronic acid and panthenol.\n\nThe texture is a fast-absorbing water gel that sits well under moisturiser and SPF. With regular use skin looks smoother, feels more hydrated and fine lines appear less noticeable.\n\n- 5% Matrixyl 3000\n- 1% multi-weight hyaluronic acid\n- Fragrance-free, dye-free, vegan",
+        "es": "Nuestro sérum más vendido combina **Matrixyl 3000** (palmitoil tripéptido-1 y palmitoil tetrapéptido-7) con ácido hialurónico de varios pesos y pantenol.\n\nSu textura es un gel acuoso de rápida absorción que se lleva bien bajo la hidratante y el SPF. Con el uso regular la piel se ve más lisa, se siente más hidratada y las líneas finas se notan menos.\n\n- 5% Matrixyl 3000\n- 1% ácido hialurónico multi-peso\n- Sin perfume, sin colorantes, vegano"
+      },
+      "categoryId": "serums",
+      "category": {
+        "id": "serums",
+        "slug": "serums",
+        "name": {
+          "en": "Serums",
+          "es": "Sérums",
+          "de": "Seren",
+          "nl": "Serums"
+        },
+        "sortOrder": 1
+      },
+      "isPopular": true,
+      "isActive": true,
+      "form": "SERUM",
+      "specs": {
+        "keyPeptides": [
+          "Palmitoyl Tripeptide-1",
+          "Palmitoyl Tetrapeptide-7"
+        ],
+        "inci": "Aqua, Glycerin, Butylene Glycol, Palmitoyl Tripeptide-1, Palmitoyl Tetrapeptide-7, Sodium Hyaluronate, Hydrolyzed Sodium Hyaluronate, Panthenol, Carbomer, Polysorbate 20, Sodium Hydroxide, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "All skin types",
+          "Mature",
+          "Combination"
+        ],
+        "texture": "Water gel",
+        "ph": "5.5 – 6.0",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply 3–4 drops to clean, dry skin morning and/or evening. Follow with moisturiser. Use SPF during the day."
+      },
+      "images": [
+        "/products/matrixyl-firming-serum.svg"
+      ],
+      "relatedIds": [
+        "copper-peptide-night-cream",
+        "hydra-peptide-daily-cream",
+        "peptide-eye-complex"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-SER-MTX-15ML",
+          "productId": "matrixyl-firming-serum",
+          "label": "15 ml",
+          "sizeMl": "15",
+          "priceCents": 2900,
+          "currency": "EUR",
+          "stock": 120,
+          "sku": "NPS-SER-MTX-15ML",
+          "sortOrder": 0
+        },
+        {
+          "id": "NPS-SER-MTX-30ML",
+          "productId": "matrixyl-firming-serum",
+          "label": "30 ml",
+          "sizeMl": "30",
+          "priceCents": 4900,
+          "currency": "EUR",
+          "stock": 200,
+          "sku": "NPS-SER-MTX-30ML",
+          "sortOrder": 1
+        },
+        {
+          "id": "NPS-SER-MTX-50ML",
+          "productId": "matrixyl-firming-serum",
+          "label": "50 ml",
+          "sizeMl": "50",
+          "priceCents": 6900,
+          "currency": "EUR",
+          "stock": 60,
+          "sku": "NPS-SER-MTX-50ML",
+          "sortOrder": 2
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-matrixyl-firming-serum",
+          "productId": "matrixyl-firming-serum",
+          "batchNo": "B2409001",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.5 – 6.0"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409001.pdf",
+          "issuedAt": "2026-08-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "argireline-smoothing-serum",
+      "slug": "argireline-smoothing-serum",
+      "sku": "NPS-SER-ARG",
+      "name": {
+        "en": "Argireline Smoothing Serum",
+        "es": "Sérum Alisador Argireline"
+      },
+      "shortDescription": {
+        "en": "10% Argireline solution targeting the look of expression lines on the forehead and around the eyes.",
+        "es": "Solución al 10% de Argireline para el aspecto de las líneas de expresión en frente y contorno de ojos."
+      },
+      "description": {
+        "en": "A focused serum built around **acetyl hexapeptide-8 (Argireline)** at 10%, supported by glycerin and allantoin for comfort.\n\nUse it on areas where expression lines show most — forehead, between the brows, outer eye. Lightweight and fast-absorbing, it layers under any moisturiser.\n\n- 10% Argireline\n- Allantoin for comfort\n- Fragrance-free, vegan",
+        "es": "Sérum concentrado en torno al **acetil hexapéptido-8 (Argireline)** al 10%, con glicerina y alantoína para mayor confort.\n\nÚsalo en las zonas donde más se marcan las líneas de expresión: frente, entrecejo y contorno externo del ojo. Ligero y de rápida absorción, se aplica bajo cualquier hidratante.\n\n- 10% Argireline\n- Alantoína para el confort\n- Sin perfume, vegano"
+      },
+      "categoryId": "serums",
+      "category": {
+        "id": "serums",
+        "slug": "serums",
+        "name": {
+          "en": "Serums",
+          "es": "Sérums",
+          "de": "Seren",
+          "nl": "Serums"
+        },
+        "sortOrder": 1
+      },
+      "isPopular": true,
+      "isActive": true,
+      "form": "SERUM",
+      "specs": {
+        "keyPeptides": [
+          "Acetyl Hexapeptide-8"
+        ],
+        "inci": "Aqua, Acetyl Hexapeptide-8, Glycerin, Propanediol, Allantoin, Hydroxyethylcellulose, Sodium Citrate, Citric Acid, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "All skin types",
+          "Mature"
+        ],
+        "texture": "Light fluid",
+        "ph": "5.0 – 5.5",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply 2–3 drops to targeted areas morning and evening. Can be used under the Matrixyl Firming Serum."
+      },
+      "images": [
+        "/products/argireline-smoothing-serum.svg"
+      ],
+      "relatedIds": [
+        "matrixyl-firming-serum",
+        "peptide-eye-complex"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-SER-ARG-15ML",
+          "productId": "argireline-smoothing-serum",
+          "label": "15 ml",
+          "sizeMl": "15",
+          "priceCents": 2700,
+          "currency": "EUR",
+          "stock": 90,
+          "sku": "NPS-SER-ARG-15ML",
+          "sortOrder": 0
+        },
+        {
+          "id": "NPS-SER-ARG-30ML",
+          "productId": "argireline-smoothing-serum",
+          "label": "30 ml",
+          "sizeMl": "30",
+          "priceCents": 4500,
+          "currency": "EUR",
+          "stock": 150,
+          "sku": "NPS-SER-ARG-30ML",
+          "sortOrder": 1
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-argireline-smoothing-serum",
+          "productId": "argireline-smoothing-serum",
+          "batchNo": "B2409002",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.0 – 5.5"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409002.pdf",
+          "issuedAt": "2026-08-02T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "copper-peptide-serum",
+      "slug": "copper-peptide-serum",
+      "sku": "NPS-SER-CU",
+      "name": {
+        "en": "Copper Peptide Serum",
+        "es": "Sérum de Péptidos de Cobre"
+      },
+      "shortDescription": {
+        "en": "1% GHK-Cu copper tripeptide in a soothing base for skin that looks rested and even.",
+        "es": "1% de tripéptido de cobre GHK-Cu en una base calmante para una piel de aspecto descansado y uniforme."
+      },
+      "description": {
+        "en": "The signature blue serum. **Copper tripeptide-1 (GHK-Cu)** at 1% in a base of glycerin, aloe and panthenol.\n\nBest used in the evening; avoid layering directly with strong acids or vitamin C in the same step.\n\n- 1% copper tripeptide-1\n- Aloe & panthenol\n- Fragrance-free, vegan",
+        "es": "El sérum azul de la casa. **Tripéptido de cobre-1 (GHK-Cu)** al 1% en una base de glicerina, aloe y pantenol.\n\nIdeal por la noche; evita aplicarlo en el mismo paso que ácidos fuertes o vitamina C.\n\n- 1% tripéptido de cobre-1\n- Aloe y pantenol\n- Sin perfume, vegano"
+      },
+      "categoryId": "serums",
+      "category": {
+        "id": "serums",
+        "slug": "serums",
+        "name": {
+          "en": "Serums",
+          "es": "Sérums",
+          "de": "Seren",
+          "nl": "Serums"
+        },
+        "sortOrder": 1
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "SERUM",
+      "specs": {
+        "keyPeptides": [
+          "Copper Tripeptide-1"
+        ],
+        "inci": "Aqua, Glycerin, Aloe Barbadensis Leaf Juice, Copper Tripeptide-1, Panthenol, Propanediol, Xanthan Gum, Sodium Phytate, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "All skin types",
+          "Sensitive"
+        ],
+        "texture": "Light fluid",
+        "ph": "6.0 – 6.5",
+        "pao": "6M",
+        "shelfLife": "18 months unopened",
+        "usage": "Apply 3 drops in the evening after cleansing. Follow with moisturiser."
+      },
+      "images": [
+        "/products/copper-peptide-serum.svg"
+      ],
+      "relatedIds": [
+        "copper-peptide-night-cream",
+        "matrixyl-firming-serum"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-SER-CU-15ML",
+          "productId": "copper-peptide-serum",
+          "label": "15 ml",
+          "sizeMl": "15",
+          "priceCents": 3200,
+          "currency": "EUR",
+          "stock": 70,
+          "sku": "NPS-SER-CU-15ML",
+          "sortOrder": 0
+        },
+        {
+          "id": "NPS-SER-CU-30ML",
+          "productId": "copper-peptide-serum",
+          "label": "30 ml",
+          "sizeMl": "30",
+          "priceCents": 5400,
+          "currency": "EUR",
+          "stock": 110,
+          "sku": "NPS-SER-CU-30ML",
+          "sortOrder": 1
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-copper-peptide-serum",
+          "productId": "copper-peptide-serum",
+          "batchNo": "B2409003",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "6.0 – 6.5"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409003.pdf",
+          "issuedAt": "2026-08-03T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "hydra-peptide-daily-cream",
+      "slug": "hydra-peptide-daily-cream",
+      "sku": "NPS-CRM-HYD",
+      "name": {
+        "en": "Hydra-Peptide Daily Cream",
+        "es": "Crema Diaria Hydra-Péptido"
+      },
+      "shortDescription": {
+        "en": "A daily moisturiser with Matrixyl 3000, ceramides and squalane. Comfortable under makeup and SPF.",
+        "es": "Hidratante diaria con Matrixyl 3000, ceramidas y escualano. Cómoda bajo maquillaje y SPF."
+      },
+      "description": {
+        "en": "Everyday hydration with a peptide backbone. **Matrixyl 3000** at 3% alongside a ceramide complex, squalane and glycerin.\n\nMedium-weight cream that absorbs cleanly. Skin feels soft and looks plump through the day.\n\n- 3% Matrixyl 3000\n- Ceramide NP, AP, EOP\n- Fragrance-free, vegan",
+        "es": "Hidratación diaria con base de péptidos. **Matrixyl 3000** al 3% junto a un complejo de ceramidas, escualano y glicerina.\n\nCrema de peso medio que se absorbe limpiamente. La piel se siente suave y se ve jugosa durante el día.\n\n- 3% Matrixyl 3000\n- Ceramidas NP, AP, EOP\n- Sin perfume, vegana"
+      },
+      "categoryId": "creams",
+      "category": {
+        "id": "creams",
+        "slug": "creams",
+        "name": {
+          "en": "Creams",
+          "es": "Cremas",
+          "de": "Cremes",
+          "nl": "Crèmes"
+        },
+        "sortOrder": 2
+      },
+      "isPopular": true,
+      "isActive": true,
+      "form": "CREAM",
+      "specs": {
+        "keyPeptides": [
+          "Palmitoyl Tripeptide-1",
+          "Palmitoyl Tetrapeptide-7"
+        ],
+        "inci": "Aqua, Glycerin, Squalane, Caprylic/Capric Triglyceride, Cetearyl Alcohol, Glyceryl Stearate, Palmitoyl Tripeptide-1, Palmitoyl Tetrapeptide-7, Ceramide NP, Ceramide AP, Ceramide EOP, Phytosphingosine, Cholesterol, Sodium Lauroyl Lactylate, Carbomer, Xanthan Gum, Tocopherol, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "Normal",
+          "Dry",
+          "Combination"
+        ],
+        "texture": "Medium cream",
+        "ph": "5.5 – 6.0",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply a pea-sized amount morning and evening after serum."
+      },
+      "images": [
+        "/products/hydra-peptide-daily-cream.svg"
+      ],
+      "relatedIds": [
+        "matrixyl-firming-serum",
+        "copper-peptide-night-cream"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-CRM-HYD-30ML",
+          "productId": "hydra-peptide-daily-cream",
+          "label": "30 ml",
+          "sizeMl": "30",
+          "priceCents": 3900,
+          "currency": "EUR",
+          "stock": 140,
+          "sku": "NPS-CRM-HYD-30ML",
+          "sortOrder": 0
+        },
+        {
+          "id": "NPS-CRM-HYD-50ML",
+          "productId": "hydra-peptide-daily-cream",
+          "label": "50 ml",
+          "sizeMl": "50",
+          "priceCents": 5500,
+          "currency": "EUR",
+          "stock": 180,
+          "sku": "NPS-CRM-HYD-50ML",
+          "sortOrder": 1
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-hydra-peptide-daily-cream",
+          "productId": "hydra-peptide-daily-cream",
+          "batchNo": "B2409004",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.5 – 6.0"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409004.pdf",
+          "issuedAt": "2026-08-04T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "copper-peptide-night-cream",
+      "slug": "copper-peptide-night-cream",
+      "sku": "NPS-CRM-CUN",
+      "name": {
+        "en": "Copper Peptide Night Cream",
+        "es": "Crema de Noche con Péptidos de Cobre"
+      },
+      "shortDescription": {
+        "en": "Rich overnight cream with 0.5% GHK-Cu, shea butter and niacinamide for skin that looks rested by morning.",
+        "es": "Crema de noche rica con 0,5% de GHK-Cu, manteca de karité y niacinamida para una piel de aspecto descansado por la mañana."
+      },
+      "description": {
+        "en": "A nourishing night cream. **Copper tripeptide-1** at 0.5% with 4% niacinamide, shea butter and squalane.\n\nRich but not heavy. Wake up to skin that feels soft and looks even.\n\n- 0.5% copper tripeptide-1\n- 4% niacinamide\n- Fragrance-free, vegan",
+        "es": "Crema de noche nutritiva. **Tripéptido de cobre-1** al 0,5% con 4% de niacinamida, manteca de karité y escualano.\n\nRica pero no pesada. Despierta con una piel suave y de aspecto uniforme.\n\n- 0,5% tripéptido de cobre-1\n- 4% niacinamida\n- Sin perfume, vegana"
+      },
+      "categoryId": "creams",
+      "category": {
+        "id": "creams",
+        "slug": "creams",
+        "name": {
+          "en": "Creams",
+          "es": "Cremas",
+          "de": "Cremes",
+          "nl": "Crèmes"
+        },
+        "sortOrder": 2
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "CREAM",
+      "specs": {
+        "keyPeptides": [
+          "Copper Tripeptide-1"
+        ],
+        "inci": "Aqua, Butyrospermum Parkii Butter, Glycerin, Niacinamide, Squalane, Cetearyl Alcohol, Glyceryl Stearate, Copper Tripeptide-1, Panthenol, Sodium Stearoyl Glutamate, Xanthan Gum, Tocopherol, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "Dry",
+          "Mature",
+          "Normal"
+        ],
+        "texture": "Rich cream",
+        "ph": "5.5 – 6.0",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply in the evening as the last step of your routine."
+      },
+      "images": [
+        "/products/copper-peptide-night-cream.svg"
+      ],
+      "relatedIds": [
+        "copper-peptide-serum",
+        "hydra-peptide-daily-cream"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-CRM-CUN-50ML",
+          "productId": "copper-peptide-night-cream",
+          "label": "50 ml",
+          "sizeMl": "50",
+          "priceCents": 6200,
+          "currency": "EUR",
+          "stock": 95,
+          "sku": "NPS-CRM-CUN-50ML",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-copper-peptide-night-cream",
+          "productId": "copper-peptide-night-cream",
+          "batchNo": "B2409005",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.5 – 6.0"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409005.pdf",
+          "issuedAt": "2026-08-05T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "peptide-eye-complex",
+      "slug": "peptide-eye-complex",
+      "sku": "NPS-EYE-CPX",
+      "name": {
+        "en": "Peptide Eye Complex",
+        "es": "Complejo de Ojos con Péptidos"
+      },
+      "shortDescription": {
+        "en": "Eye cream with Eyeseryl, Argireline and caffeine for a brighter, smoother-looking eye area.",
+        "es": "Contorno de ojos con Eyeseryl, Argireline y cafeína para una mirada de aspecto más luminoso y liso."
+      },
+      "description": {
+        "en": "Three targeted actives: **acetyl tetrapeptide-5 (Eyeseryl)**, **acetyl hexapeptide-8 (Argireline)** and caffeine, in a cushiony cream-gel.\n\nHelps the under-eye area look fresher and smoother. Ophthalmologist tested.\n\n- Eyeseryl 2%, Argireline 5%, caffeine 1%\n- Fragrance-free, vegan",
+        "es": "Tres activos específicos: **acetil tetrapéptido-5 (Eyeseryl)**, **acetil hexapéptido-8 (Argireline)** y cafeína, en una crema-gel mullida.\n\nAyuda a que el contorno se vea más fresco y liso. Testado oftalmológicamente.\n\n- Eyeseryl 2%, Argireline 5%, cafeína 1%\n- Sin perfume, vegano"
+      },
+      "categoryId": "eye-and-masks",
+      "category": {
+        "id": "eye-and-masks",
+        "slug": "eye-and-masks",
+        "name": {
+          "en": "Eye & Masks",
+          "es": "Ojos y mascarillas",
+          "de": "Augen & Masken",
+          "nl": "Oog & maskers"
+        },
+        "sortOrder": 3
+      },
+      "isPopular": true,
+      "isActive": true,
+      "form": "EYE",
+      "specs": {
+        "keyPeptides": [
+          "Acetyl Tetrapeptide-5",
+          "Acetyl Hexapeptide-8"
+        ],
+        "inci": "Aqua, Glycerin, Acetyl Hexapeptide-8, Acetyl Tetrapeptide-5, Caffeine, Squalane, Cetearyl Olivate, Sorbitan Olivate, Sodium Hyaluronate, Carbomer, Sodium Hydroxide, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "All skin types"
+        ],
+        "texture": "Cream-gel",
+        "ph": "5.5 – 6.0",
+        "pao": "6M",
+        "shelfLife": "18 months unopened",
+        "usage": "Pat a rice-grain amount around the orbital bone morning and evening."
+      },
+      "images": [
+        "/products/peptide-eye-complex.svg"
+      ],
+      "relatedIds": [
+        "argireline-smoothing-serum",
+        "matrixyl-firming-serum"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-EYE-CPX-15ML",
+          "productId": "peptide-eye-complex",
+          "label": "15 ml",
+          "sizeMl": "15",
+          "priceCents": 3600,
+          "currency": "EUR",
+          "stock": 160,
+          "sku": "NPS-EYE-CPX-15ML",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-peptide-eye-complex",
+          "productId": "peptide-eye-complex",
+          "batchNo": "B2409006",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.5 – 6.0"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409006.pdf",
+          "issuedAt": "2026-08-06T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "barrier-repair-mask",
+      "slug": "barrier-repair-mask",
+      "sku": "NPS-MSK-BAR",
+      "name": {
+        "en": "Barrier Repair Mask",
+        "es": "Mascarilla Reparadora de Barrera"
+      },
+      "shortDescription": {
+        "en": "Overnight or 20-minute mask with palmitoyl pentapeptide-4, ceramides and oat for comfortable, soft-feeling skin.",
+        "es": "Mascarilla de noche o de 20 minutos con palmitoil pentapéptido-4, ceramidas y avena para una piel cómoda y suave."
+      },
+      "description": {
+        "en": "A comforting mask for days when skin feels tight. **Palmitoyl pentapeptide-4** with ceramides, colloidal oat and glycerin.\n\nLeave on for 20 minutes and tissue off, or wear overnight as a sleeping mask.\n\n- Fragrance-free, vegan",
+        "es": "Mascarilla reconfortante para los días en que la piel se siente tirante. **Palmitoil pentapéptido-4** con ceramidas, avena coloidal y glicerina.\n\nDeja actuar 20 minutos y retira con un pañuelo, o úsala toda la noche.\n\n- Sin perfume, vegana"
+      },
+      "categoryId": "eye-and-masks",
+      "category": {
+        "id": "eye-and-masks",
+        "slug": "eye-and-masks",
+        "name": {
+          "en": "Eye & Masks",
+          "es": "Ojos y mascarillas",
+          "de": "Augen & Masken",
+          "nl": "Oog & maskers"
+        },
+        "sortOrder": 3
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "MASK",
+      "specs": {
+        "keyPeptides": [
+          "Palmitoyl Pentapeptide-4"
+        ],
+        "inci": "Aqua, Glycerin, Avena Sativa Kernel Flour, Squalane, Cetearyl Alcohol, Palmitoyl Pentapeptide-4, Ceramide NP, Panthenol, Allantoin, Xanthan Gum, Tocopherol, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "Dry",
+          "Sensitive",
+          "All skin types"
+        ],
+        "texture": "Balm-cream",
+        "ph": "5.5 – 6.0",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply a generous layer to clean skin 1–3 times per week."
+      },
+      "images": [
+        "/products/barrier-repair-mask.svg"
+      ],
+      "relatedIds": [
+        "hydra-peptide-daily-cream"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-MSK-BAR-50ML",
+          "productId": "barrier-repair-mask",
+          "label": "50 ml",
+          "sizeMl": "50",
+          "priceCents": 4400,
+          "currency": "EUR",
+          "stock": 85,
+          "sku": "NPS-MSK-BAR-50ML",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-barrier-repair-mask",
+          "productId": "barrier-repair-mask",
+          "batchNo": "B2409007",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.5 – 6.0"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409007.pdf",
+          "issuedAt": "2026-08-07T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "starter-routine-bundle",
+      "slug": "starter-routine-bundle",
+      "sku": "NPS-BND-START",
+      "name": {
+        "en": "Starter Routine Bundle",
+        "es": "Pack Rutina Inicial"
+      },
+      "shortDescription": {
+        "en": "Matrixyl Firming Serum 15 ml + Hydra-Peptide Daily Cream 30 ml. Save 15% versus buying separately.",
+        "es": "Sérum Reafirmante Matrixyl 15 ml + Crema Diaria Hydra-Péptido 30 ml. Ahorra un 15% frente a comprarlos por separado."
+      },
+      "description": {
+        "en": "Everything you need to start a peptide routine: a serum and a moisturiser that work together.\n\n**Includes:** Matrixyl Firming Serum 15 ml, Hydra-Peptide Daily Cream 30 ml.",
+        "es": "Todo lo necesario para empezar una rutina con péptidos: un sérum y una hidratante que trabajan juntos.\n\n**Incluye:** Sérum Reafirmante Matrixyl 15 ml, Crema Diaria Hydra-Péptido 30 ml."
+      },
+      "categoryId": "bundles",
+      "category": {
+        "id": "bundles",
+        "slug": "bundles",
+        "name": {
+          "en": "Bundles",
+          "es": "Packs",
+          "de": "Sets",
+          "nl": "Bundels"
+        },
+        "sortOrder": 4
+      },
+      "isPopular": true,
+      "isActive": true,
+      "form": "BUNDLE",
+      "specs": {
+        "keyPeptides": [
+          "Palmitoyl Tripeptide-1",
+          "Palmitoyl Tetrapeptide-7"
+        ],
+        "inci": "See individual products.",
+        "skinTypes": [
+          "All skin types"
+        ],
+        "texture": "Serum + cream",
+        "ph": "—",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Serum first, then cream. Morning and evening."
+      },
+      "images": [
+        "/products/starter-routine-bundle.svg"
+      ],
+      "relatedIds": [
+        "matrixyl-firming-serum",
+        "hydra-peptide-daily-cream"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-BND-START-SET",
+          "productId": "starter-routine-bundle",
+          "label": "Set",
+          "sizeMl": "45",
+          "priceCents": 5800,
+          "currency": "EUR",
+          "stock": 75,
+          "sku": "NPS-BND-START-SET",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-starter-routine-bundle",
+          "productId": "starter-routine-bundle",
+          "batchNo": "B2409008",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "—"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409008.pdf",
+          "issuedAt": "2026-08-08T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "complete-routine-bundle",
+      "slug": "complete-routine-bundle",
+      "sku": "NPS-BND-FULL",
+      "name": {
+        "en": "Complete Routine Bundle",
+        "es": "Pack Rutina Completa"
+      },
+      "shortDescription": {
+        "en": "Four-step routine: Matrixyl Serum 30 ml, Argireline Serum 15 ml, Eye Complex 15 ml, Copper Night Cream 50 ml. Save 20%.",
+        "es": "Rutina de cuatro pasos: Sérum Matrixyl 30 ml, Sérum Argireline 15 ml, Complejo de Ojos 15 ml, Crema de Noche de Cobre 50 ml. Ahorra un 20%."
+      },
+      "description": {
+        "en": "The full line in one box.\n\n**Includes:** Matrixyl Firming Serum 30 ml, Argireline Smoothing Serum 15 ml, Peptide Eye Complex 15 ml, Copper Peptide Night Cream 50 ml.",
+        "es": "La línea completa en una caja.\n\n**Incluye:** Sérum Reafirmante Matrixyl 30 ml, Sérum Alisador Argireline 15 ml, Complejo de Ojos 15 ml, Crema de Noche con Péptidos de Cobre 50 ml."
+      },
+      "categoryId": "bundles",
+      "category": {
+        "id": "bundles",
+        "slug": "bundles",
+        "name": {
+          "en": "Bundles",
+          "es": "Packs",
+          "de": "Sets",
+          "nl": "Bundels"
+        },
+        "sortOrder": 4
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "BUNDLE",
+      "specs": {
+        "keyPeptides": [
+          "Palmitoyl Tripeptide-1",
+          "Acetyl Hexapeptide-8",
+          "Acetyl Tetrapeptide-5",
+          "Copper Tripeptide-1"
+        ],
+        "inci": "See individual products.",
+        "skinTypes": [
+          "All skin types"
+        ],
+        "texture": "Mixed",
+        "ph": "—",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "AM: Matrixyl serum, eye complex, SPF. PM: Argireline serum, eye complex, copper night cream."
+      },
+      "images": [
+        "/products/complete-routine-bundle.svg"
+      ],
+      "relatedIds": [
+        "starter-routine-bundle"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-BND-FULL-SET",
+          "productId": "complete-routine-bundle",
+          "label": "Set",
+          "sizeMl": "110",
+          "priceCents": 14900,
+          "currency": "EUR",
+          "stock": 40,
+          "sku": "NPS-BND-FULL-SET",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-complete-routine-bundle",
+          "productId": "complete-routine-bundle",
+          "batchNo": "B2409009",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "—"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409009.pdf",
+          "issuedAt": "2026-08-09T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "gentle-cleansing-gel",
+      "slug": "gentle-cleansing-gel",
+      "sku": "NPS-ACC-CLN",
+      "name": {
+        "en": "Gentle Cleansing Gel",
+        "es": "Gel Limpiador Suave"
+      },
+      "shortDescription": {
+        "en": "pH-balanced, sulfate-free gel cleanser that preps skin for peptides without stripping.",
+        "es": "Gel limpiador sin sulfatos y con pH equilibrado que prepara la piel para los péptidos sin resecar."
+      },
+      "description": {
+        "en": "A soft, low-foam cleanser with glycerin and panthenol. Removes SPF and light makeup; leaves skin comfortable.\n\n- Sulfate-free, fragrance-free, vegan",
+        "es": "Limpiador suave de poca espuma con glicerina y pantenol. Retira SPF y maquillaje ligero; deja la piel cómoda.\n\n- Sin sulfatos, sin perfume, vegano"
+      },
+      "categoryId": "creams",
+      "category": {
+        "id": "creams",
+        "slug": "creams",
+        "name": {
+          "en": "Creams",
+          "es": "Cremas",
+          "de": "Cremes",
+          "nl": "Crèmes"
+        },
+        "sortOrder": 2
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "ACCESSORY",
+      "specs": {
+        "keyPeptides": [],
+        "inci": "Aqua, Glycerin, Coco-Glucoside, Cocamidopropyl Betaine, Panthenol, Sodium Chloride, Citric Acid, Sodium Benzoate, Potassium Sorbate",
+        "skinTypes": [
+          "All skin types"
+        ],
+        "texture": "Gel",
+        "ph": "5.0 – 5.5",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Massage onto damp skin, rinse. Morning and evening."
+      },
+      "images": [
+        "/products/gentle-cleansing-gel.svg"
+      ],
+      "relatedIds": [
+        "matrixyl-firming-serum"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-ACC-CLN-150ML",
+          "productId": "gentle-cleansing-gel",
+          "label": "150 ml",
+          "sizeMl": "150",
+          "priceCents": 1900,
+          "currency": "EUR",
+          "stock": 220,
+          "sku": "NPS-ACC-CLN-150ML",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-gentle-cleansing-gel",
+          "productId": "gentle-cleansing-gel",
+          "batchNo": "B2409010",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "5.0 – 5.5"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409010.pdf",
+          "issuedAt": "2026-08-10T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "daily-spf-50",
+      "slug": "daily-spf-50",
+      "sku": "NPS-ACC-SPF",
+      "name": {
+        "en": "Daily Mineral SPF 50",
+        "es": "Protector Solar Mineral Diario SPF 50"
+      },
+      "shortDescription": {
+        "en": "Lightweight zinc oxide SPF 50 with a sheer finish. The non-negotiable last step of a morning routine.",
+        "es": "SPF 50 ligero con óxido de zinc y acabado transparente. El paso final imprescindible de la rutina de mañana."
+      },
+      "description": {
+        "en": "Broad-spectrum mineral sunscreen with 20% non-nano zinc oxide, squalane and vitamin E.\n\n- SPF 50, UVA\n- Fragrance-free, reef-safe",
+        "es": "Protector solar mineral de amplio espectro con 20% de óxido de zinc no nano, escualano y vitamina E.\n\n- SPF 50, UVA\n- Sin perfume, respetuoso con los arrecifes"
+      },
+      "categoryId": "creams",
+      "category": {
+        "id": "creams",
+        "slug": "creams",
+        "name": {
+          "en": "Creams",
+          "es": "Cremas",
+          "de": "Cremes",
+          "nl": "Crèmes"
+        },
+        "sortOrder": 2
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "ACCESSORY",
+      "specs": {
+        "keyPeptides": [],
+        "inci": "Zinc Oxide (20%), Aqua, Caprylic/Capric Triglyceride, Squalane, Glycerin, Polyglyceryl-3 Polyricinoleate, Cetearyl Alcohol, Tocopherol, Xanthan Gum, Phenoxyethanol, Ethylhexylglycerin",
+        "skinTypes": [
+          "All skin types",
+          "Sensitive"
+        ],
+        "texture": "Light lotion",
+        "ph": "7.0 – 7.5",
+        "pao": "12M",
+        "shelfLife": "24 months unopened",
+        "usage": "Apply generously as the last step in the morning. Reapply every 2 hours in direct sun."
+      },
+      "images": [
+        "/products/daily-spf-50.svg"
+      ],
+      "relatedIds": [
+        "hydra-peptide-daily-cream"
+      ],
+      "faqs": {
+        "en": [
+          {
+            "q": "Can I use this with retinol or vitamin C?",
+            "a": "Yes. Peptides layer well with most actives. Apply the thinnest texture first and let each layer absorb for a minute."
+          },
+          {
+            "q": "Morning or evening?",
+            "a": "Either. Many people use serums in the morning under SPF and creams at night."
+          },
+          {
+            "q": "Is it fragrance-free?",
+            "a": "Yes — all our formulas are fragrance-free and dye-free."
+          },
+          {
+            "q": "How long does a bottle last?",
+            "a": "Used once daily, a 30 ml serum lasts roughly 8–10 weeks."
+          },
+          {
+            "q": "Is it tested on animals?",
+            "a": "No. We don't test on animals and don't sell in markets that require it."
+          }
+        ],
+        "es": [
+          {
+            "q": "¿Puedo usarlo con retinol o vitamina C?",
+            "a": "Sí. Los péptidos combinan bien con la mayoría de activos. Aplica primero la textura más ligera y deja absorber cada capa un minuto."
+          },
+          {
+            "q": "¿Mañana o noche?",
+            "a": "Ambas. Muchas personas usan los sérums por la mañana bajo el SPF y las cremas por la noche."
+          },
+          {
+            "q": "¿Lleva perfume?",
+            "a": "No — todas nuestras fórmulas son sin perfume y sin colorantes."
+          },
+          {
+            "q": "¿Cuánto dura un envase?",
+            "a": "Con un uso diario, un sérum de 30 ml dura unas 8–10 semanas."
+          },
+          {
+            "q": "¿Se testa en animales?",
+            "a": "No. No testamos en animales ni vendemos en mercados que lo exijan."
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": "NPS-ACC-SPF-50ML",
+          "productId": "daily-spf-50",
+          "label": "50 ml",
+          "sizeMl": "50",
+          "priceCents": 2800,
+          "currency": "EUR",
+          "stock": 190,
+          "sku": "NPS-ACC-SPF-50ML",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": [
+        {
+          "id": "batch-daily-spf-50",
+          "productId": "daily-spf-50",
+          "batchNo": "B2409011",
+          "labName": "Eurofins Cosmetics Testing",
+          "tests": [
+            {
+              "name": "Microbial limits (ISO 17516)",
+              "result": "Pass"
+            },
+            {
+              "name": "Preservative efficacy (ISO 11930)",
+              "result": "Pass"
+            },
+            {
+              "name": "pH",
+              "result": "7.0 – 7.5"
+            },
+            {
+              "name": "Stability (3 months, 40 °C / 75% RH)",
+              "result": "Pass"
+            }
+          ],
+          "pdfPath": "/batch-tests/B2409011.pdf",
+          "issuedAt": "2026-08-11T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "travel-case",
+      "slug": "travel-case",
+      "sku": "NPS-ACC-CASE",
+      "name": {
+        "en": "Travel Case",
+        "es": "Estuche de Viaje"
+      },
+      "shortDescription": {
+        "en": "Padded recycled-fabric case that holds three 30 ml bottles and an eye cream.",
+        "es": "Estuche acolchado de tejido reciclado para tres frascos de 30 ml y un contorno de ojos."
+      },
+      "description": {
+        "en": "Keeps bottles upright and protected. Wipe-clean lining, zip closure.",
+        "es": "Mantiene los frascos en pie y protegidos. Forro lavable, cierre de cremallera."
+      },
+      "categoryId": "bundles",
+      "category": {
+        "id": "bundles",
+        "slug": "bundles",
+        "name": {
+          "en": "Bundles",
+          "es": "Packs",
+          "de": "Sets",
+          "nl": "Bundels"
+        },
+        "sortOrder": 4
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "ACCESSORY",
+      "specs": {
+        "keyPeptides": [],
+        "inci": "Recycled polyester, EVA foam.",
+        "skinTypes": [],
+        "texture": "—",
+        "ph": "—",
+        "pao": "—",
+        "shelfLife": "—",
+        "usage": "—"
+      },
+      "images": [
+        "/products/travel-case.svg"
+      ],
+      "relatedIds": [
+        "complete-routine-bundle"
+      ],
+      "faqs": {
+        "en": [],
+        "es": []
+      },
+      "variants": [
+        {
+          "id": "NPS-ACC-CASE-ONESIZE",
+          "productId": "travel-case",
+          "label": "One size",
+          "sizeMl": "0",
+          "priceCents": 1500,
+          "currency": "EUR",
+          "stock": 300,
+          "sku": "NPS-ACC-CASE-ONESIZE",
+          "sortOrder": 0
+        }
+      ],
+      "batchTests": []
+    }
+  ]
+}

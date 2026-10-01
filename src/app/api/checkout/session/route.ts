@@ -3,10 +3,12 @@ import { db } from "@/lib/db";
 import { expireOrder } from "@/lib/orders";
 import { enabledAdapters } from "@/lib/payments/registry";
 import { getSettings } from "@/lib/settings";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 // Loads a checkout session for the payment page. Lazily expires the order if
 // the reservation timer has passed.
 export async function GET(req: NextRequest) {
+  if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
   const token = req.nextUrl.searchParams.get("token") ?? "";
   const session = await db.checkoutSession.findUnique({ where: { token }, include: { order: { include: { items: true } } } });
   if (!session) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });

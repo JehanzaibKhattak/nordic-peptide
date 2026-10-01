@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { logEvent, markPaid } from "@/lib/orders";
 import { getAdapter } from "@/lib/payments/registry";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 // Return handler for redirect-based providers (Stripe, Ziina). Webhooks are
 // the primary signal; where the adapter supports it we also confirm the
@@ -9,6 +10,7 @@ import { getAdapter } from "@/lib/payments/registry";
 // and a missed webhook can't strand a paid order.
 export async function GET(req: NextRequest, { params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  if (BROWSE_ONLY) return NextResponse.redirect(new URL(`/${locale}/shop`, req.url));
   const token = req.nextUrl.searchParams.get("session") ?? "";
   const session = await db.checkoutSession.findUnique({ where: { token }, include: { order: true } });
   const base = process.env.STORE_BASE_URL ?? req.nextUrl.origin;

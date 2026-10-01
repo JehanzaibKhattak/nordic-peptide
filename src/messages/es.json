@@ -1,6 +1,6 @@
 {
   "brand": { "tagline": "Cuidado de la piel con péptidos, sin complicaciones." },
-  "banner": "Envío el mismo día antes de las 16:00 · Envío gratis en la UE a partir de 75 €",
+  "banner": "Vista previa · Las compras online aún no están disponibles",
   "nav": {
     "shop": "Tienda",
     "serums": "Sérums",
@@ -51,6 +51,8 @@
     "readMore": "Leer más"
   },
   "product": {
+    "previewOnly": "Solo vista previa",
+    "browseOnlyMessage": "Esta es una vista previa. Las compras online aún no están disponibles.",
     "popular": "Popular",
     "from": "Desde {price}",
     "addToCart": "Añadir al carrito",
@@ -103,6 +105,7 @@
   },
   "cart": {
     "title": "Tu carrito",
+    "browseOnly": "Esta vista previa aún no admite carritos ni pagos.",
     "empty": "Tu carrito está vacío.",
     "continue": "Seguir comprando",
     "coupon": "Código de descuento",
@@ -121,6 +124,8 @@
   },
   "checkout": {
     "title": "Finalizar compra",
+    "browseOnly": "El pago online no está disponible en esta vista previa.",
+    "browseCollection": "Ver la colección",
     "step1": "Paso 1 de 2 · Datos",
     "step2": "Paso 2 de 2 · Pago",
     "contact": "Contacto",

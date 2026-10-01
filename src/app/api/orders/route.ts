@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createOrder, OrderError } from "@/lib/orders";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { LOCALES } from "@/lib/types";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 const address = z.object({
   firstName: z.string().min(1).max(80),
@@ -27,6 +28,7 @@ const body = z.object({
 });
 
 export async function POST(req: Request) {
+  if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
   const rl = rateLimit(`orders:${clientIp(req)}`, 10, 60_000);
   if (!rl.ok) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
 

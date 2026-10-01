@@ -3,11 +3,13 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { logEvent, markPaid } from "@/lib/orders";
 import { mockAdapter, mockOutcome } from "@/lib/payments/mock";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 const body = z.object({ token: z.string().min(10), cardNumber: z.string().min(12) });
 
 // Mock card confirmation. Acts as both the "gateway" and its webhook.
 export async function POST(req: Request) {
+  if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
   if (!mockAdapter.isEnabled()) return NextResponse.json({ ok: false, error: "adapter_disabled" }, { status: 400 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid_body" }, { status: 400 });

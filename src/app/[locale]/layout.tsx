@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getCategories } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { LOCALES } from "@/lib/types";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -63,7 +64,7 @@ export default async function LocaleLayout({
             categories={categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }))}
             legalEntity={settings.legalEntityName}
           />
-          <CartDrawer />
+          {!BROWSE_ONLY && <CartDrawer />}
           <ConsentBanner />
           <Toaster position="bottom-center" />
         </NextIntlClientProvider>

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAdapter } from "@/lib/payments/registry";
 import { expireOrder, logEvent, markPaid, markRefunded } from "@/lib/orders";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 // Provider webhooks. Signature verification lives in the adapter; state
 // transitions are idempotent so provider retries are safe.
 export async function POST(req: Request, { params }: { params: Promise<{ provider: string }> }) {
+  if (BROWSE_ONLY) return NextResponse.json({ error: "browse_only" }, { status: 503 });
   const { provider } = await params;
   const adapter = getAdapter(provider);
   if (!adapter) return NextResponse.json({ error: "unknown_provider" }, { status: 404 });

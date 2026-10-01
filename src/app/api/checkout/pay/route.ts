@@ -4,12 +4,14 @@ import { db } from "@/lib/db";
 import { logEvent } from "@/lib/orders";
 import { getAdapter } from "@/lib/payments/registry";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 const body = z.object({ token: z.string().min(10), adapterId: z.string() });
 
 // Initiates payment with the chosen adapter. Session stays readable for page
 // reloads; the order itself guards against double payment (markPaid is idempotent).
 export async function POST(req: Request) {
+  if (BROWSE_ONLY) return NextResponse.json({ error: "browse_only" }, { status: 503 });
   if (!rateLimit(`pay:${clientIp(req)}`, 20, 60_000).ok) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid_body" }, { status: 400 });

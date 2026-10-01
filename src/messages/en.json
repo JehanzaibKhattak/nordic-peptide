@@ -3,7 +3,7 @@
     "name": "Nordic Peptide Skin",
     "tagline": "Peptide skincare, made simple."
   },
-  "banner": "Same-day dispatch before 16:00 · Free EU shipping over €75",
+  "banner": "Browse preview · Online purchasing is not available yet",
   "nav": {
     "shop": "Shop",
     "serums": "Serums",
@@ -55,6 +55,8 @@
   },
   "product": {
     "popular": "Popular",
+    "previewOnly": "Preview only",
+    "browseOnlyMessage": "This is a browse-only preview. Online purchasing is not available yet.",
     "from": "From {price}",
     "addToCart": "Add to cart",
     "added": "Added to cart",
@@ -115,6 +117,7 @@
   },
   "cart": {
     "title": "Your cart",
+    "browseOnly": "This preview does not support carts or checkout yet.",
     "empty": "Your cart is empty.",
     "continue": "Continue shopping",
     "coupon": "Coupon code",
@@ -133,6 +136,8 @@
   },
   "checkout": {
     "title": "Checkout",
+    "browseOnly": "Online checkout is not available in this preview.",
+    "browseCollection": "Browse the collection",
     "step1": "Step 1 of 2 · Details",
     "step2": "Step 2 of 2 · Payment",
     "contact": "Contact",

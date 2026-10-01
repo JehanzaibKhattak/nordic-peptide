@@ -15,6 +15,7 @@ import { getProductBySlug, getProducts, getProductsByIds } from "@/lib/queries";
 import { getSettings } from "@/lib/settings";
 import { toCard } from "@/lib/card";
 import { t as lt, type Faq, type LocalizedFaqs, type ProductSpecs } from "@/lib/types";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -119,14 +120,18 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           {/* reads ?variant= via useSearchParams → needs a Suspense boundary for static prerender */}
-          <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-secondary" />}>
-          <PurchasePanel
-            product={{ id: product.id, slug: product.slug, name, image: images[0], keyPeptides: specs.keyPeptides }}
-            variants={product.variants.map((v) => ({ id: v.id, label: v.label, sizeMl: Number(v.sizeMl), priceCents: v.priceCents, stock: v.stock }))}
-            labName={lab}
-            reviews={{ rating: settings.reviewsRating, count: settings.reviewsCount }}
-          />
-          </Suspense>
+          {BROWSE_ONLY ? (
+            <p className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">{t("browseOnlyMessage")}</p>
+          ) : (
+            <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-secondary" />}>
+              <PurchasePanel
+                product={{ id: product.id, slug: product.slug, name, image: images[0], keyPeptides: specs.keyPeptides }}
+                variants={product.variants.map((v) => ({ id: v.id, label: v.label, sizeMl: Number(v.sizeMl), priceCents: v.priceCents, stock: v.stock }))}
+                labName={lab}
+                reviews={{ rating: settings.reviewsRating, count: settings.reviewsCount }}
+              />
+            </Suspense>
+          )}
 
           <Tabs defaultValue="ingredients">
             <TabsList className="w-full">

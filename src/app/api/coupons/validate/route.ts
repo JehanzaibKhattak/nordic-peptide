@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { applyCoupon } from "@/lib/coupons";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 const body = z.object({ code: z.string().min(1).max(40), subtotalCents: z.number().int().min(0) });
 
 export async function POST(req: Request) {
+  if (BROWSE_ONLY) return NextResponse.json({ ok: false, reason: "browse_only" }, { status: 503 });
   if (!rateLimit(`coupon:${clientIp(req)}`, 30, 60_000).ok) return NextResponse.json({ ok: false, reason: "rate_limited" }, { status: 429 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, reason: "invalid" }, { status: 400 });
