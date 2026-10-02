@@ -1,11 +1,14 @@
 {
-  "brand": { "name": "Avion-PEPT", "tagline": "Péptidos verificados, enviados con cuidado." },
-  "banner": "Vista previa · Las compras online aún no están disponibles",
+  "brand": {
+    "name": "Avion-PEPT",
+    "tagline": "Compuestos y combinaciones de péptidos."
+  },
+  "banner": "Vista previa del catálogo",
   "nav": {
     "shop": "Productos",
-    "serums": "Sérums",
-    "bundles": "Packs",
-    "testing": "Pruebas de pureza",
+    "serums": "Péptidos",
+    "bundles": "Combinaciones de péptidos",
+    "testing": "Documentos de lote",
     "journal": "Notas de investigación",
     "calculator": "Calculadora de péptidos",
     "contact": "Contacto",
@@ -14,11 +17,11 @@
     "language": "Idioma"
   },
   "home": {
-    "heroTitle": "Péptidos de investigación en Europa",
-    "heroTitleSecond": "verificados y enviados con cuidado.",
-    "heroSub": "Avion-PEPT ofrece péptidos de investigación en Europa. Los productos se analizan de forma independiente, se envían antes de las 16:00 y suelen llegar en 1–2 días. Embalaje discreto y documentación por lote.",
-    "ctaPrimary": "Ver la colección",
-    "ctaSecondary": "Consultar pruebas de pureza",
+    "heroTitle": "Compuestos y combinaciones de péptidos",
+    "heroTitleSecond": "",
+    "heroSub": "Explora el catálogo inicial de productos Avion-PEPT.",
+    "ctaPrimary": "Ver productos",
+    "ctaSecondary": "",
     "reviews": "{rating}/5 de {count} opiniones",
     "trust": {
       "purity": "Más del 99 % de pureza",
@@ -34,14 +37,14 @@
     "all": "Todo",
     "collectionEyebrow": "De nuestro catálogo",
     "viewAll": "Ver todos los productos",
-    "whyTitle": "Por qué nos eligen",
+    "whyTitle": "Sobre el catálogo",
     "why": {
-      "a": "Fórmulas transparentes",
-      "aSub": "Lista INCI completa y porcentajes de péptidos en cada producto. Sin mezclas secretas.",
-      "b": "Analizado, no solo prometido",
-      "bSub": "Informes de laboratorio independientes por lote, buscables con el número de tu caja.",
-      "c": "Diseñado para tu rutina",
-      "cSub": "Texturas que se superponen bien y combinan con retinoides, vitamina C y SPF."
+      "a": "Nombres de productos y códigos SKU",
+      "aSub": "Las fichas utilizan los nombres y códigos proporcionados para la gama inicial.",
+      "b": "Cantidad y volumen",
+      "bSub": "Cada ficha muestra la cantidad y el volumen indicados para ese SKU.",
+      "c": "Una gama en expansión",
+      "cSub": "El catálogo podrá ampliarse cuando se proporcione información adicional."
     },
     "stats": {
       "batches": "Lotes analizados",
@@ -67,7 +70,11 @@
     "chooseSize": "Elige el tamaño",
     "whichSize": "¿Qué producto es para mí?",
     "qty": "Cantidad",
-    "stats": { "peptides": "Péptidos clave", "tested": "Analizado por", "reviews": "Opiniones" },
+    "stats": {
+      "peptides": "Péptidos clave",
+      "tested": "Analizado por",
+      "reviews": "Opiniones"
+    },
     "delivery": {
       "title": "Entrega rápida a {country}",
       "change": "Cambiar",
@@ -76,7 +83,11 @@
       "cutoffPassed": "Hora límite pasada — se envía el próximo día laborable",
       "discreet": "Embalaje neutro — reciclable, sin nombre del producto en el exterior"
     },
-    "tabs": { "ingredients": "Ingredientes", "howToUse": "Modo de uso", "details": "Detalles" },
+    "tabs": {
+      "ingredients": "Información del producto",
+      "howToUse": "Información adicional",
+      "details": "Detalles del catálogo"
+    },
     "trustRows": {
       "tested": "Lote analizado — estabilidad, microbiología y pH",
       "shipping": "Envío con seguimiento en UE y Reino Unido",
@@ -84,18 +95,18 @@
       "returns": "Devoluciones en 30 días para productos sin abrir"
     },
     "faq": "Preguntas sobre el producto",
-    "alsoNeed": "Completa tu rutina",
+    "alsoNeed": "Más productos",
     "related": "Productos relacionados",
-    "notice": "Producto cosmético. Solo para uso externo. Haz una prueba en una zona pequeña antes del primer uso y evita el contacto con los ojos. Suspende el uso si aparece irritación.",
+    "notice": "Solo información del catálogo.",
     "specs": {
-      "keyPeptides": "Péptidos clave",
-      "skinTypes": "Indicado para",
-      "texture": "Textura",
-      "ph": "pH",
-      "pao": "Plazo tras la apertura",
-      "shelfLife": "Caducidad",
+      "keyPeptides": "Nombre del compuesto",
+      "skinTypes": "Cantidad / volumen",
+      "texture": "Forma del producto",
+      "ph": "SKU",
+      "pao": "—",
+      "shelfLife": "—",
       "sku": "SKU",
-      "inci": "Ingredientes completos (INCI)"
+      "inci": "—"
     },
     "sizeGuide": {
       "title": "¿Qué producto es para mí?",
@@ -198,21 +209,24 @@
     "status": "Estado"
   },
   "testing": {
-    "title": "Análisis de lotes",
-    "intro": "Cada lote de producción es analizado por un laboratorio independiente para estabilidad, seguridad microbiana y pH. Encuentra el número de lote en la base del envase o la caja.",
+    "title": "Documentos de lote",
+    "intro": "Actualmente no hay documentos de lote publicados en esta vista previa del catálogo.",
     "search": "Buscar por número de lote",
     "batch": "Lote",
     "product": "Producto",
     "lab": "Laboratorio",
     "issued": "Fecha",
     "report": "Informe",
-    "noResults": "Ningún lote coincide con ese número.",
+    "noResults": "No hay documentos de lote disponibles actualmente.",
     "download": "Descargar PDF"
   },
-  "journal": { "title": "Blog", "intro": "Notas sobre péptidos, formulación y rutinas de cuidado de la piel." },
+  "journal": {
+    "title": "Blog",
+    "intro": "Información de productos y novedades del catálogo."
+  },
   "contact": {
     "title": "Contacto",
-    "intro": "¿Dudas sobre un pedido o un producto? Respondemos en un día laborable.",
+    "intro": "Envía un mensaje a Avion-PEPT.",
     "name": "Nombre",
     "email": "Correo electrónico",
     "message": "Mensaje",
@@ -257,5 +271,12 @@
     "accept": "Aceptar todas",
     "necessary": "Solo necesarias"
   },
-  "common": { "home": "Inicio", "back": "Volver", "loading": "Cargando…", "close": "Cerrar", "save": "Guardar", "search": "Buscar" }
+  "common": {
+    "home": "Inicio",
+    "back": "Volver",
+    "loading": "Cargando…",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "search": "Buscar"
+  }
 }

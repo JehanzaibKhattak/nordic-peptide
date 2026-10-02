@@ -10,9 +10,9 @@ import { CartDrawer } from "@/components/store/cart-drawer";
 import { ConsentBanner } from "@/components/layout/consent-banner";
 import { Gtm } from "@/components/layout/gtm";
 import { AffiliateCapture } from "@/lib/affiliate/capture";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { Toaster } from "@/components/ui/sonner";
-import { getCategories } from "@/lib/queries";
-import { getSettings } from "@/lib/settings";
+import { getProducts } from "@/lib/queries";
 import { LOCALES } from "@/lib/types";
 import { BROWSE_ONLY } from "@/lib/deployment-mode";
 import "../globals.css";
@@ -50,7 +50,7 @@ export default async function LocaleLayout({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
-  const [categories, settings] = await Promise.all([getCategories(), getSettings()]);
+  const products = await getProducts();
 
   return (
     <html lang={locale} className={inter.variable} suppressHydrationWarning>
@@ -60,10 +60,8 @@ export default async function LocaleLayout({
           <AffiliateCapture />
           <Header />
           <main className="min-h-[60dvh]">{children}</main>
-          <Footer
-            categories={categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }))}
-            legalEntity={settings.legalEntityName}
-          />
+          <Footer products={products.map((p) => ({ sku: p.sku, slug: p.slug, name: p.name as Record<string, string>, variants: p.variants.map((v) => ({ label: v.label })) }))} />
+          <WhatsAppButton phone={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ""} />
           {!BROWSE_ONLY && <CartDrawer />}
           <ConsentBanner />
           <Toaster position="bottom-center" />

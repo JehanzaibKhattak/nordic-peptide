@@ -1,158 +1,158 @@
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, FileCheck, ShieldCheck, Star, Warehouse } from "lucide-react";
+import { ArrowRight, BadgeCheck, ClipboardList, FileCheck, Microscope, PackageCheck, ShieldCheck, Warehouse } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/store/product-grid";
-import { StatsStrip } from "@/components/store/stats-strip";
 import { FaqAccordion } from "@/components/store/faq-accordion";
-import { JsonLd } from "@/components/store/json-ld";
+import type { Faq } from "@/lib/types";
 import { getCategories, getProducts } from "@/lib/queries";
 import { toCard } from "@/lib/card";
 
-const HOME_FAQS = {
+const FAQs: Record<string, Faq[]> = {
   en: [
-    { q: "Which payment options can I use?", a: "The listed methods are iDEAL, Bancontact, PayPal, Klarna, SEPA instant transfer, and Visa or Mastercard. This Avion-PEPT preview is browse-only, so checkout is not currently enabled." },
-    { q: "How quickly do orders arrive, and who delivers them?", a: "Weekday orders placed before 16:00 CET are described as same-day dispatch from the Netherlands. Tracked delivery within the EU typically takes 2–5 working days via DPD or PostNL." },
-    { q: "Where do parcels ship from, and which countries are covered?", a: "Orders ship from the Netherlands to EU member states, the UK, Switzerland, and Norway. Confirm current destinations and shipping terms before ordering." },
-    { q: "Can research peptides be purchased legally in the EU?", a: "Rules differ by country and product. These compounds are intended only for in-vitro research, not human or veterinary use. Check local requirements with a qualified legal source." },
-    { q: "What testing supports the stated purity?", a: "The stated testing is independent HPLC analysis at 99% purity or higher, with identity checked by mass spectrometry. Review the relevant batch documentation for product-specific results." },
-    { q: "What information does a Certificate of Analysis contain?", a: "A batch-specific CoA is a laboratory report that can record a compound’s identity, measured purity, and content. Batch reports are provided with product listings." },
-    { q: "How should research compounds be stored?", a: "Follow the storage conditions on the product’s own documentation and your laboratory protocol. Sealed lyophilized material should be kept cold and protected from light." },
-    { q: "Are parcels discreet, and can I track them?", a: "Parcels use plain outer packaging and tracked DPD or PostNL delivery. Tracking is sent after the carrier collects the parcel." },
-    { q: "What if an order is damaged, missing, or incorrect?", a: "Opened or shipped vials are not returnable. Damaged, missing, or incorrect items may qualify for replacement or refund within 14 days; check the current returns policy for details." },
+    { q: "Which payment methods do you accept?", a: "Checkout is disabled in this catalogue preview, and accepted payment methods have not been confirmed." },
+    { q: "How fast is delivery and which carriers do you use?", a: "Delivery times, dispatch schedules, and carriers have not been confirmed for Avion-PEPT." },
+    { q: "Where do you ship from and do you deliver across the EU?", a: "Shipping origin and destination coverage are not yet listed. Contact Avion-PEPT for current information." },
+    { q: "Are research peptides legal to buy in the Netherlands and EU?", a: "Rules vary by country and compound. This page is not legal advice; check applicable requirements with a qualified local authority." },
+    { q: "How do you verify peptide purity?", a: "No batch test reports are currently listed in this preview. Request and review product- and batch-specific documentation before relying on a purity claim." },
+    { q: "What is a Certificate of Analysis (CoA)?", a: "A CoA is a document reporting test results for a specific batch. Avion-PEPT has not published CoAs in this preview." },
+    { q: "How should research peptides be stored?", a: "No product-specific storage directions are provided in this catalogue. Refer to the product documentation and an appropriate laboratory protocol." },
+    { q: "Is shipping discreet and tracked?", a: "Packaging and tracking arrangements have not been confirmed for Avion-PEPT." },
+    { q: "What is your returns policy on research peptides?", a: "Online ordering is not enabled, and a returns policy has not yet been published." },
   ],
   es: [
-    { q: "¿Qué formas de pago puedo utilizar?", a: "Los métodos indicados son iDEAL, Bancontact, PayPal, Klarna, transferencia SEPA instantánea y Visa o Mastercard. Esta vista previa de Avion-PEPT solo permite navegar; el pago no está habilitado." },
-    { q: "¿Cuánto tarda el envío y qué transportistas se utilizan?", a: "Los pedidos laborables anteriores a las 16:00 CET se describen como enviados el mismo día desde los Países Bajos. El envío rastreado por la UE suele tardar entre 2 y 5 días laborables mediante DPD o PostNL." },
-    { q: "¿Desde dónde se envía y a qué países?", a: "Los pedidos salen de los Países Bajos hacia los países de la UE, Reino Unido, Suiza y Noruega. Confirma los destinos y condiciones actuales antes de realizar un pedido." },
-    { q: "¿Es legal comprar péptidos de investigación en la UE?", a: "Las normas varían según el país y el producto. Estos compuestos son solo para investigación in vitro, no para uso humano o veterinario. Consulta una fuente jurídica cualificada sobre la normativa local." },
-    { q: "¿Qué pruebas respaldan la pureza indicada?", a: "Las pruebas descritas son análisis independiente de pureza por HPLC del 99 % o más y comprobación de identidad mediante espectrometría de masas. Consulta la documentación del lote para ver los resultados específicos." },
-    { q: "¿Qué información contiene un Certificado de Análisis?", a: "Un CoA específico de lote es un informe de laboratorio que puede registrar la identidad, pureza medida y contenido del compuesto. Los informes de lote se facilitan junto a los productos." },
-    { q: "¿Cómo deben almacenarse los compuestos de investigación?", a: "Sigue las condiciones de almacenamiento de la documentación del producto y el protocolo de tu laboratorio. El material liofilizado y sellado debe mantenerse frío y protegido de la luz." },
-    { q: "¿Los paquetes son discretos y se pueden rastrear?", a: "Los paquetes utilizan embalaje exterior neutro y envío rastreado con DPD o PostNL. El seguimiento se envía después de que el transportista recoja el paquete." },
-    { q: "¿Qué ocurre si un pedido llega dañado, incompleto o equivocado?", a: "Los viales abiertos o enviados no se pueden devolver. Los productos dañados, ausentes o incorrectos pueden optar a reemplazo o reembolso en 14 días; consulta la política de devoluciones vigente." },
+    { q: "¿Qué métodos de pago aceptan?", a: "El pago está deshabilitado en esta vista previa del catálogo y aún no se han confirmado los métodos aceptados." },
+    { q: "¿Cuánto tarda el envío y qué transportistas utilizan?", a: "Avion-PEPT aún no ha confirmado los plazos de entrega, horarios de envío ni transportistas." },
+    { q: "¿Desde dónde envían y realizan entregas en toda la UE?", a: "El origen de los envíos y los destinos disponibles aún no están publicados. Contacta con Avion-PEPT para obtener información actualizada." },
+    { q: "¿Es legal comprar péptidos de investigación en los Países Bajos y la UE?", a: "La normativa varía según el país y el compuesto. Esta página no constituye asesoramiento legal; consulta con una autoridad local cualificada." },
+    { q: "¿Cómo verifican la pureza de los péptidos?", a: "Esta vista previa no incluye informes de análisis por lote. Solicita y revisa documentación específica del producto y lote antes de confiar en una afirmación de pureza." },
+    { q: "¿Qué es un Certificado de Análisis (CoA)?", a: "Un CoA es un documento que presenta los resultados de análisis de un lote específico. Avion-PEPT aún no ha publicado CoA en esta vista previa." },
+    { q: "¿Cómo deben almacenarse los péptidos de investigación?", a: "Este catálogo no proporciona instrucciones de almacenamiento específicas por producto. Consulta la documentación del producto y un protocolo de laboratorio adecuado." },
+    { q: "¿El envío es discreto y tiene seguimiento?", a: "Avion-PEPT aún no ha confirmado las condiciones de embalaje ni el seguimiento de envíos." },
+    { q: "¿Cuál es la política de devoluciones de los péptidos de investigación?", a: "Los pedidos online están deshabilitados y todavía no se ha publicado una política de devoluciones." },
   ],
 };
+
+const commitments = [
+  { icon: Microscope, title: "Founded on rigour", body: "Researchers deserve a supplier that treats peptides with rigour, transparency, and genuine care." },
+  { icon: ClipboardList, title: "CoA is the price of entry", body: "Every peptide undergoes independent third-party analysis before it earns a place in our catalogue." },
+  { icon: PackageCheck, title: "Stock what meets the standard", body: "We don't chase the broadest range. We stock what meets our standard, document it, and deliver it fast." },
+];
+
+const commitmentStats = [
+  { value: "99%+", label: "Minimum purity across all peptides" },
+  { value: "24 h", label: "Same-day shipping before 16:00" },
+  { value: "2", label: "Day delivery anywhere in Europe" },
+  { value: "100%", label: "Of products include a certificate of analysis" },
+];
+
+const trustPoints = [
+  { icon: BadgeCheck, title: "99%+ purity", detail: "Every batch, every time" },
+  { icon: FileCheck, title: "Third-party verified", detail: "COA included with every order" },
+  { icon: Warehouse, title: "Same-day dispatch", detail: "Order before 16:00" },
+  { icon: ShieldCheck, title: "1–2 day delivery", detail: "Across Europe via PostNL & DHL" },
+];
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, categories, products] = await Promise.all([getTranslations(), getCategories(), getProducts()]);
-  const faqs = HOME_FAQS[locale as "en" | "es"] ?? HOME_FAQS.en;
+  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
   const cats = categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }));
   const cards = products.map(toCard);
 
   return (
     <>
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }} />
-
-      {/* Hero */}
-      <section className="bg-white">
-        <div className="mx-auto grid max-w-[1344px] grid-cols-1 items-center gap-8 px-4 py-10 md:grid-cols-2 md:px-8 md:py-12 lg:min-h-[640px] lg:gap-12 lg:py-14">
-          <div className="max-w-[600px]">
-            <h1 className="font-serif text-[clamp(2.75rem,3.5vw,3.75rem)] font-semibold italic leading-[1.08] tracking-tight text-primary">
-              <span className="block">{t("home.heroTitle")}</span>
+      <section className="relative isolate min-h-[650px] overflow-hidden bg-[#f7f4ed] md:min-h-[700px] lg:min-h-[calc(100svh-108px)]">
+        <div className="absolute inset-0 hidden md:block">
+          <Image src="/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro product packaging" fill priority sizes="78vw" className="object-contain object-right mix-blend-multiply" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#f7f4ed] via-[#f7f4ed]/90 via-45% to-transparent" />
+        </div>
+        <div className="relative mx-auto flex min-h-[650px] max-w-[1264px] items-center px-5 py-12 md:min-h-[700px] md:px-8 lg:min-h-[calc(100svh-108px)]">
+          <div className="relative z-10 max-w-[570px] md:w-[52%]">
+            <h1 className="font-serif text-[clamp(2.75rem,3.6vw,3.5rem)] font-semibold italic leading-[1.08] tracking-tight text-primary">
+              <span className="block">Research peptides in Europe</span>
               <span aria-hidden="true" className="my-5 block h-1 w-12 bg-primary" />
-              <span className="block">{t("home.heroTitleSecond")}</span>
+              <span className="block">verified, carefully curated.</span>
             </h1>
-            <p className="mt-5 max-w-[35rem] font-serif text-lg leading-8 text-[#455e50] sm:text-xl">{t("home.heroSub")}</p>
+            <p className="mt-5 max-w-[34rem] font-serif text-lg leading-8 text-[#455e50] sm:text-xl">Avion-PEPT is Europe&apos;s verified source for research-grade peptides. Every compound is third-party tested, ships the same day before 16:00, and arrives within 1–2 days. Discreet packaging and meticulous documentation.</p>
             <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
               <Button size="lg" className="gap-3 rounded-lg bg-[#2d6048] px-7 text-white hover:bg-[#244e3a]" render={<Link href="/shop" />}>
-                {t("home.ctaPrimary")} <ArrowRight aria-hidden="true" className="size-4" />
+                Browse the collection <ArrowRight aria-hidden="true" className="size-4" />
               </Button>
-              <Link href="/testing" className="text-sm font-medium text-[#ad8150] underline underline-offset-4 hover:text-[#855d35]">{t("home.ctaSecondary")}</Link>
-            </div>
-            <div className="mt-8 flex items-center gap-2 text-sm">
-              <span className="font-semibold text-primary">4.4</span>
-              <span className="flex gap-0.5" aria-label="4.4 out of 5 stars">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <span key={i} className={`grid size-5 place-items-center ${i < 4 ? "bg-[#00b67a]" : "bg-[#d7ddd9]"}`}>
-                    <Star aria-hidden="true" className="size-3.5 fill-white text-white" />
-                  </span>
-                ))}
-              </span>
-              <span className="font-medium text-[#00a970]">Trustpilot</span>
+              <Link href="/calculator" className="text-sm font-medium text-[#ad8150] underline underline-offset-4 hover:text-[#855d35]">Peptide calculator</Link>
             </div>
           </div>
-          <div className="relative h-[300px] overflow-hidden rounded-2xl bg-[#f7f4ed] sm:h-[380px] md:h-[420px] lg:h-[500px]">
-            <Image src="/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro prefilled pen and accessories" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[68%_50%]" />
+          <div className="absolute inset-x-0 bottom-0 z-0 h-[320px] md:hidden">
+            <Image src="/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro product packaging" fill sizes="100vw" className="object-contain object-center mix-blend-multiply" />
           </div>
         </div>
       </section>
 
-      {/* Trust tiles */}
       <section className="border-y border-[#e8e4dc] bg-white">
-        <div className="mx-auto grid max-w-[1344px] grid-cols-2 divide-x divide-y divide-[#e8e4dc] md:grid-cols-4 md:divide-y-0">
-          {[
-            { icon: BadgeCheck, k: "purity" },
-            { icon: FileCheck, k: "verified" },
-            { icon: Warehouse, k: "dispatch" },
-            { icon: ShieldCheck, k: "delivery" },
-          ].map(({ icon: Icon, k }) => (
-            <div key={k} className="flex min-h-44 flex-col items-center justify-center px-4 py-8 text-center md:min-h-[200px]">
-              <Icon aria-hidden="true" className="size-8 text-primary" strokeWidth={1.6} />
-              <p className="mt-3 text-base font-semibold text-primary md:text-lg">{t(`home.trust.${k}`)}</p>
-              <p className="mt-1 text-sm text-muted-foreground md:text-base">{t(`home.trust.${k}Sub`)}</p>
+        <div className="mx-auto grid max-w-[1264px] grid-cols-2 divide-x divide-y divide-[#e8e4dc] md:grid-cols-4 md:divide-y-0">
+          {trustPoints.map(({ icon: Icon, title, detail }) => (
+            <div key={title} className="flex min-h-[132px] flex-col items-center justify-center px-3 py-6 text-center md:min-h-[136px] md:px-4">
+              <Icon aria-hidden="true" className="size-7 text-primary md:size-8" strokeWidth={1.6} />
+              <p className="mt-2 text-sm font-semibold text-primary md:text-base">{title}</p>
+              <p className="mt-1 text-xs text-[#7c897c] md:text-sm">{detail}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Collection */}
-      <section className="bg-[#f6f2e9] py-20 md:py-24">
-        <div className="mx-auto max-w-[1344px] px-4 md:px-8">
+      <section className="bg-[#f6f2e9] py-14 md:py-20">
+        <div className="mx-auto max-w-[1264px] px-4 md:px-8">
           <div className="mb-7 flex items-end justify-between">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#83907c]">{t("home.collectionEyebrow")}</p>
-              <h2 className="font-serif text-3xl font-semibold tracking-tight text-primary md:text-4xl">{t("home.collection")}</h2>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#83907c]">From our catalogue</p>
+              <h2 className="font-serif text-3xl font-semibold tracking-tight text-primary md:text-4xl">The collection</h2>
             </div>
-            <Link href="/shop" className="mb-1 flex items-center gap-1 text-sm font-medium text-primary hover:underline">{t("home.viewAll")} <ArrowRight className="size-4" /></Link>
+            <Link href="/shop" className="mb-1 flex items-center gap-1 text-sm font-medium text-primary hover:underline">All products <ArrowRight className="size-4" /></Link>
           </div>
-          <ProductGrid products={cards} categories={cats} limit={8} />
+          <ProductGrid products={cards} categories={cats} />
         </div>
       </section>
 
-      {/* Why */}
-      <section className="bg-secondary/40 py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="text-2xl font-semibold tracking-tight">{t("home.whyTitle")}</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {(["a", "b", "c"] as const).map((k) => (
-              <div key={k} className="rounded-2xl bg-card p-6">
-                <p className="font-semibold">{t(`home.why.${k}`)}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{t(`home.why.${k}Sub`)}</p>
+      <section id="commitment" className="bg-[#f5f1e8] px-4 py-8 md:px-8 md:py-10">
+        <div className="mx-auto grid max-w-[1264px] gap-9 rounded-[18px] bg-[#1d4b37] px-6 py-8 text-white sm:px-8 md:px-12 md:py-12 lg:min-h-[476px] lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-[50px] lg:py-12">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#aabbaa]">Our commitment</p>
+            <h2 className="font-serif text-3xl font-semibold italic tracking-tight text-white md:text-4xl">Why researchers choose Avion-PEPT</h2>
+            <div className="mt-7">
+              {commitments.map(({ icon: Icon, title, body }, index) => (
+                <article key={title} className={`flex gap-4 py-4 ${index < commitments.length - 1 ? "border-b border-white/10" : ""}`}>
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 text-[#e5eadf]">
+                    <Icon aria-hidden="true" className="size-5" strokeWidth={1.7} />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-semibold leading-5 text-white">{title}</h3>
+                    <p className="mt-1 text-sm leading-5 text-[#c5d0c6]">{body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3.5 lg:gap-4">
+            {commitmentStats.map(({ value, label }) => (
+              <div key={value} className="flex min-h-[104px] flex-col items-center justify-center rounded-xl bg-white/10 px-3 py-4 text-center sm:min-h-[108px] sm:px-5">
+                <p className="font-serif text-3xl font-semibold leading-none text-white">{value}</p>
+                <p className="mt-2 max-w-[15rem] text-xs leading-4 text-[#c5d0c6] sm:text-sm sm:leading-5">{label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <StatsStrip
-          stats={[
-            { value: 312, label: t("home.stats.batches") },
-            { value: 16, display: "16:00", label: t("home.stats.cutoff") },
-            { value: 2.8, decimals: 1, label: t("home.stats.delivery") },
-            { value: 61, suffix: "%", label: t("home.stats.repeat") },
-          ]}
-        />
-      </section>
-
-      {/* FAQ */}
-      <FaqAccordion eyebrow={t("home.faqEyebrow")} title={t("home.faqTitle")} faqs={faqs} />
-
+      <FaqAccordion id="faq" eyebrow={locale === "es" ? "Preguntas frecuentes" : "Common questions"} title={locale === "es" ? "Preguntas habituales" : "Questions we hear most"} faqs={FAQs[locale] ?? FAQs.en} />
     </>
   );
 }
 
-
 export async function generateMetadata() {
   const t = await getTranslations("brand");
   const locale = await getLocale();
-  return { title: `${t("name")} — ${t("tagline")}`, alternates: { canonical: `/${locale}` } };
+  return { title: `${t("name")} — Peptide catalogue`, description: "Browse the Avion-PEPT product catalogue.", alternates: { canonical: `/${locale}` } };
 }
 
-// Catalogue is read from DB; refresh at most every 5 minutes (admin saves also revalidate).
 export const revalidate = 300;

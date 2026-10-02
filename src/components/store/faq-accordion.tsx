@@ -2,10 +2,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Plus } from "lucide-react";
 import type { Faq } from "@/lib/types";
 
-export function FaqAccordion({ faqs, eyebrow, title }: { faqs: Faq[]; eyebrow?: string; title?: string }) {
+export function FaqAccordion({ faqs, eyebrow, title, id }: { faqs: Faq[]; eyebrow?: string; title?: string; id?: string }) {
   if (!faqs.length) return null;
   return (
-    <section className="bg-[#f4f0e9] py-12 md:py-14">
+    <section id={id} className="bg-[#f4f0e9] py-12 md:py-14">
       <div className="mx-auto max-w-[1328px] px-5 md:px-8">
         {eyebrow && <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{eyebrow}</p>}
         {title && <h2 className="mb-8 font-serif text-3xl font-semibold tracking-tight text-primary md:mb-10 md:text-4xl">{title}</h2>}

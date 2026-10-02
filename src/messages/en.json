@@ -1,14 +1,14 @@
 {
   "brand": {
     "name": "Avion-PEPT",
-    "tagline": "Verified peptides, dispatched with care."
+    "tagline": "Research-grade peptides and blends."
   },
-  "banner": "Browse preview · Online purchasing is not available yet",
+  "banner": "Product catalogue preview",
   "nav": {
     "shop": "Products",
-    "serums": "Serums",
-    "bundles": "Bundles",
-    "testing": "Purity tests",
+    "serums": "Peptides",
+    "bundles": "Peptide blends",
+    "testing": "Batch documents",
     "journal": "Research notes",
     "calculator": "Peptide calculator",
     "contact": "Contact",
@@ -18,33 +18,33 @@
   },
   "home": {
     "heroTitle": "Research peptides Europe",
-    "heroTitleSecond": "verified, dispensed with care.",
-    "heroSub": "Avion-PEPT is a European source for research-grade peptides. Products are independently tested, dispatched before 16:00, and typically arrive within 1–2 days. Plainly packaged and batch documented.",
-    "ctaPrimary": "Browse the collection",
-    "ctaSecondary": "Check purity tests",
+    "heroTitleSecond": "",
+    "heroSub": "Browse Avion-PEPT research peptides and blends.",
+    "ctaPrimary": "View products",
+    "ctaSecondary": "",
     "reviews": "{rating}/5 from {count} reviews",
     "trust": {
-      "purity": "99%+ purity",
-      "puritySub": "Every batch, every time",
-      "verified": "Third-party verified",
-      "verifiedSub": "COA included with every order",
-      "dispatch": "Same-day dispatch",
-      "dispatchSub": "Order before 16:00",
-      "delivery": "1–2 day delivery",
-      "deliverySub": "Across Europe via PostNL & DHL"
+      "purity": "",
+      "puritySub": "",
+      "verified": "",
+      "verifiedSub": "",
+      "dispatch": "",
+      "dispatchSub": "",
+      "delivery": "",
+      "deliverySub": ""
     },
     "collection": "The collection",
     "all": "All",
     "collectionEyebrow": "From our catalogue",
     "viewAll": "View all products",
-    "whyTitle": "Why people choose us",
+    "whyTitle": "About the catalogue",
     "why": {
-      "a": "Transparent formulas",
-      "aSub": "Full INCI list and peptide percentages on every product page. No proprietary blends.",
-      "b": "Tested, not just claimed",
-      "bSub": "Independent lab reports for each batch, searchable by the number on your box.",
-      "c": "Routine-first design",
-      "cSub": "Textures layer cleanly and play well with retinoids, vitamin C and SPF."
+      "a": "Product names and catalogue SKUs",
+      "aSub": "Product entries use the names and codes supplied for each item.",
+      "b": "Amount and volume details",
+      "bSub": "Each listing displays the amount and volume provided for that SKU.",
+      "c": "An expanding range",
+      "cSub": "The catalogue can be extended as additional product information is provided."
     },
     "stats": {
       "batches": "Batches tested",
@@ -52,8 +52,8 @@
       "delivery": "Avg. delivery days",
       "repeat": "Repeat customers"
     },
-    "faqEyebrow": "Common questions",
-    "faqTitle": "Questions we hear most",
+    "faqEyebrow": "",
+    "faqTitle": "",
     "journalTitle": "From the journal",
     "readMore": "Read more"
   },
@@ -64,7 +64,7 @@
     "from": "From {price}",
     "addToCart": "Add to cart",
     "added": "Added to cart",
-    "inStock": "In stock",
+    "inStock": "Catalogue item",
     "lowStock": "Only {n} left",
     "outOfStock": "Out of stock",
     "chooseSize": "Choose size",
@@ -85,29 +85,29 @@
       "discreet": "Plain packaging — recyclable, no product name on the outside"
     },
     "tabs": {
-      "ingredients": "Ingredients",
-      "howToUse": "How to use",
-      "details": "Details"
+      "ingredients": "Product information",
+      "howToUse": "Additional information",
+      "details": "Catalogue details"
     },
     "trustRows": {
-      "tested": "Batch tested — stability, microbial & pH",
-      "shipping": "Tracked shipping across EU & UK",
-      "payment": "Secure payment — Visa, Mastercard, Apple Pay, Google Pay",
-      "returns": "30-day returns on unopened products"
+      "tested": "No batch document is currently listed for this item.",
+      "shipping": "Shipping information has not been added to this preview.",
+      "payment": "Online payment is not available in this preview.",
+      "returns": "Returns information has not been added to this preview."
     },
     "faq": "Product questions",
-    "alsoNeed": "Complete your routine",
+    "alsoNeed": "More products",
     "related": "Related products",
-    "notice": "Cosmetic product. For external use only. Patch test before first use and avoid contact with eyes. Discontinue if irritation occurs.",
+    "notice": "Catalogue information only.",
     "specs": {
-      "keyPeptides": "Key peptides",
-      "skinTypes": "Suitable for",
-      "texture": "Texture",
-      "ph": "pH",
-      "pao": "Period after opening",
-      "shelfLife": "Shelf life",
+      "keyPeptides": "Compound name",
+      "skinTypes": "Amount / volume",
+      "texture": "Product form",
+      "ph": "SKU",
+      "pao": "—",
+      "shelfLife": "—",
       "sku": "SKU",
-      "inci": "Full ingredients (INCI)"
+      "inci": "—"
     },
     "sizeGuide": {
       "title": "Which product is right for me?",
@@ -210,24 +210,24 @@
     "status": "Status"
   },
   "testing": {
-    "title": "Batch testing",
-    "intro": "Every production batch is tested by an independent laboratory for stability, microbial safety and pH. Find your batch number on the base of the bottle or box.",
+    "title": "Batch documents",
+    "intro": "No batch documents are currently listed in this catalogue preview.",
     "search": "Search by batch number",
     "batch": "Batch",
     "product": "Product",
     "lab": "Laboratory",
     "issued": "Issued",
     "report": "Report",
-    "noResults": "No batches match that number.",
+    "noResults": "No batch documents are currently available.",
     "download": "Download PDF"
   },
   "journal": {
     "title": "Journal",
-    "intro": "Notes on peptides, formulation and skincare routines."
+    "intro": "Product information and catalogue updates."
   },
   "contact": {
     "title": "Contact us",
-    "intro": "Questions about an order or a product? We reply within one business day.",
+    "intro": "Send a message to Avion-PEPT.",
     "name": "Name",
     "email": "Email",
     "message": "Message",
@@ -245,11 +245,11 @@
     "shop": "Shop",
     "info": "Info",
     "companyHeading": "Company",
-    "about": "Avion-PEPT — peptide skincare, thoughtfully formulated and transparently tested. Explore the collection and find the routine that works for you.",
+    "about": "Avion-PEPT — peptide compounds and blends.",
     "contactUs": "Get in touch",
     "legal": "Legal",
     "contact": "Contact",
-    "disclaimer": "Our products are cosmetics intended to cleanse, protect and improve the appearance of skin. They are not medicines and are not intended to diagnose, treat or prevent any condition.",
+    "disclaimer": "Product catalogue information is limited to the details currently provided.",
     "company": "{entity} · All rights reserved",
     "payments": "We accept"
   },
