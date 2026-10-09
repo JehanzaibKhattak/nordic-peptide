@@ -29,6 +29,8 @@ model Product {
   description      Json // markdown per locale
   categoryId       String
   category         Category @relation(fields: [categoryId], references: [id])
+  researchApproved Boolean @default(false)
+  approvedCountries Json?
   isPopular        Boolean  @default(false)
   isActive         Boolean  @default(true)
   form             String // SERUM | CREAM | EYE | MASK | BUNDLE | ACCESSORY
@@ -49,12 +51,14 @@ model Variant {
   productId  String
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   label      String // "30 ml"
+  concentration String?
   sizeMl     Decimal
   priceCents Int
   currency   String      @default("EUR")
   stock      Int         @default(0)
   sku        String      @unique
   sortOrder  Int         @default(0)
+  isActive   Boolean     @default(true)
   orderItems OrderItem[]
 }
 
@@ -73,6 +77,10 @@ model BatchTest {
 
 model Order {
   id              String    @id @default(cuid())
+  purchaserId     String?
+  purchaser       Purchaser? @relation(fields: [purchaserId], references: [id])
+  stripeSessionId String? @unique
+  stripeCheckoutUrl String?
   orderNumber     String    @unique // "NPS" + 8 digits
   status          String    @default("PENDING") // PENDING|RESERVED|PAID|FULFILLED|CANCELLED|REFUNDED|EXPIRED
   locale          String    @default("en")
@@ -156,4 +164,62 @@ model Coupon {
 model Setting {
   key   String @id
   value Json
+}
+
+model Purchaser {
+  id String @id @default(cuid())
+  email String @unique
+  emailVerifiedAt DateTime?
+  organization String @default("")
+  registrationId String @default("")
+  website String @default("")
+  researchPurpose String @default("")
+  status String @default("UNSUBMITTED")
+  reviewNotes String @default("")
+  reviewedAt DateTime?
+  approvedUntil DateTime?
+  orders Order[]
+  createdAt DateTime @default(now())
+}
+
+model LoginChallenge {
+  email String @id
+  digest String
+  expiresAt DateTime
+  attempts Int @default(0)
+  sentAt DateTime @default(now())
+}
+
+model CommerceApproval {
+  id String @id @default(cuid())
+  subject String
+  decision String
+  evidence String
+  reviewer String
+  createdAt DateTime @default(now())
+}
+
+model PaymentEvent {
+  id String @id
+  orderId String
+  type String
+  createdAt DateTime @default(now())
+}
+
+model CheckoutCurrency {
+  code String @id
+  eurRate Float
+  enabled Boolean @default(false)
+}
+
+model ShippingApproval {
+  country String @id
+  approved Boolean @default(false)
+}
+
+model CommerceRateLimit {
+  key String @id
+  count Int @default(1)
+  expiresAt DateTime
+  @@index([expiresAt])
 }

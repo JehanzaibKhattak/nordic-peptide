@@ -52,3 +52,6 @@ prisma/dev.db*
 # handoff archives
 *.zip
 !.env.example
+
+/.next-e2e/
+/.next-build-check/

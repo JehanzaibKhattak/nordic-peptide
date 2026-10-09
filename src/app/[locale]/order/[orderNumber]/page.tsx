@@ -1,3 +1,4 @@
+import { currentPurchaser } from "@/lib/purchaser-session";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
@@ -16,8 +17,10 @@ export default async function OrderPage({ params }: { params: Promise<{ locale: 
   if (BROWSE_ONLY) notFound();
   const { locale, orderNumber } = await params;
   setRequestLocale(locale);
+  const purchaser = await currentPurchaser();
+  if (!purchaser) notFound();
   await expireStaleOrders();
-  const order = await db.order.findUnique({ where: { orderNumber }, include: { items: true, sessions: { where: { status: "OPEN" }, take: 1 } } });
+  const order = await db.order.findUnique({ where: { orderNumber, purchaserId: purchaser.id }, include: { items: true, sessions: { where: { status: "OPEN" }, take: 1 } } });
   if (!order) notFound();
 
   return (
@@ -25,6 +28,7 @@ export default async function OrderPage({ params }: { params: Promise<{ locale: 
       initial={{
         orderNumber: order.orderNumber,
         status: order.status,
+        currency: order.currency,
         email: order.email,
         totalCents: order.totalCents,
         subtotalCents: order.subtotalCents,

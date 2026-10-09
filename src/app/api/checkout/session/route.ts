@@ -1,3 +1,4 @@
+import { currentPurchaser } from "@/lib/purchaser-session";
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { expireOrder } from "@/lib/orders";
@@ -9,12 +10,14 @@ import { BROWSE_ONLY } from "@/lib/deployment-mode";
 // the reservation timer has passed.
 export async function GET(req: NextRequest) {
   if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
+  const purchaser = await currentPurchaser();
+  if (!purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
   const token = req.nextUrl.searchParams.get("token") ?? "";
   const session = await db.checkoutSession.findUnique({ where: { token }, include: { order: { include: { items: true } } } });
-  if (!session) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+  if (!session || session.order.purchaserId !== purchaser.id) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
 
   const order = session.order;
-  if (order.status === "RESERVED" && order.reservedUntil && order.reservedUntil < new Date()) {
+  if (!order.stripeSessionId && order.paymentProvider !== "stripe" && ["PENDING", "RESERVED"].includes(order.status) && order.reservedUntil && order.reservedUntil < new Date()) {
     await expireOrder(order.id);
     return NextResponse.json({ ok: false, error: "expired" }, { status: 410 });
   }
@@ -29,6 +32,7 @@ export async function GET(req: NextRequest) {
         orderNumber: order.orderNumber,
         status: order.status,
         locale: order.locale,
+        currency: order.currency,
         email: order.email,
         subtotalCents: order.subtotalCents,
         shippingCents: order.shippingCents,

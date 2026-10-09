@@ -1,3 +1,4 @@
+import { processStripeEvent, verifyStripeEvent } from "@/lib/payments/stripe-webhook";
 import { NextResponse } from "next/server";
 import { getAdapter } from "@/lib/payments/registry";
 import { expireOrder, logEvent, markPaid, markRefunded } from "@/lib/orders";
@@ -6,8 +7,17 @@ import { BROWSE_ONLY } from "@/lib/deployment-mode";
 // Provider webhooks. Signature verification lives in the adapter; state
 // transitions are idempotent so provider retries are safe.
 export async function POST(req: Request, { params }: { params: Promise<{ provider: string }> }) {
-  if (BROWSE_ONLY) return NextResponse.json({ error: "browse_only" }, { status: 503 });
   const { provider } = await params;
+  // Continue accepting signed test events even while checkout is paused.
+  if (provider === "stripe") {
+    let event;
+    try { event = verifyStripeEvent(await req.text(), req.headers.get("stripe-signature")); }
+    catch { return NextResponse.json({ error: "invalid_signature" }, { status: 400 }); }
+    try { await processStripeEvent(event); }
+    catch (error) { console.error("Stripe event processing failed", event.id, error); return NextResponse.json({ error: "processing_failed" }, { status: 500 }); }
+    return NextResponse.json({ received: true });
+  }
+  if (BROWSE_ONLY) return NextResponse.json({ error: "browse_only" }, { status: 503 });
   const adapter = getAdapter(provider);
   if (!adapter) return NextResponse.json({ error: "unknown_provider" }, { status: 404 });
 

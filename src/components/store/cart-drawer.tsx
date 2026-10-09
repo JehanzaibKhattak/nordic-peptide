@@ -10,22 +10,24 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/routing";
 import { useCart, cartSubtotal } from "@/lib/cart-store";
-import { currencyForCountry, formatMoney } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { shippingCost, zoneForCountry, SHIPPING_COUNTRIES } from "@/config/shipping";
 import { pushEvent } from "@/components/layout/gtm";
+import { BROWSE_ONLY, DEMO_CHECKOUT } from "@/lib/deployment-mode";
+import { useCurrency } from "./use-currency";
 
 export function CartDrawer() {
   const t = useTranslations("cart");
   const locale = useLocale();
   const router = useRouter();
   const { items, isOpen, close, setQty, remove, couponCode, setCoupon, country } = useCart();
+  const { currency } = useCurrency();
   const [code, setCode] = useState(couponCode ?? "");
   const [fetchedDiscount, setFetchedDiscount] = useState<{ code: string; cents: number } | null>(null);
   const discount = couponCode && fetchedDiscount?.code === couponCode ? fetchedDiscount.cents : 0;
   const [couponError, setCouponError] = useState<string | null>(null);
 
   const subtotal = cartSubtotal(items);
-  const currency = currencyForCountry(country);
   const zone = zoneForCountry(country);
   const shipping = items.length ? shippingCost(country, "standard", subtotal - discount) : 0;
   const total = subtotal - discount + shipping;
@@ -145,7 +147,8 @@ export function CartDrawer() {
                 <div className="flex justify-between text-base font-semibold"><dt>{t("total")}</dt><dd>{formatMoney(total, currency)}</dd></div>
               </dl>
               {currency !== "EUR" && <p className="mt-1 text-[11px] text-muted-foreground">Charged in EUR · {formatMoney(total, "EUR")}</p>}
-              <Button className="mt-4 w-full" size="lg" onClick={checkout} lang={locale}>{t("checkout")}</Button>
+              {BROWSE_ONLY && DEMO_CHECKOUT && <p className="mt-3 text-center text-xs text-muted-foreground">{t("demoCheckoutNote")}</p>}
+              <Button className="mt-4 w-full" size="lg" onClick={checkout} lang={locale} disabled={BROWSE_ONLY && !DEMO_CHECKOUT}>{t("checkout")}</Button>
             </div>
           </>
         )}

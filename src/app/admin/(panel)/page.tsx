@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { expireStaleOrders } from "@/lib/orders";
-import { formatMoney } from "@/lib/money";
+import { formatOrderMoney } from "@/lib/money";
 import { ORDER_STATUSES, isOrderStatus, type Affiliate } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                 <TableCell>{o.items.reduce((n, i) => n + i.qty, 0)}</TableCell>
                 <TableCell>{o.shippingCountry}</TableCell>
                 <TableCell className="font-mono text-xs">{(o.affiliate as Affiliate | null)?.ktSubid ?? "—"}</TableCell>
-                <TableCell className="text-right">{formatMoney(o.totalCents)}</TableCell>
+                <TableCell className="text-right">{formatOrderMoney(o.totalCents, o.currency)}</TableCell>
                 <TableCell className="text-muted-foreground">{o.createdAt.toISOString().slice(0, 16).replace("T", " ")}</TableCell>
               </TableRow>
             ))}

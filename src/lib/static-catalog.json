@@ -19,72 +19,17 @@
   ],
   "products": [
     {
-      "id": "ret40",
-      "slug": "retatrutide-40mg",
-      "sku": "RET40",
-      "name": {
-        "en": "Retatrutide"
-      },
-      "shortDescription": {
-        "en": "40 mg / 2.4 ml"
-      },
-      "description": {
-        "en": "A Retatrutide research listing identified by its labelled 40 mg amount and 2.4 ml volume. Refer to the product label and applicable batch documentation for the exact supplied presentation and analytical details."
-      },
-      "categoryId": "peptides",
-      "category": {
-        "id": "peptides",
-        "slug": "peptides",
-        "name": {
-          "en": "Peptides"
-        },
-        "sortOrder": 1
-      },
-      "isPopular": false,
-      "isActive": true,
-      "form": "ACCESSORY",
-      "specs": {
-        "keyPeptides": [],
-        "inci": "",
-        "skinTypes": [],
-        "texture": "",
-        "ph": "",
-        "pao": "",
-        "shelfLife": "",
-        "usage": ""
-      },
-      "images": [],
-      "relatedIds": [],
-      "faqs": {
-        "en": []
-      },
-      "variants": [
-        {
-          "id": "RET40",
-          "productId": "ret40",
-          "label": "40 mg / 2.4 ml",
-          "sizeMl": "2.4",
-          "priceCents": 0,
-          "currency": "EUR",
-          "stock": 0,
-          "sku": "RET40",
-          "sortOrder": 0
-        }
-      ],
-      "batchTests": []
-    },
-    {
-      "id": "ret20",
-      "slug": "retatrutide-20mg",
+      "id": "retatrutide",
+      "slug": "retatrutide",
       "sku": "RET20",
       "name": {
-        "en": "Retatrutide"
+        "en": "Retatrutide Pen"
       },
       "shortDescription": {
-        "en": "20 mg / 2.4 ml"
+        "en": "Research-use prefilled pen. Select a strength to view its amount and concentration."
       },
       "description": {
-        "en": "A Retatrutide research listing identified by its labelled 20 mg amount and 2.4 ml volume. The gallery shows the Avion-PEPT RETA PRO packaging associated with this catalogue item."
+        "en": "Retatrutide interacts with three hormone receptors involved in hunger and the body’s response to food. GLP-1 and GIP participate in nutrient and insulin signalling, while glucagon contributes to glucose and energy regulation. This presentation contains 20 mg in 2.4 mL."
       },
       "categoryId": "peptides",
       "category": {
@@ -97,7 +42,7 @@
       },
       "isPopular": false,
       "isActive": true,
-      "form": "ACCESSORY",
+      "form": "PEPTIDE",
       "specs": {
         "keyPeptides": [],
         "inci": "",
@@ -109,11 +54,9 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.59 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.58 AM (3).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.58 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.59 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.59 AM.jpeg"
+        "/products/retatrutide-20mg.jpeg",
+        "/products/retatrutide-20mg-angle.jpeg",
+        "/products/retatrutide-20mg-kit.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -122,30 +65,57 @@
       "variants": [
         {
           "id": "RET20",
-          "productId": "ret20",
+          "productId": "retatrutide",
           "label": "20 mg / 2.4 ml",
           "sizeMl": "2.4",
-          "priceCents": 0,
+          "priceCents": 24669,
           "currency": "EUR",
           "stock": 0,
           "sku": "RET20",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/retatrutide-20mg.jpeg",
+            "/products/retatrutide-20mg-angle.jpeg",
+            "/products/retatrutide-20mg-kit.jpeg"
+          ],
+          "concentration": "8.33 mg/mL",
+          "description": {
+            "en": "Retatrutide interacts with three hormone receptors involved in hunger and the body’s response to food. GLP-1 and GIP participate in nutrient and insulin signalling, while glucagon contributes to glucose and energy regulation. This presentation contains 20 mg in 2.4 mL."
+          }
+        },
+        {
+          "id": "RET40",
+          "productId": "retatrutide",
+          "label": "40 mg / 2.4 ml",
+          "sizeMl": "2.4",
+          "priceCents": 35293,
+          "currency": "EUR",
+          "stock": 0,
+          "sku": "RET40",
+          "sortOrder": 0,
+          "images": [
+            "/products/retatrutide-40mg.jpeg"
+          ],
+          "concentration": "16.67 mg/mL",
+          "description": {
+            "en": "Retatrutide activates GLP-1, GIP and glucagon receptors—three hormone pathways involved in appetite, blood-glucose regulation and how the body uses energy. It combines all three receptor activities within a single peptide. This presentation contains 40 mg in 2.4 mL."
+          }
         }
       ],
       "batchTests": []
     },
     {
-      "id": "tir40",
-      "slug": "tirzepatide-40mg",
+      "id": "tirzepatide",
+      "slug": "tirzepatide",
       "sku": "TIR40",
       "name": {
-        "en": "Tirzepatide"
+        "en": "Tirzepatide Pen"
       },
       "shortDescription": {
-        "en": "40 mg / 2.4 ml"
+        "en": "Research-use prefilled pen. Select a strength to view its amount and concentration."
       },
       "description": {
-        "en": "A Tirzepatide research listing identified by its labelled 40 mg amount and 2.4 ml volume. The gallery shows the matching Avion-PEPT TIRZEP PRO presentation."
+        "en": "Tirzepatide activates GIP and GLP-1 receptors. Its biological actions include influencing appetite, stimulating insulin release when blood sugar is elevated and slowing how quickly food leaves the stomach. This presentation contains 40 mg in 2.4 mL."
       },
       "categoryId": "peptides",
       "category": {
@@ -158,7 +128,7 @@
       },
       "isPopular": false,
       "isActive": true,
-      "form": "ACCESSORY",
+      "form": "PEPTIDE",
       "specs": {
         "keyPeptides": [],
         "inci": "",
@@ -170,16 +140,10 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.56 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM (3).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM (4).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM (5).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.55 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.56 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.56 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.57 AM (1).jpeg"
+        "/products/tirzepatide-40mg.jpeg",
+        "/products/tirzepatide-40mg-angle.jpeg",
+        "/products/tirzepatide-40mg-kit.jpeg",
+        "/products/tirzepatide-40mg-open-kit.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -188,74 +152,42 @@
       "variants": [
         {
           "id": "TIR40",
-          "productId": "tir40",
+          "productId": "tirzepatide",
           "label": "40 mg / 2.4 ml",
           "sizeMl": "2.4",
-          "priceCents": 0,
+          "priceCents": 23489,
           "currency": "EUR",
           "stock": 0,
           "sku": "TIR40",
-          "sortOrder": 0
-        }
-      ],
-      "batchTests": []
-    },
-    {
-      "id": "tir60",
-      "slug": "tirzepatide-60mg",
-      "sku": "TIR60",
-      "name": {
-        "en": "Tirzepatide"
-      },
-      "shortDescription": {
-        "en": "60 mg / 2.4 ml"
-      },
-      "description": {
-        "en": "A Tirzepatide research listing identified by its labelled 60 mg amount and 2.4 ml volume. The gallery shows the matching Avion-PEPT TIRZEP PRO presentation."
-      },
-      "categoryId": "peptides",
-      "category": {
-        "id": "peptides",
-        "slug": "peptides",
-        "name": {
-          "en": "Peptides"
+          "sortOrder": 0,
+          "images": [
+            "/products/tirzepatide-40mg.jpeg",
+            "/products/tirzepatide-40mg-angle.jpeg",
+            "/products/tirzepatide-40mg-kit.jpeg",
+            "/products/tirzepatide-40mg-open-kit.jpeg"
+          ],
+          "concentration": "16.67 mg/mL",
+          "description": {
+            "en": "Tirzepatide activates GIP and GLP-1 receptors. Its biological actions include influencing appetite, stimulating insulin release when blood sugar is elevated and slowing how quickly food leaves the stomach. This presentation contains 40 mg in 2.4 mL."
+          }
         },
-        "sortOrder": 1
-      },
-      "isPopular": false,
-      "isActive": true,
-      "form": "ACCESSORY",
-      "specs": {
-        "keyPeptides": [],
-        "inci": "",
-        "skinTypes": [],
-        "texture": "",
-        "ph": "",
-        "pao": "",
-        "shelfLife": "",
-        "usage": ""
-      },
-      "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.57 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.57 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.58 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.58 AM (2).jpeg"
-      ],
-      "relatedIds": [],
-      "faqs": {
-        "en": []
-      },
-      "variants": [
         {
           "id": "TIR60",
-          "productId": "tir60",
+          "productId": "tirzepatide",
           "label": "60 mg / 2.4 ml",
           "sizeMl": "2.4",
-          "priceCents": 0,
+          "priceCents": 29391,
           "currency": "EUR",
           "stock": 0,
           "sku": "TIR60",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/tirzepatide-60mg.jpeg"
+          ],
+          "concentration": "25 mg/mL",
+          "description": {
+            "en": "Tirzepatide works through two hormone pathways involved in appetite and blood-sugar regulation. It influences food intake, glucose-dependent insulin release and stomach emptying. This formulation contains 60 mg in 2.4 mL, at a concentration of 25 mg/mL."
+          }
         }
       ],
       "batchTests": []
@@ -268,10 +200,10 @@
         "en": "BPC-157 20 mg + TB500 20 mg"
       },
       "shortDescription": {
-        "en": "40 mg / 3 ml"
+        "en": "40 mg total / 3 mL · 6.67 mg/mL of each peptide"
       },
       "description": {
-        "en": "A combined research listing of BPC-157 (20 mg) and TB500 (20 mg), with a total labelled amount of 40 mg in 3 ml. The product is presented in the Avion-PEPT Wolverine range; consult the batch documentation for product-specific analytical details."
+        "en": "A two-peptide formulation combining 20 mg of BPC-157 and 20 mg of TB-500. BPC-157 is a synthetic 15-amino-acid peptide associated with experimental models of cell movement and tissue responses to injury. The blend contains equal quantities of both named peptides within one 3 mL pen."
       },
       "categoryId": "blends",
       "category": {
@@ -296,12 +228,7 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.54 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.53 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.53 AM (3).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.54 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.54 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.54 AM (3).jpeg"
+        "/products/bpc157-tb500-40mg-generated.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -313,11 +240,18 @@
           "productId": "bpc20tb20",
           "label": "40 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 17587,
           "currency": "EUR",
           "stock": 0,
           "sku": "BPC20TB20",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/bpc157-tb500-40mg-generated.jpeg"
+          ],
+          "concentration": "6.67 mg/mL of each peptide",
+          "description": {
+            "en": "A two-peptide formulation combining 20 mg of BPC-157 and 20 mg of TB-500. BPC-157 is a synthetic 15-amino-acid peptide associated with experimental models of cell movement and tissue responses to injury. The blend contains equal quantities of both named peptides within one 3 mL pen."
+          }
         }
       ],
       "batchTests": []
@@ -330,10 +264,10 @@
         "en": "GHK-Cu"
       },
       "shortDescription": {
-        "en": "100 mg / 3 ml"
+        "en": "100 mg / 3 mL · 33.33 mg/mL"
       },
       "description": {
-        "en": "A GHK-Cu research listing identified by its labelled 100 mg amount and 3 ml volume. The gallery shows the matching Avion-PEPT GHK-CU PRO packaging."
+        "en": "GHK-Cu combines copper with glycyl-L-histidyl-L-lysine, a peptide composed of three amino acids. Its biological activity relates to cellular signalling and the supporting network surrounding cells, including collagen-related pathways. This presentation contains 100 mg in 3 mL."
       },
       "categoryId": "peptides",
       "category": {
@@ -358,13 +292,10 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.00 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.00 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.00 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.01 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.01 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.01 AM (3).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.30.01 AM.jpeg"
+        "/products/ghk-cu-100mg.jpeg",
+        "/products/ghk-cu-100mg-angle.jpeg",
+        "/products/ghk-cu-100mg-kit.jpeg",
+        "/products/ghk-cu-100mg-open-kit.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -376,11 +307,21 @@
           "productId": "ghk100",
           "label": "100 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 11686,
           "currency": "EUR",
           "stock": 0,
           "sku": "GHK100",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/ghk-cu-100mg.jpeg",
+            "/products/ghk-cu-100mg-angle.jpeg",
+            "/products/ghk-cu-100mg-kit.jpeg",
+            "/products/ghk-cu-100mg-open-kit.jpeg"
+          ],
+          "concentration": "33.33 mg/mL",
+          "description": {
+            "en": "GHK-Cu combines copper with glycyl-L-histidyl-L-lysine, a peptide composed of three amino acids. Its biological activity relates to cellular signalling and the supporting network surrounding cells, including collagen-related pathways. This presentation contains 100 mg in 3 mL."
+          }
         }
       ],
       "batchTests": []
@@ -393,10 +334,10 @@
         "en": "Glow"
       },
       "shortDescription": {
-        "en": "70 mg / 3 ml"
+        "en": "70 mg total / 3 mL · 23.33 mg/mL combined"
       },
       "description": {
-        "en": "The Glow research blend is listed at 70 mg in 3 ml. This catalogue description identifies the product name and labelled presentation; refer to the batch documentation for its component details."
+        "en": "Reference formulation: GHK-Cu 50 mg, BPC-157 10 mg and TB-500 10 mg. This three-component blend brings together peptides associated with collagen biology and experimental tissue-response pathways. The ingredient breakdown comes from an online comparator and requires confirmation against Avion’s specification."
       },
       "categoryId": "peptides",
       "category": {
@@ -421,13 +362,9 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.52 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.51 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.52 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.52 AM (3).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.52 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.53 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.53 AM.jpeg"
+        "/products/glow-70mg.jpeg",
+        "/products/glow-70mg-angle.jpeg",
+        "/products/glow-70mg-kit.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -439,11 +376,20 @@
           "productId": "glow70",
           "label": "70 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 14046,
           "currency": "EUR",
           "stock": 0,
           "sku": "GLOW70",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/glow-70mg.jpeg",
+            "/products/glow-70mg-angle.jpeg",
+            "/products/glow-70mg-kit.jpeg"
+          ],
+          "concentration": "23.33 mg/mL combined",
+          "description": {
+            "en": "Reference formulation: GHK-Cu 50 mg, BPC-157 10 mg and TB-500 10 mg. This three-component blend brings together peptides associated with collagen biology and experimental tissue-response pathways. The ingredient breakdown comes from an online comparator and requires confirmation against Avion’s specification."
+          }
         }
       ],
       "batchTests": []
@@ -456,65 +402,10 @@
         "en": "Klow"
       },
       "shortDescription": {
-        "en": "80 mg / 3 ml"
+        "en": "80 mg total / 3 mL · 26.67 mg/mL combined"
       },
       "description": {
-        "en": "The Klow research blend is listed at 80 mg in 3 ml. This catalogue description identifies the product name and labelled presentation; refer to the batch documentation for its component details."
-      },
-      "categoryId": "peptides",
-      "category": {
-        "id": "peptides",
-        "slug": "peptides",
-        "name": {
-          "en": "Peptides"
-        },
-        "sortOrder": 1
-      },
-      "isPopular": false,
-      "isActive": true,
-      "form": "ACCESSORY",
-      "specs": {
-        "keyPeptides": [],
-        "inci": "",
-        "skinTypes": [],
-        "texture": "",
-        "ph": "",
-        "pao": "",
-        "shelfLife": "",
-        "usage": ""
-      },
-      "images": [],
-      "relatedIds": [],
-      "faqs": {
-        "en": []
-      },
-      "variants": [
-        {
-          "id": "KLOW80",
-          "productId": "klow80",
-          "label": "80 mg / 3 ml",
-          "sizeMl": "3",
-          "priceCents": 0,
-          "currency": "EUR",
-          "stock": 0,
-          "sku": "KLOW80",
-          "sortOrder": 0
-        }
-      ],
-      "batchTests": []
-    },
-    {
-      "id": "melii20",
-      "slug": "melanotan-ii-20mg",
-      "sku": "MELII20",
-      "name": {
-        "en": "Melanotan II"
-      },
-      "shortDescription": {
-        "en": "20 mg / 3 ml"
-      },
-      "description": {
-        "en": "A Melanotan II research listing identified by its labelled 20 mg amount and 3 ml volume. The gallery shows the matching Avion-PEPT MT2 PRO packaging."
+        "en": "Reference formulation: GHK-Cu 50 mg, BPC-157 10 mg, TB-500 10 mg and KPV 10 mg. This four-component blend adds KPV, a three-amino-acid peptide associated with experimental inflammation-related pathways. The ingredient breakdown requires confirmation against Avion’s specification."
       },
       "categoryId": "peptides",
       "category": {
@@ -539,11 +430,72 @@
         "usage": ""
       },
       "images": [
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.50 AM.jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.50 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.50 AM (2).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.51 AM (1).jpeg",
-        "/Product-Pictures/WhatsApp Image 2026-10-02 at 12.29.51 AM (2).jpeg"
+        "/products/klow-80mg-v2.jpeg"
+      ],
+      "relatedIds": [],
+      "faqs": {
+        "en": []
+      },
+      "variants": [
+        {
+          "id": "KLOW80",
+          "productId": "klow80",
+          "label": "80 mg / 3 ml",
+          "sizeMl": "3",
+          "priceCents": 17587,
+          "currency": "EUR",
+          "stock": 0,
+          "sku": "KLOW80",
+          "sortOrder": 0,
+          "images": [
+            "/products/klow-80mg-v2.jpeg"
+          ],
+          "concentration": "26.67 mg/mL combined",
+          "description": {
+            "en": "Reference formulation: GHK-Cu 50 mg, BPC-157 10 mg, TB-500 10 mg and KPV 10 mg. This four-component blend adds KPV, a three-amino-acid peptide associated with experimental inflammation-related pathways. The ingredient breakdown requires confirmation against Avion’s specification."
+          }
+        }
+      ],
+      "batchTests": []
+    },
+    {
+      "id": "melii20",
+      "slug": "melanotan-ii-20mg",
+      "sku": "MELII20",
+      "name": {
+        "en": "Melanotan II"
+      },
+      "shortDescription": {
+        "en": "20 mg / 3 mL · 6.67 mg/mL"
+      },
+      "description": {
+        "en": "Melanotan II is a synthetic cyclic peptide that mimics aspects of alpha-melanocyte-stimulating hormone. It activates melanocortin receptors, including pathways involved in producing melanin—the pigment contributing to skin colour. Its receptor activity also extends beyond pigmentation."
+      },
+      "categoryId": "peptides",
+      "category": {
+        "id": "peptides",
+        "slug": "peptides",
+        "name": {
+          "en": "Peptides"
+        },
+        "sortOrder": 1
+      },
+      "isPopular": false,
+      "isActive": true,
+      "form": "ACCESSORY",
+      "specs": {
+        "keyPeptides": [],
+        "inci": "",
+        "skinTypes": [],
+        "texture": "",
+        "ph": "",
+        "pao": "",
+        "shelfLife": "",
+        "usage": ""
+      },
+      "images": [
+        "/products/melanotan-ii-20mg.jpeg",
+        "/products/melanotan-ii-kit.jpeg"
       ],
       "relatedIds": [],
       "faqs": {
@@ -555,11 +507,19 @@
           "productId": "melii20",
           "label": "20 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 10505,
           "currency": "EUR",
           "stock": 0,
           "sku": "MELII20",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/melanotan-ii-20mg.jpeg",
+            "/products/melanotan-ii-kit.jpeg"
+          ],
+          "concentration": "6.67 mg/mL",
+          "description": {
+            "en": "Melanotan II is a synthetic cyclic peptide that mimics aspects of alpha-melanocyte-stimulating hormone. It activates melanocortin receptors, including pathways involved in producing melanin—the pigment contributing to skin colour. Its receptor activity also extends beyond pigmentation."
+          }
         }
       ],
       "batchTests": []
@@ -572,10 +532,10 @@
         "en": "MOTS-c"
       },
       "shortDescription": {
-        "en": "20 mg / 3 ml"
+        "en": "20 mg / 3 mL · 6.67 mg/mL"
       },
       "description": {
-        "en": "A MOTS-c research listing identified by its labelled 20 mg amount and 3 ml volume. Refer to the product label and applicable batch documentation for the exact supplied presentation and analytical details."
+        "en": "MOTS-c is a 16-amino-acid peptide encoded within mitochondrial DNA. Mitochondria help cells produce energy and coordinate responses to available fuel. MOTS-c is associated with communication between these structures and other cellular systems, including pathways involved in metabolic adaptation and stress responses."
       },
       "categoryId": "peptides",
       "category": {
@@ -599,7 +559,9 @@
         "shelfLife": "",
         "usage": ""
       },
-      "images": [],
+      "images": [
+        "/products/mots-c-20mg.jpeg"
+      ],
       "relatedIds": [],
       "faqs": {
         "en": []
@@ -610,11 +572,18 @@
           "productId": "motsc20",
           "label": "20 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 11686,
           "currency": "EUR",
           "stock": 0,
           "sku": "MOTSC20",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/mots-c-20mg.jpeg"
+          ],
+          "concentration": "6.67 mg/mL",
+          "description": {
+            "en": "MOTS-c is a 16-amino-acid peptide encoded within mitochondrial DNA. Mitochondria help cells produce energy and coordinate responses to available fuel. MOTS-c is associated with communication between these structures and other cellular systems, including pathways involved in metabolic adaptation and stress responses."
+          }
         }
       ],
       "batchTests": []
@@ -627,10 +596,10 @@
         "en": "BPC-157"
       },
       "shortDescription": {
-        "en": "10 mg / 3 ml"
+        "en": "10 mg / 3 mL · 3.33 mg/mL"
       },
       "description": {
-        "en": "A BPC-157 research listing identified by its labelled 10 mg amount and 3 ml volume. Refer to the product label and applicable batch documentation for the exact supplied presentation and analytical details."
+        "en": "BPC-157 is a synthetic peptide composed of 15 amino acids. Its activity is examined in experimental models involving connective tissue, the digestive tract and cellular responses to injury. This formulation supplies BPC-157 separately from the TB-500 combination blend."
       },
       "categoryId": "peptides",
       "category": {
@@ -654,7 +623,9 @@
         "shelfLife": "",
         "usage": ""
       },
-      "images": [],
+      "images": [
+        "/products/bpc-157-10mg-v2.jpeg"
+      ],
       "relatedIds": [],
       "faqs": {
         "en": []
@@ -665,11 +636,18 @@
           "productId": "bpc10",
           "label": "10 mg / 3 ml",
           "sizeMl": "3",
-          "priceCents": 0,
+          "priceCents": 8144,
           "currency": "EUR",
           "stock": 0,
           "sku": "BPC10",
-          "sortOrder": 0
+          "sortOrder": 0,
+          "images": [
+            "/products/bpc-157-10mg-v2.jpeg"
+          ],
+          "concentration": "3.33 mg/mL",
+          "description": {
+            "en": "BPC-157 is a synthetic peptide composed of 15 amino acids. Its activity is examined in experimental models involving connective tissue, the digestive tract and cellular responses to injury. This formulation supplies BPC-157 separately from the TB-500 combination blend."
+          }
         }
       ],
       "batchTests": []

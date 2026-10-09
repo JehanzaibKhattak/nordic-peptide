@@ -11,22 +11,30 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { useCart, cartSubtotal } from "@/lib/cart-store";
 import { formatMoney } from "@/lib/money";
 import { SHIPPING_COUNTRIES, shippingCost, zoneForCountry } from "@/config/shipping";
 import { readAttribution } from "@/lib/affiliate/capture";
 import type { Address } from "@/lib/types";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useCurrency } from "@/components/store/use-currency";
+import { BROWSE_ONLY, DEMO_CHECKOUT } from "@/lib/deployment-mode";
+import { saveDemoCheckout } from "@/lib/demo-checkout";
 
 const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city: "", postcode: "", country: "ES", phone: "" };
 
-export function CheckoutForm() {
+export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"] }: { verifiedEmail?: string; paymentCurrencies?: string[] }) {
+  const r = useTranslations("research");
+  const [paymentCurrency, setPaymentCurrency] = useState("EUR");
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
   const locale = useLocale();
+  const router = useRouter();
   const { items, couponCode, country, setCountry } = useCart();
+  const { currency, fmt } = useCurrency();
   const mounted = useHydrated();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(verifiedEmail);
   // Ship-to country lives in the cart store (shared with header chip + drawer).
   const [shipFields, setShipFields] = useState<Address>(empty);
   const ship: Address = { ...shipFields, country };
@@ -60,6 +68,27 @@ export function CheckoutForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (BROWSE_ONLY && DEMO_CHECKOUT) {
+      const token = crypto.randomUUID();
+      saveDemoCheckout({
+        token,
+        locale,
+        email,
+        shippingAddress: ship,
+        billingAddress: billingSame ? ship : bill,
+        shippingMethod: method,
+        couponCode,
+        subtotalCents: subtotal,
+        discountCents: discount,
+        shippingCents: shipping,
+        totalCents: total,
+        items,
+      });
+      router.push(`/checkout/pay?demo=${encodeURIComponent(token)}`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/orders", {
@@ -67,6 +96,7 @@ export function CheckoutForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           locale,
+          currency: paymentCurrency,
           email,
           shippingAddress: ship,
           billingAddress: billingSame ? ship : bill,
@@ -126,13 +156,16 @@ export function CheckoutForm() {
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("step1")}</p>
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         </div>
-        <p className="flex items-center gap-1 text-xs text-muted-foreground"><Lock className="size-3" />{t("secure")}</p>
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">{BROWSE_ONLY && DEMO_CHECKOUT ? t("demoSecureLabel") : <><Lock className="size-3" />{t("secure")}</>}</p>
       </div>
+
+      {BROWSE_ONLY && DEMO_CHECKOUT && <p className="mb-6 rounded-xl border border-[#d9dfd5] bg-[#edf1e9] px-4 py-3 text-sm text-[#435d4e]">{t("demoCheckoutNotice")}</p>}
 
       <form onSubmit={onSubmit} className="grid gap-10 lg:grid-cols-[1fr_380px]">
         <div className="space-y-8">
           <section className="space-y-3">
             <h2 className="font-semibold">{t("contact")}</h2>
+            {!BROWSE_ONLY && <><Link href="/account" className="block underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-sm text-muted-foreground">{r("currencyNotice")}</p></>}
             <Field id="email" label={t("email")} type="email" value={email} onChange={setEmail} required />
           </section>
 
@@ -155,7 +188,7 @@ export function CheckoutForm() {
                         <span className="block text-xs text-muted-foreground">{t("eta", { min: m.etaDays[0], max: m.etaDays[1] })} · {m.carriers.join(", ")}</span>
                       </span>
                     </span>
-                    <span className="text-sm font-medium">{price === 0 ? tc("free") : formatMoney(price)}</span>
+                    <span className="text-sm font-medium">{price === 0 ? tc("free") : fmt(price)}</span>
                   </label>
                 );
               })}
@@ -204,19 +237,20 @@ export function CheckoutForm() {
                     <p className="font-medium leading-tight">{i.name}</p>
                     <p className="text-xs text-muted-foreground">{i.variantLabel}</p>
                   </div>
-                  <span>{formatMoney(i.unitCents * i.qty)}</span>
+                  <span>{fmt(i.unitCents * i.qty)}</span>
                 </li>
               ))}
             </ul>
             <Separator className="my-4" />
             <dl className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><dt className="text-muted-foreground">{tc("subtotal")}</dt><dd>{formatMoney(subtotal)}</dd></div>
-              {discount > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">{tc("discount")} ({couponCode})</dt><dd>−{formatMoney(discount)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-muted-foreground">{tc("shipping")}</dt><dd>{shipping === 0 ? tc("free") : formatMoney(shipping)}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">{t("tax")}</dt><dd>{formatMoney(0)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted-foreground">{tc("subtotal")}</dt><dd>{fmt(subtotal)}</dd></div>
+              {discount > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">{tc("discount")} ({couponCode})</dt><dd>−{fmt(discount)}</dd></div>}
+              <div className="flex justify-between"><dt className="text-muted-foreground">{tc("shipping")}</dt><dd>{shipping === 0 ? tc("free") : fmt(shipping)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted-foreground">{t("tax")}</dt><dd>{fmt(0)}</dd></div>
               <Separator className="my-2" />
-              <div className="flex justify-between text-base font-semibold"><dt>{tc("total")}</dt><dd>{formatMoney(total)}</dd></div>
+              <div className="flex justify-between text-base font-semibold"><dt>{tc("total")}</dt><dd>{fmt(total)}</dd></div>
             </dl>
+            {currency !== "EUR" && <p className="mt-1 text-[11px] text-muted-foreground">Approximate display conversion · Charged in EUR ({formatMoney(total, "EUR")})</p>}
           </div>
         </aside>
       </form>

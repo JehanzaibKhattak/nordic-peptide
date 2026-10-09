@@ -53,7 +53,6 @@ export async function Footer({ products }: { products: Product[] }) {
           <h2 className={sectionClass}>Company</h2>
           <ul className="space-y-3 text-sm text-[#c4cdc1]">
             <li><Link href="/#commitment" className={linkClass}>Our commitment</Link></li>
-            <li><Link href="/calculator" className={linkClass}>Avion-PEPT Calculation</Link></li>
             <li><Link href="/#faq" className={linkClass}>FAQ</Link></li>
             <li><Link href="/contact" className={linkClass}>Contact</Link></li>
           </ul>
@@ -62,7 +61,6 @@ export async function Footer({ products }: { products: Product[] }) {
         <div>
           <h2 className={sectionClass}>Information</h2>
           <ul className="space-y-3 text-sm text-[#c4cdc1]">
-            <li><Link href="/calculator" className={linkClass}>Peptide calculator</Link></li>
             <li><Link href="/testing" className={linkClass}>Batch documents</Link></li>
             <li><Link href="/#faq" className={linkClass}>Catalogue questions</Link></li>
           </ul>

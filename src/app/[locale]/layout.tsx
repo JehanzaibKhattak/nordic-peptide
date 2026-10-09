@@ -7,14 +7,12 @@ import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/store/cart-drawer";
-import { ConsentBanner } from "@/components/layout/consent-banner";
 import { Gtm } from "@/components/layout/gtm";
 import { AffiliateCapture } from "@/lib/affiliate/capture";
 import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { Toaster } from "@/components/ui/sonner";
 import { getProducts } from "@/lib/queries";
 import { LOCALES } from "@/lib/types";
-import { BROWSE_ONLY } from "@/lib/deployment-mode";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -61,9 +59,8 @@ export default async function LocaleLayout({
           <Header />
           <main className="min-h-[60dvh]">{children}</main>
           <Footer products={products.map((p) => ({ sku: p.sku, slug: p.slug, name: p.name as Record<string, string>, variants: p.variants.map((v) => ({ label: v.label })) }))} />
-          <WhatsAppButton phone={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ""} />
-          {!BROWSE_ONLY && <CartDrawer />}
-          <ConsentBanner />
+          <WhatsAppButton phone={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "447706548345"} />
+          <CartDrawer />
           <Toaster position="bottom-center" />
         </NextIntlClientProvider>
       </body>

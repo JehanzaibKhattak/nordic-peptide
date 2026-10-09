@@ -3,6 +3,7 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 export const ORDER_STATUSES = [
+  "PAYMENT_FAILED",
   "PENDING",
   "RESERVED",
   "PAID",

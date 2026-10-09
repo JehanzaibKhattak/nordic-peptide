@@ -8,7 +8,9 @@ import { useHydrated } from "@/lib/use-hydrated";
 // first client render match.
 export function useCurrency() {
   const country = useCart((s) => s.country);
+  const selectedCurrency = useCart((s) => s.currency);
+  const setCurrency = useCart((s) => s.setCurrency);
   const mounted = useHydrated();
-  const currency: DisplayCurrency = mounted ? currencyForCountry(country) : "EUR";
-  return { currency, country: mounted ? country : "ES", fmt: (cents: number) => formatMoney(cents, currency), mounted };
+  const currency: DisplayCurrency = mounted ? selectedCurrency ?? currencyForCountry(country) : "EUR";
+  return { currency, setCurrency, country: mounted ? country : "ES", fmt: (cents: number) => formatMoney(cents, currency), mounted };
 }

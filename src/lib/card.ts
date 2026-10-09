@@ -9,6 +9,6 @@ export function toCard(p: Awaited<ReturnType<typeof getProducts>>[number]): Card
     isPopular: p.isPopular,
     images: p.images as string[],
     category: { slug: p.category.slug, name: p.category.name as Record<string, string> },
-    variants: p.variants.map((v) => ({ id: v.id, label: v.label, priceCents: v.priceCents, stock: v.stock })),
+    variants: p.variants.map((v) => ({ id: v.id, sku: v.sku, label: v.label, priceCents: v.priceCents, stock: v.stock })),
   };
 }

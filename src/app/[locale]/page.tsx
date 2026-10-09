@@ -63,28 +63,28 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <section className="relative isolate min-h-[650px] overflow-hidden bg-[#f7f4ed] md:min-h-[700px] lg:min-h-[calc(100svh-108px)]">
-        <div className="absolute inset-0 hidden md:block">
-          <Image src="/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro product packaging" fill priority sizes="78vw" className="object-contain object-right mix-blend-multiply" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#f7f4ed] via-[#f7f4ed]/90 via-45% to-transparent" />
+      <section className="relative isolate overflow-hidden bg-[#f7f4ed]">
+        <div className="absolute inset-x-0 bottom-0 top-[20%] overflow-hidden xl:hidden">
+          <Image src="/avion-tirzep-pro-hero.png" alt="" fill priority sizes="100vw" className="object-cover object-[center_60%] mix-blend-multiply opacity-65" />
         </div>
-        <div className="relative mx-auto flex min-h-[650px] max-w-[1264px] items-center px-5 py-12 md:min-h-[700px] md:px-8 lg:min-h-[calc(100svh-108px)]">
-          <div className="relative z-10 max-w-[570px] md:w-[52%]">
-            <h1 className="font-serif text-[clamp(2.75rem,3.6vw,3.5rem)] font-semibold italic leading-[1.08] tracking-tight text-primary">
+        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#f7f4ed] via-[#f7f4ed]/65 to-[#f7f4ed]/15 xl:hidden" />
+        <div className="absolute inset-y-0 left-[38%] right-0 hidden xl:block">
+          <Image src="/avion-tirzep-pro-hero.png" alt="" fill priority sizes="62vw" className="object-cover object-[62%_center] mix-blend-multiply" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#f7f4ed] via-[#f7f4ed]/50 to-transparent" />
+        </div>
+        <div className="relative mx-auto flex max-w-[1264px] flex-col px-5 pt-8 md:px-8 md:pt-10 xl:min-h-[clamp(560px,calc(100svh-108px),760px)] xl:justify-center xl:py-12">
+          <div className="relative z-10 max-w-[570px] py-2 xl:w-[48%] xl:py-0">
+            <h1 className="font-serif text-[clamp(2rem,4.4vw,3.5rem)] font-semibold italic leading-[1.08] tracking-tight text-primary">
               <span className="block">Research peptides in Europe</span>
               <span aria-hidden="true" className="my-5 block h-1 w-12 bg-primary" />
               <span className="block">verified, carefully curated.</span>
             </h1>
-            <p className="mt-5 max-w-[34rem] font-serif text-lg leading-8 text-[#455e50] sm:text-xl">Avion-PEPT is Europe&apos;s verified source for research-grade peptides. Every compound is third-party tested, ships the same day before 16:00, and arrives within 1–2 days. Discreet packaging and meticulous documentation.</p>
-            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <p className="mt-4 max-w-[34rem] font-serif text-base leading-7 text-[#455e50] sm:mt-5 sm:text-lg sm:leading-8 xl:text-xl">Avion-PEPT is Europe&apos;s verified source for research-grade peptides. Every compound is third-party tested, ships the same day before 16:00, and arrives within 1–2 days. Discreet packaging and meticulous documentation.</p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 sm:mt-7">
               <Button size="lg" className="gap-3 rounded-lg bg-[#2d6048] px-7 text-white hover:bg-[#244e3a]" render={<Link href="/shop" />}>
                 Browse the collection <ArrowRight aria-hidden="true" className="size-4" />
               </Button>
-              <Link href="/calculator" className="text-sm font-medium text-[#ad8150] underline underline-offset-4 hover:text-[#855d35]">Peptide calculator</Link>
             </div>
-          </div>
-          <div className="absolute inset-x-0 bottom-0 z-0 h-[320px] md:hidden">
-            <Image src="/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro product packaging" fill sizes="100vw" className="object-contain object-center mix-blend-multiply" />
           </div>
         </div>
       </section>

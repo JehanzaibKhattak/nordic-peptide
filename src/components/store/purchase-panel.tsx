@@ -1,173 +1,91 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Minus, Plus, CheckCircle2, FlaskConical, Star } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
+import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCart } from "@/lib/cart-store";
-import { pricePerMl } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { pushEvent } from "@/components/layout/gtm";
 import { useCurrency } from "./use-currency";
 import { DeliveryEstimate } from "./delivery-estimate";
-import { pushEvent } from "@/components/layout/gtm";
 
-export type PanelVariant = { id: string; label: string; sizeMl: number; priceCents: number; stock: number };
+export type PanelVariant = { id: string; sku: string; label: string; concentration?: string | null; sizeMl: number; priceCents: number; stock: number };
 
 export function PurchasePanel({
   product,
   variants,
-  labName,
-  reviews,
+  browseOnly = false,
 }: {
-  product: { id: string; slug: string; name: string; image: string; keyPeptides: string[] };
+  product: { id: string; slug: string; name: string; image: string };
   variants: PanelVariant[];
-  labName: string;
-  reviews: { rating: number; count: number };
+  browseOnly?: boolean;
 }) {
   const t = useTranslations("product");
   const locale = useLocale();
   const router = useRouter();
-  const sp = useSearchParams();
-  const { fmt, currency } = useCurrency();
-  const add = useCart((s) => s.add);
+  const searchParams = useSearchParams();
+  const { fmt } = useCurrency();
+  const add = useCart((state) => state.add);
+  const initialVariant = searchParams.get("variant");
+  const initialIndex = Number(searchParams.get("Strength")) - 1;
+  const [selectedSku, setSelectedSku] = useState(
+    variants.find((variant) => variant.sku === initialVariant || variant.id === initialVariant)?.sku ?? variants[initialIndex]?.sku ?? variants[0]?.sku,
+  );
+  const [quantity, setQuantity] = useState(1);
+  const selected = variants.find((variant) => variant.sku === selectedSku) ?? variants[0];
+  if (!selected) return null;
 
-  const sorted = [...variants].sort((a, b) => b.sizeMl - a.sizeMl);
-  const fromQuery = sp.get("variant");
-  const initial = sorted.find((v) => v.id === fromQuery || v.label.replace(/\s/g, "").toLowerCase() === fromQuery?.toLowerCase()) ?? sorted.find((v) => v.stock > 0) ?? sorted[0];
-  const [selected, setSelected] = useState<PanelVariant>(initial);
-  const [qty, setQty] = useState(1);
-
-  useEffect(() => {
-    pushEvent("view_item", {
-      ecommerce: { currency: "EUR", value: selected.priceCents / 100, items: [{ item_id: selected.id, item_name: product.name, item_variant: selected.label, price: selected.priceCents / 100 }] },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const select = (v: PanelVariant) => {
-    setSelected(v);
-    const url = new URL(window.location.href);
-    url.searchParams.set("variant", v.label.replace(/\s/g, "").toLowerCase());
-    router.replace(url.pathname + url.search, { scroll: false });
+  const select = (variant: PanelVariant, index: number) => {
+    setSelectedSku(variant.sku);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("Strength", String(index + 1));
+    params.set("variant", variant.sku);
+    router.replace(`/products/${product.slug}?${params.toString()}`, { scroll: false });
   };
 
+  // Browse-only mode still supports an interactive cart preview. Actual ordering
+  // remains gated by stock and the server-side checkout flag.
+  const canAddToCart = selected.priceCents > 0 && (browseOnly || selected.stock > 0);
   const onAdd = () => {
-    if (selected.stock <= 0) return;
-    add({ productId: product.id, variantId: selected.id, slug: product.slug, name: product.name, variantLabel: selected.label, image: product.image, unitCents: selected.priceCents }, qty);
+    if (!canAddToCart) return;
+    add({ productId: product.id, variantId: selected.id, slug: product.slug, name: product.name, variantLabel: selected.label, image: product.image, unitCents: selected.priceCents }, quantity);
     pushEvent("add_to_cart", {
-      ecommerce: { currency: "EUR", value: (selected.priceCents * qty) / 100, items: [{ item_id: selected.id, item_name: product.name, item_variant: selected.label, price: selected.priceCents / 100, quantity: qty }] },
+      ecommerce: { currency: "EUR", value: selected.priceCents * quantity / 100, items: [{ item_id: selected.sku, item_name: product.name, item_variant: selected.label, price: selected.priceCents / 100, quantity }] },
     });
     toast.success(t("added"));
   };
 
-  const stockPill = (v: PanelVariant) =>
-    v.stock <= 0 ? (
-      <Badge variant="outline" className="text-muted-foreground">{t("outOfStock")}</Badge>
-    ) : v.stock <= 10 ? (
-      <Badge variant="outline" className="border-amber-300 text-amber-700">{t("lowStock", { n: v.stock })}</Badge>
-    ) : (
-      <Badge variant="outline" className="border-emerald-300 text-emerald-700">{t("inStock")}</Badge>
-    );
-
-  return (
-    <>
-      <div className="space-y-6">
-        {variants.length > 1 || variants[0].sizeMl > 0 ? (
-          <section>
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">{t("chooseSize")}</h2>
-              <SizeGuide label={t("whichSize")} />
-            </div>
-            <div className="space-y-2">
-              {sorted.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => select(v)}
-                  disabled={v.stock <= 0}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors disabled:opacity-60",
-                    selected.id === v.id ? "border-primary bg-accent/60 ring-1 ring-primary" : "hover:bg-secondary",
-                  )}
-                >
-                  <div>
-                    <p className="text-sm font-semibold">{v.label}</p>
-                    {v.sizeMl > 0 && <p className="text-xs text-muted-foreground">{pricePerMl(v.priceCents, v.sizeMl, currency)}</p>}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {stockPill(v)}
-                    <span className="text-sm font-semibold tabular-nums">{fmt(v.priceCents)}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="rounded-lg bg-secondary/60 p-3">
-            <FlaskConical className="mx-auto size-4" />
-            <p className="mt-1 font-medium">{product.keyPeptides.length ? product.keyPeptides.length : "—"}</p>
-            <p className="text-muted-foreground">{t("stats.peptides")}</p>
-          </div>
-          <div className="rounded-lg bg-secondary/60 p-3">
-            <CheckCircle2 className="mx-auto size-4" />
-            <p className="mt-1 truncate font-medium">{labName}</p>
-            <p className="text-muted-foreground">{t("stats.tested")}</p>
-          </div>
-          <div className="rounded-lg bg-secondary/60 p-3">
-            <Star className="mx-auto size-4" />
-            <p className="mt-1 font-medium">{reviews.rating.toFixed(1)} · {reviews.count}</p>
-            <p className="text-muted-foreground">{t("stats.reviews")}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <div className="flex items-center rounded-xl border">
-            <button className="px-3 py-2" aria-label="−" onClick={() => setQty((q) => Math.max(1, q - 1))}><Minus className="size-4" /></button>
-            <span className="w-8 text-center text-sm tabular-nums" aria-label={t("qty")}>{qty}</span>
-            <button className="px-3 py-2" aria-label="+" onClick={() => setQty((q) => Math.min(10, q + 1))}><Plus className="size-4" /></button>
-          </div>
-          <Button size="lg" className="flex-1" onClick={onAdd} disabled={selected.stock <= 0} data-testid="add-to-cart">
-            {selected.stock > 0 ? `${t("addToCart")} · ${fmt(selected.priceCents * qty)}` : t("outOfStock")}
-          </Button>
-        </div>
-
-        <DeliveryEstimate />
+  return <div className="space-y-4">
+    {variants.length > 1 && <section aria-label="Choose product strength">
+      <div className="mb-2 flex items-center justify-between gap-3"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#83907c]">{locale === "es" ? "Elige la concentración" : "Choose strength"}</h2><span className="text-xs text-muted-foreground">{locale === "es" ? "Selecciona una opción" : "Select an option"}</span></div>
+      <div role="radiogroup" aria-label={locale === "es" ? "Concentración" : "Strength"} className="space-y-2">
+        {variants.map((variant, index) => {
+          const checked = selected.sku === variant.sku;
+          const availability = variant.stock > 0 ? (locale === "es" ? "En stock" : "In stock") : (locale === "es" ? "No disponible" : "Unavailable");
+          return <button key={variant.sku} type="button" role="radio" aria-checked={checked} onClick={() => select(variant, index)} className={cn("grid w-full grid-cols-[1fr_auto] items-center gap-3 rounded-xl border bg-white px-4 py-3 text-left transition", checked ? "border-[#2d6047] bg-[#e9eee6] ring-1 ring-[#2d6047]" : "border-[#e8e4dc] hover:border-[#b5c2b2]")}>
+            <span className="min-w-0"><span className="block text-sm font-semibold text-primary">{variant.label}</span><span className="mt-1 block text-xs text-muted-foreground">{variant.sku}{variant.concentration && <> <span className="mx-1">·</span> {variant.concentration}</>} <span className="mx-1">·</span> {availability}</span></span>
+            <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-primary">{variant.priceCents > 0 ? fmt(variant.priceCents) : (locale === "es" ? "Precio pendiente" : "Price pending")}</span>
+          </button>;
+        })}
       </div>
+    </section>}
 
-      {/* Sticky mobile bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur md:hidden">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{product.name}</p>
-          <p className="text-xs text-muted-foreground">{selected.label} · {fmt(selected.priceCents)}</p>
-        </div>
-        <Button onClick={onAdd} disabled={selected.stock <= 0} lang={locale}>{t("addToCart")}</Button>
+    <div className="flex items-center gap-3">
+      <div className="flex h-11 items-center rounded-lg border border-[#e8e4dc] bg-white">
+        <button type="button" className="px-3 text-primary" aria-label={locale === "es" ? "Reducir cantidad" : "Decrease quantity"} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="size-3.5" /></button>
+        <span className="w-6 text-center text-sm tabular-nums">{quantity}</span>
+        <button type="button" className="px-3 text-primary" aria-label={locale === "es" ? "Aumentar cantidad" : "Increase quantity"} onClick={() => setQuantity((value) => Math.min(10, value + 1))}><Plus className="size-3.5" /></button>
       </div>
-      <div className="h-16 md:hidden" />
-    </>
-  );
-}
+      <Button size="lg" className="h-11 flex-1" onClick={onAdd} disabled={!canAddToCart} data-testid="add-to-cart">
+        {selected.priceCents <= 0 ? (locale === "es" ? "Precio pendiente" : "Price pending") : !browseOnly && selected.stock <= 0 ? t("outOfStock") : `${t("addToCart")} · ${fmt(selected.priceCents * quantity)}`}
+      </Button>
+    </div>
 
-function SizeGuide({ label }: { label: string }) {
-  const t = useTranslations("product.sizeGuide");
-  return (
-    <Dialog>
-      <DialogTrigger render={<button className="text-xs underline underline-offset-2" />}>{label}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">{t("intro")}</p>
-        <ul className="list-disc space-y-2 pl-5 text-sm">
-          {(["a", "b", "c", "d", "e"] as const).map((k) => (
-            <li key={k}>{t(k)}</li>
-          ))}
-        </ul>
-      </DialogContent>
-    </Dialog>
-  );
+    {selected && <dl className="grid grid-cols-2 gap-3 rounded-lg bg-[#f3f0e8] p-3 text-xs"><div><dt className="text-muted-foreground">SKU</dt><dd className="mt-1 font-medium text-primary">{selected.sku}</dd></div><div><dt className="text-muted-foreground">{locale === "es" ? "Cantidad / volumen" : "Amount / volume"}</dt><dd className="mt-1 font-medium text-primary">{selected.label}</dd></div></dl>}
+    <DeliveryEstimate />
+  </div>;
 }

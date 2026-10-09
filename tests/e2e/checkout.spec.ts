@@ -1,81 +1,89 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext } from "@playwright/test";
+import { sealData } from "iron-session";
+import { sessionSecret } from "./setup";
 
-// Acceptance flows 2–4: browse → size → cart → details → payment page →
-// mock card → paid order page with a single purchase event; plus expiry.
-
-async function toPaymentPage(page: Page) {
-  await page.goto("/en/products/matrixyl-firming-serum?kt=e2e123&aff=net1&sub1=x");
-  await page.getByRole("button", { name: "Necessary only" }).click();
-  await page.getByRole("button", { name: /^30 ml/ }).click();
-  await expect(page).toHaveURL(/variant=30ml/);
-  await page.getByTestId("add-to-cart").click();
-
-  const drawer = page.getByRole("dialog");
-  await expect(drawer.getByText("Matrixyl Firming Serum")).toBeVisible();
-  await expect(drawer.getByText("30 ml")).toBeVisible();
-  await drawer.getByRole("button", { name: "Checkout" }).click();
-
-  await expect(page).toHaveURL(/\/en\/checkout$/);
-  await page.getByLabel("Email").fill("e2e@example.com");
-  await page.getByLabel("First name").fill("E2E");
-  await page.getByLabel("Last name").fill("Buyer");
-  await page.getByLabel("Address", { exact: true }).fill("1 Test Street");
-  await page.getByLabel("City").fill("Madrid");
-  await page.getByLabel("Postcode").fill("28001");
-  await page.getByRole("checkbox").last().click();
-  await page.getByTestId("continue-to-payment").click();
-
-  await expect(page).toHaveURL(/\/en\/checkout\/pay\?session=/);
-  await expect(page.getByText("Matrixyl Firming Serum")).toBeVisible();
-  await expect(page.getByTestId("pay-total")).toContainText("54,90");
-  await expect(page.getByTestId("countdown")).toHaveText(/^\d{2}:\d{2}$/);
-  // Other adapters (Stripe, Ziina) may be enabled locally; these tests use the mock card.
-  await page.getByRole("button", { name: "Card (test mode)" }).click();
+async function signIn(context: BrowserContext) {
+  await context.addCookies([{ name: "avion_purchaser", value: await sealData({ purchaserId: "e2e-buyer" }, { password: sessionSecret, ttl: 3600 }), domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" }]);
 }
 
-test("purchase with mock card ends on a paid order page and fires purchase once", async ({ page }) => {
-  await toPaymentPage(page);
+test("checkout requires an approved account and preserves locale", async ({ page }) => {
+  await page.goto("/es/checkout");
+  await expect(page.getByRole("heading", { name: /cuenta de investigación verificada/ })).toBeVisible();
+  await page.getByRole("link", { name: "Cuenta de investigación e historial", exact: true }).last().click();
+  await expect(page).toHaveURL(/\/es\/account$/);
+  await expect(page.getByRole("heading", { name: "Cuenta de comprador de investigación" })).toBeVisible();
+});
 
-  await page.getByLabel("Card number").fill("4242 4242 4242 4242");
-  await page.getByLabel("MM / YY").fill("12 / 29");
-  await page.getByLabel("CVC").fill("123");
-  await page.getByLabel("Name on card").fill("E2E Buyer");
-  await page.getByTestId("pay-button").click();
-
-  await expect(page).toHaveURL(/\/en\/order\/NPS\d{8}$/);
-  await expect(page.getByTestId("order-status-title")).toHaveAttribute("data-status", "PAID");
-
-  const purchases = () => page.evaluate(() => (window.dataLayer ?? []).filter((e) => e.event === "purchase").length);
-  await expect.poll(purchases).toBe(1);
+test("persistent cart reaches server-priced pending order and keeps cart on cancellation", async ({ page, context }) => {
+  await signIn(context);
+  await page.goto("/en/products/e2e-sample");
+  await page.getByRole("button", { name: "Increase quantity", exact: true }).click();
+  await page.getByTestId("add-to-cart").click();
   await page.reload();
-  await expect(page.getByTestId("order-status-title")).toHaveAttribute("data-status", "PAID");
-  expect(await purchases()).toBe(0); // cookie guard: not re-fired on reload
+  await page.evaluate(() => {
+    const cart = JSON.parse(localStorage.getItem("nps-cart")!);
+    cart.state.items[0].unitCents = 1;
+    localStorage.setItem("nps-cart", JSON.stringify(cart));
+  });
+  await page.goto("/en/checkout");
+  await page.getByLabel("First name").fill("Research");
+  await page.getByLabel("Last name").fill("Buyer");
+  await page.getByLabel("Address", { exact: true }).fill("1 Laboratory Road");
+  await page.getByLabel("City").fill("Madrid");
+  await page.getByLabel("Postcode").fill("28001");
+  await page.getByRole("checkbox").last().check();
+  await page.getByTestId("continue-to-payment").click();
+  await expect(page).toHaveURL(/\/checkout\/pay\?session=/);
+  await expect(page.getByTestId("pay-total")).toHaveText("€45.90");
+  const token = new URL(page.url()).searchParams.get("session");
+  await page.goto(`/en/checkout/cancel?session=${token}`);
+  await expect(page.getByRole("heading", { name: "Checkout cancelled" })).toBeVisible();
+  await page.reload();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("nps-cart")!).state.items[0].qty)).toBe(2);
+  await page.goto("/en/account");
+  await expect(page.getByRole("heading", { name: "Order history" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /NPS.*PENDING/ }).first()).toBeVisible();
 });
 
-test("declined card shows an error and keeps the order payable", async ({ page }) => {
-  await toPaymentPage(page);
-  await page.getByLabel("Card number").fill("4000 0000 0000 0002");
-  await page.getByLabel("MM / YY").fill("12 / 29");
-  await page.getByLabel("CVC").fill("123");
-  await page.getByLabel("Name on card").fill("E2E Buyer");
-  await page.getByTestId("pay-button").click();
-  await expect(page.getByText("Your card was declined")).toBeVisible();
-  await expect(page).toHaveURL(/\/checkout\/pay/);
+test("checkout layout stays within a mobile viewport", async ({ page, context }) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/account");
+  await expect(page.getByRole("heading", { name: "Research purchaser account" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test("attribution from the landing URL is stored first-touch", async ({ page }) => {
-  await page.goto("/en?kt=first111&aff=netA");
-  await page.goto("/en/shop?kt=second222");
-  const attr = await page.evaluate(() => decodeURIComponent((document.cookie.match(/kt_attr=([^;]*)/) ?? [])[1] ?? ""));
-  expect(JSON.parse(attr).ktSubid).toBe("first111");
-  await page.goto("/en/shop?kt=third333&kt_override=1");
-  const attr2 = await page.evaluate(() => decodeURIComponent((document.cookie.match(/kt_attr=([^;]*)/) ?? [])[1] ?? ""));
-  expect(JSON.parse(attr2).ktSubid).toBe("third333");
-});
+test("email ownership and independent admin review are separate gates", async ({ page, context }) => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  await page.goto("/en/account");
+  const requestForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Send sign-in code", exact: true }) });
+  await requestForm.getByLabel("Institutional email").fill("pending-researcher@example.com");
+  await requestForm.getByRole("button").click();
+  await expect(page.getByRole("status").filter({ hasText: "a code has been sent" })).toBeVisible();
+  const email = readdirSync("tmp/mail").map(file => readFileSync(`tmp/mail/${file}`, "utf8")).findLast(text => text.includes("To: pending-researcher@example.com") && text.includes("sign-in code is"));
+  const code = email?.match(/sign-in code is (\d{6})/)?.[1];
+  expect(code).toBeTruthy();
+  const verifyForm = page.locator("form").filter({ has: page.getByLabel("Six-digit code") });
+  await verifyForm.getByLabel("Institutional email").fill("pending-researcher@example.com");
+  await verifyForm.getByLabel("Six-digit code").fill(code!);
+  await verifyForm.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByText("pending-researcher@example.com · Application required")).toBeVisible();
+  await page.getByLabel("Organization / institution", { exact: true }).fill("Independent Test Lab");
+  await page.getByLabel("Organization registration or accreditation number").fill("REG-TEST-123");
+  await page.getByLabel("Institution website").fill("https://example.com");
+  await page.getByLabel(/Research purpose, facility/).fill("Analytical research by our institutional laboratory. Contact the independently listed laboratory director to verify authorization.");
+  await page.getByRole("checkbox", { name: /I am authorized to purchase/ }).check();
+  await page.getByRole("button", { name: "Submit for independent review" }).click();
+  await page.goto("/en/checkout");
+  await expect(page.getByRole("heading", { name: /verified and approved research purchaser/ })).toBeVisible();
 
-test("spanish locale translates nav, product and checkout", async ({ page }) => {
-  await page.goto("/es/products/matrixyl-firming-serum");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sérum Reafirmante Matrixyl");
-  await expect(page.getByRole("link", { name: "Tienda" }).first()).toBeVisible();
-  await expect(page.getByText("Elige el tamaño")).toBeVisible();
+  await context.addCookies([{ name: "avion_admin", value: await sealData({ isAdmin: true }, { password: sessionSecret, ttl: 3600 }), domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" }]);
+  await page.goto("/admin/approvals");
+  const review = page.locator("details").filter({ has: page.locator("summary", { hasText: "Independent Test Lab" }) });
+  await review.locator("summary").click();
+  await review.getByLabel("Reviewer name").fill("Test Administrator");
+  await review.getByLabel("Verification evidence and decision rationale").fill("TEST FIXTURE ONLY: independent institutional registration and director authorization checked for this automated test.");
+  await review.getByRole("button", { name: "Approve", exact: true }).click();
+  await page.goto("/en/account");
+  await expect(page.getByText("pending-researcher@example.com · Approved")).toBeVisible();
 });

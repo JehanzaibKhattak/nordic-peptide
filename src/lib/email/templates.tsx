@@ -1,3 +1,4 @@
+import { formatOrderMoney } from "../money";
 import { Body, Container, Head, Heading, Html, Link, Preview, Section, Text, Hr } from "@react-email/components";
 import type { Order, OrderItem } from "@prisma/client";
 
@@ -21,7 +22,6 @@ const styles = {
   },
 };
 
-const money = (c: number) => `€${(c / 100).toFixed(2)}`;
 const brand = () => process.env.BRAND_NAME ?? "Avion-PEPT";
 
 function Items({ order }: { order: OrderWithItems }) {
@@ -29,14 +29,14 @@ function Items({ order }: { order: OrderWithItems }) {
     <Section>
       {order.items.map((i) => (
         <Text key={i.id} style={styles.row}>
-          {i.qty} × {i.name} ({i.variantLabel}) — {money(i.lineCents)}
+          {i.qty} × {i.name} ({i.variantLabel}) — {formatOrderMoney(i.lineCents, order.currency)}
         </Text>
       ))}
       <Hr />
-      <Text style={styles.row}>Subtotal: {money(order.subtotalCents)}</Text>
-      <Text style={styles.row}>Shipping: {order.shippingCents === 0 ? "Free" : money(order.shippingCents)}</Text>
-      {order.discountCents > 0 && <Text style={styles.row}>Discount: −{money(order.discountCents)}</Text>}
-      <Text style={{ ...styles.row, fontWeight: 700 }}>Total: {money(order.totalCents)}</Text>
+      <Text style={styles.row}>Subtotal: {formatOrderMoney(order.subtotalCents, order.currency)}</Text>
+      <Text style={styles.row}>Shipping: {order.shippingCents === 0 ? "Free" : formatOrderMoney(order.shippingCents, order.currency)}</Text>
+      {order.discountCents > 0 && <Text style={styles.row}>Discount: −{formatOrderMoney(order.discountCents, order.currency)}</Text>}
+      <Text style={{ ...styles.row, fontWeight: 700 }}>Total: {formatOrderMoney(order.totalCents, order.currency)}</Text>
     </Section>
   );
 }
@@ -52,7 +52,7 @@ function Shell({ preview, children }: { preview: string; children: React.ReactNo
           {children}
           <Hr />
           <Text style={styles.muted}>
-            {brand()} · Cosmetic products for external use only. This is an automated message; replies are not monitored.
+            {brand()} · For authorized laboratory research only. Not for human or veterinary administration. This is an automated message; replies are not monitored.
           </Text>
         </Container>
       </Body>
@@ -81,7 +81,7 @@ export function PaymentReceivedEmail({ order, orderUrl }: { order: OrderWithItem
     <Shell preview={`Order ${order.orderNumber} confirmed`}>
       <Heading style={styles.h1}>Thanks — your order is confirmed</Heading>
       <Text style={styles.p}>
-        We&apos;ve received payment for order <strong>{order.orderNumber}</strong>. We&apos;ll email you again when it ships.
+        {order.paymentProvider === "stripe" ? "A Stripe test payment was recorded. No real funds were collected and no goods will be dispatched." : "Payment has been received."} Order <strong>{order.orderNumber}</strong>.
       </Text>
       <Link href={orderUrl} style={styles.button}>
         View order

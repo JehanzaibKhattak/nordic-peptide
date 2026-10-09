@@ -6,13 +6,14 @@ import Image from "next/image";
 import { CheckCircle2, Clock, XCircle, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
-import { formatMoney } from "@/lib/money";
+import { formatOrderMoney } from "@/lib/money";
 import { pushEvent } from "@/components/layout/gtm";
 import type { Address } from "@/lib/types";
 
 export type OrderView = {
   orderNumber: string;
   status: string;
+  currency: string;
   email: string;
   totalCents: number;
   subtotalCents: number;
@@ -28,6 +29,7 @@ const PURCHASE_COOKIE = "nps_purchase_";
 
 export function OrderStatus({ initial }: { initial: OrderView }) {
   const t = useTranslations("order");
+  const r = useTranslations("research");
   const [order, setOrder] = useState(initial);
   const pending = order.status === "PENDING" || order.status === "RESERVED";
 
@@ -52,7 +54,7 @@ export function OrderStatus({ initial }: { initial: OrderView }) {
     pushEvent("purchase", {
       ecommerce: {
         transaction_id: order.orderNumber,
-        currency: "EUR",
+        currency: order.currency,
         value: order.totalCents / 100,
         shipping: order.shippingCents / 100,
         items: order.items.map((i) => ({ item_id: i.variantId, item_name: i.name, item_variant: i.variantLabel, price: i.unitCents / 100, quantity: i.qty })),
@@ -65,6 +67,7 @@ export function OrderStatus({ initial }: { initial: OrderView }) {
     switch (order.status) {
       case "PAID": return { icon: CheckCircle2, cls: "text-emerald-600", title: t("thanks"), body: t("paidBody", { email: order.email }) };
       case "FULFILLED": return { icon: Truck, cls: "text-emerald-600", title: t("fulfilledTitle"), body: order.trackingNo ? t("tracking", { no: order.trackingNo }) : "" };
+      case "PAYMENT_FAILED": return { icon: XCircle, cls: "text-destructive", title: r("failure"), body: "" };
       case "EXPIRED": return { icon: XCircle, cls: "text-muted-foreground", title: t("expiredTitle"), body: t("expiredBody") };
       case "CANCELLED": return { icon: XCircle, cls: "text-muted-foreground", title: t("cancelledTitle"), body: "" };
       case "REFUNDED": return { icon: XCircle, cls: "text-muted-foreground", title: t("refundedTitle"), body: "" };
@@ -92,11 +95,11 @@ export function OrderStatus({ initial }: { initial: OrderView }) {
             <li key={i.id} className="flex items-center gap-3 text-sm">
               <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-secondary">{i.image && <Image src={i.image} alt="" fill sizes="48px" className="object-cover" />}</div>
               <div className="flex-1"><p className="font-medium">{i.name}</p><p className="text-xs text-muted-foreground">{i.variantLabel} × {i.qty}</p></div>
-              <span>{formatMoney(i.lineCents)}</span>
+              <span>{formatOrderMoney(i.lineCents, order.currency)}</span>
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex justify-between border-t pt-3 text-sm font-semibold"><span>Total</span><span>{formatMoney(order.totalCents)}</span></div>
+        <div className="mt-4 flex justify-between border-t pt-3 text-sm font-semibold"><span>Total</span><span>{formatOrderMoney(order.totalCents, order.currency)}</span></div>
       </div>
 
       <div className="mt-4 rounded-2xl border bg-card p-5 text-sm">

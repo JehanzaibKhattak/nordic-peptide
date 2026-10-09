@@ -17,8 +17,8 @@ describe("mock card outcomes", () => {
 describe("money", () => {
   it("formats EUR and converts for display only", () => {
     expect(formatMoney(4900, "EUR")).toContain("49,00");
-    expect(convertCents(10000, "GBP")).toBe(8600);
-    expect(formatMoney(10000, "GBP")).toBe("£86.00");
+    expect(convertCents(10000, "GBP")).toBe(8472);
+    expect(formatMoney(10000, "GBP")).toBe("£84.72");
   });
   it("picks display currency from the ship-to country", () => {
     expect(currencyForCountry("GB")).toBe("GBP");

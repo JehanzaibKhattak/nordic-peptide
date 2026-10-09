@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-session";
 import { logoutAction } from "../actions";
 
 const NAV = [
+  { href: "/admin/approvals", label: "Approvals" },
   { href: "/admin", label: "Orders" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/coupons", label: "Coupons" },

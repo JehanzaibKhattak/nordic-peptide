@@ -1,6 +1,6 @@
 # Avion-PEPT — storefront
 
-Cosmetic peptide skincare store: catalogue, product pages with size variants, cart drawer, two-step checkout with a reservation timer, pluggable card payments (mock + Stripe), Keitaro affiliate tracking, batch-test library, journal, and a minimal admin. Runs fully locally with no external accounts.
+Research peptide catalogue for Avion-PEPT, with product pages, strength variants, product FAQs, a cart and checkout preview, batch-test records, and a password-protected admin panel. The admin can create and edit products, manage each strength and SKU, upload product photos, write EN/ES descriptions and FAQs, and add batch analysis reports.
 
 > Brand name, product copy, review numbers and legal pages are **placeholders**. Replace them before launch (see [Before launch](#before-launch)).
 
@@ -8,24 +8,20 @@ Cosmetic peptide skincare store: catalogue, product pages with size variants, ca
 
 ```bash
 pnpm install
-cp .env.example .env
+cp .env.example .env.local
+# Set ADMIN_PASSWORD and SESSION_SECRET in .env.local before continuing.
 pnpm db:push
 pnpm db:seed
 pnpm dev
 ```
 
 - Store: http://localhost:3000 (redirects to `/en`)
-- Admin: http://localhost:3000/admin — password is `ADMIN_PASSWORD` in `.env`
+- Admin: http://localhost:3000/admin — sign in with `ADMIN_PASSWORD` from `.env.local`
+- Product editor: Admin → Products → Add product
 - Dev emails are written to `tmp/mail/*.eml` and logged to the console
 - Dev Keitaro postbacks go to `/api/dev/echo` and show in the server log and in Admin → Postbacks
 
-Test cards (mock adapter, dev only):
-
-| Card | Result |
-|---|---|
-| `4242 4242 4242 4242` | Paid |
-| `4000 0000 0000 0002` | Declined |
-| `4000 0000 0000 0341` | Paid after a 5s delay (simulated 3DS) |
+Database-backed checkout now requires a verified, independently approved research account and explicit product/destination approvals. It accepts Stripe **test mode only**. See [Stripe checkout setup and Vercel environment variables](docs/stripe-checkout.md).
 
 ## Scripts
 
@@ -34,11 +30,11 @@ Test cards (mock adapter, dev only):
 | `pnpm dev` | Dev server (Turbopack) |
 | `pnpm build` | `prisma generate` + production build |
 | `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit` |
-| `pnpm test` | Vitest unit tests (shipping, money, mock cards, postback URL) |
-| `pnpm test:e2e` | Playwright: purchase, declined card, attribution, Spanish locale. First run: `pnpm exec playwright install chromium` |
+| `pnpm test` | Vitest unit/integration tests, including commerce security and webhook idempotency |
+| `pnpm test:e2e` | Playwright: account gating, trusted checkout totals, cart persistence, order history, mobile layout. First run: `pnpm exec playwright install chromium` |
 | `pnpm db:push` / `pnpm db:seed` / `pnpm db:studio` | Prisma schema sync / seed / browser |
 
-**Always run `pnpm build` before pushing** — `tsc` alone misses ESLint errors that fail a Vercel deploy.
+**Run tests, typecheck, lint and build before deployment.** Next.js build does not replace a separate ESLint run.
 
 ## Stack
 
@@ -50,51 +46,31 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind 4 + shadcn/ui (Base
 src/
   app/[locale]/          storefront (home, shop, products, checkout, order, testing, journal, legal, contact)
   app/admin/             admin (orders, products, coupons, postbacks, settings) + server actions
-  app/api/               orders, checkout (session/pay/mock-confirm/webhook), coupons, contact, dev echo
+  app/api/               orders, checkout, coupons, contact, admin image uploads
   components/            layout/, store/, checkout/, admin/, ui/ (shadcn)
   config/shipping.ts     zones, prices, free-shipping thresholds, cutoff, delivery estimate
-  lib/orders.ts          order state machine (create → RESERVED → PAID → FULFILLED / EXPIRED / REFUNDED)
-  lib/payments/          PaymentAdapter interface, mock + stripe adapters, registry
+  lib/orders.ts          order state machine (create → PENDING → PAID → FULFILLED / EXPIRED / REFUNDED)
+  lib/payments/          PaymentAdapter interface, Stripe test adapter, transactional webhooks
   lib/affiliate/         kt_attr cookie capture (client) + Keitaro postback (server)
   lib/email/             adapter + React Email templates
   messages/              en.json, es.json
-prisma/schema.prisma     data model     prisma/seed.ts   4 categories, 12 products, batch tests, 2 coupons
+prisma/schema.prisma     data model     prisma/seed.ts   peptide catalogue seed data
 content/research/        journal articles: <slug>.<locale>.md
 ```
 
-### Checkout flow
+### Checkout and payments
 
-1. Cart (Zustand, localStorage) → `/[locale]/checkout` collects contact, address and shipping method.
-2. `POST /api/orders` re-prices everything server-side from the DB (client prices are never trusted), reserves stock atomically, creates the order as `RESERVED` with `reservedUntil = now + RESERVATION_MINUTES` and a single checkout session token.
-3. `/[locale]/checkout/pay?session=TOKEN` shows the summary, a live countdown and the enabled payment adapters.
-4. Payment success → `markPaid()` (idempotent) → status `PAID`, confirmation email, Keitaro postback.
-5. `/[locale]/order/[number]` polls every 3s while unpaid and fires the `purchase` dataLayer event once (cookie-guarded).
-6. If the timer runs out the order becomes `EXPIRED`, stock is released and payment is refused. Expiry is evaluated lazily on read (session load, order page, admin list) — there is no cron in dev. In production add a cron hitting an endpoint that calls `expireStaleOrders()` so abandoned stock is released even if nobody loads a page.
+The existing persistent cart and responsive checkout now require an authenticated, independently approved purchaser. Products and destinations are denied until explicitly approved in Admin → Approvals. Prices come from the database, and orders start `PENDING`. Stripe-hosted test Checkout is the only enabled adapter. Signed webhook events update orders and stock transactionally, deduplicate events, and trigger test confirmation email. Customer history and order status are owner-only.
 
-### Payments
-
-`lib/payments/types.ts` defines `PaymentAdapter` (`createPayment`, `handleWebhook`, optional `refund`).
-
-- **mock** — enabled when `PAY_MOCK_ENABLED=1` and never in production. Inline test card form.
-- **stripe** — enabled when `STRIPE_SECRET_KEY` is set. Uses hosted Stripe Checkout. Point a webhook at `/api/checkout/webhook/stripe` (events: `checkout.session.completed`, `checkout.session.expired`, `charge.refunded`) and set `STRIPE_WEBHOOK_SECRET`. Local testing: `stripe listen --forward-to localhost:3000/api/checkout/webhook/stripe`.
-
-- **ziina** — enabled when `ZIINA_API_TOKEN` is set. Creates a Ziina Payment Intent for the order total (EUR, minor units) and redirects to Ziina's hosted page (card, Apple Pay, Google Pay). The intent id is stored on `Order.providerRef`.
-  - Confirmation happens two ways, both re-fetching the intent from Ziina's API and checking amount + currency against the order: on the customer's return (`/checkout/complete`) and via webhook.
-  - Register the webhook once: `POST https://api-v2.ziina.com/api/webhook` with `{ "url": "https://<store>/api/checkout/webhook/ziina", "secret": "<ZIINA_WEBHOOK_SECRET>" }` (token needs the `write_webhooks` scope; refunds need `write_refunds`).
-  - `ZIINA_TEST=1` creates test intents. Set it to `0` for live payments.
-  - No Ziina account yet? Uncomment the two `dev-fake` lines in `.env` to run the flow against the local fake at `/api/dev/ziina` (dev only).
-  - The "pay by emailed link" flow is covered by the order-reserved email: its **Complete payment** button opens the payment page, which hands off to Ziina.
-  - Payouts settle in AED. The message shown on Ziina's page is "<brand> — order <number>".
-
-To add a provider, implement the interface and add it to `lib/payments/registry.ts`.
+Success, cancellation and failure pages preserve locale routing and never confirm payment from URL parameters. Open Stripe sessions must be expired/reconciled before related approvals change. Live keys and live-payment flags fail closed. Full architecture, migration, Stripe test instructions and operational limits are in [docs/stripe-checkout.md](docs/stripe-checkout.md).
 
 ### Affiliate tracking (Keitaro)
 
 - Any page load with `?kt=` (or `subid`/`sub_id`), `?aff=` or `?sub1..5` writes a first-party `kt_attr` cookie (30 days, `SameSite=Lax`). **First touch wins** unless `?kt_override=1`.
 - The cookie is copied onto `Order.affiliate` at order creation.
-- On `PAID`: server-side `GET KEITARO_POSTBACK_URL?subid=…&status=sale&tid=<orderNumber>&revenue=…&payout=…&key=…`, 3 attempts with backoff, every attempt logged as an `OrderEvent`.
-- On `REFUNDED`: same with `status=rejected`.
-- Admin → Postbacks lists the log with a resend button.
+- Legacy/manual orders on `PAID`: server-side `GET KEITARO_POSTBACK_URL?subid=…&status=sale&tid=<orderNumber>&revenue=…&payout=…&key=…`, 3 attempts with backoff, every attempt logged as an `OrderEvent`.
+- Legacy/manual orders on `REFUNDED`: same with `status=rejected`.
+- Admin → Postbacks lists the log with a resend button. Stripe test orders do not automatically send affiliate postbacks.
 
 Set `KEITARO_POSTBACK_URL` to your tracker's postback endpoint and `KEITARO_POSTBACK_KEY` if it requires one. Payout is `AFFILIATE_PAYOUT_CENTS` (editable in Admin → Settings).
 
@@ -105,23 +81,22 @@ GTM loads only after the visitor accepts analytics cookies. `dataLayer` events: 
 ### Shipping, currency, tax
 
 - Zones, prices and thresholds: `src/config/shipping.ts`. Cutoff 16:00 Europe/Berlin, business days only.
-- Prices are stored and **charged in EUR**. GBP/USD are display-only conversions from a static rate table in `lib/money.ts`.
+- Catalogue prices are stored in EUR. Checkout defaults to EUR; Admin → Approvals can configure validated payment rates for supported storefront currencies. Display conversions remain estimates.
 - Tax is currently a flat `0` line ("Tax (estimated)"). `TAX_MODE` is reserved in `.env` but only `none` is implemented — add VAT handling before selling.
 
-## Deploying (Vercel + Postgres)
+## Deploying (Vercel)
 
-1. Change the Prisma datasource `provider` to `postgresql` and set `DATABASE_URL` (Supabase/Neon). The schema uses no SQLite-only features.
-2. Set all env vars from `.env.example`; use a long random `SESSION_SECRET` and a strong `ADMIN_PASSWORD`; leave `PAY_MOCK_ENABLED` unset.
-3. Product images and batch-test PDFs are written to `public/` — fine locally, but serverless filesystems are read-only. Move uploads to object storage (Supabase Storage / Vercel Blob) before using the admin upload in production.
-4. The rate limiter is in-memory (per instance). Swap for Upstash/Vercel KV when running more than one instance.
+1. Configure persistent PostgreSQL and follow [the checkout deployment guide](docs/stripe-checkout.md). Use `npm run db:deploy:vercel` for a new database and `npm run build:vercel` as the Vercel Build Command. SQLite remains local-only.
+2. Add a Vercel Blob store and set `BLOB_READ_WRITE_TOKEN` for persistent product image uploads.
+3. Set `DATABASE_URL`, a unique `SESSION_SECRET` of at least 32 characters, and a strong `ADMIN_PASSWORD` in Vercel. Do not use the local preview password in production.
+4. Batch report upload currently writes to `public/` and needs persistent object storage before using that upload on Vercel.
+5. Commerce initiation and sign-in requests use database-backed limits; unrelated legacy endpoints retain their existing in-memory limiter.
 
 ## Before launch
 
-- [ ] Real brand name, logo and product photography (`public/products/*.svg` are generated placeholders).
-- [ ] Real formulas: the seeded INCI lists, concentrations and pH ranges are illustrative. Each product needs a Cosmetic Product Safety Report, a Responsible Person (EU and UK separately) and CPNP / SCPN notification before sale.
-- [ ] Real batch reports and lab name — the seed uses dummy PDFs and a placeholder lab.
+- [ ] Confirm product details, permitted claims, regional legal requirements, real batch reports, and laboratory names before launch.
 - [ ] Real review source and numbers (`REVIEWS_*`), or remove the rating chip and the `aggregateRating` JSON-LD. Don't ship invented ratings.
 - [ ] The home page stats strip (batches tested, repeat customers, etc.) is placeholder copy — replace with real figures or remove.
 - [ ] Legal pages (`src/app/[locale]/legal/[page]/page.tsx`) are generic templates; have them reviewed.
-- [ ] Keep copy to cosmetic claims (appearance, hydration, feel). No medical or drug claims.
+- [ ] Obtain written processor approval and independent review of research-product eligibility, destinations and applicable regulation before any separately implemented live launch.
 - [ ] VAT/tax handling, and a cron for `expireStaleOrders()`.

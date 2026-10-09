@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/routing";
-import { formatMoney } from "@/lib/money";
+import { formatOrderMoney } from "@/lib/money";
 import type { Address } from "@/lib/types";
 import { useCart } from "@/lib/cart-store";
 
@@ -20,6 +20,7 @@ type SessionData = {
     id: string;
     orderNumber: string;
     status: string;
+  currency: string;
     locale: string;
     email: string;
     subtotalCents: number;
@@ -134,18 +135,18 @@ export function PaymentPage({ token }: { token: string }) {
               <li key={i.id} className="flex items-center gap-3 text-sm">
                 <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-secondary">{i.image && <Image src={i.image} alt="" fill sizes="56px" className="object-cover" />}</div>
                 <div className="flex-1"><p className="font-medium leading-tight">{i.name}</p><p className="text-xs text-muted-foreground">{i.variantLabel} × {i.qty}</p></div>
-                <span>{formatMoney(i.lineCents)}</span>
+                <span>{formatOrderMoney(i.lineCents, order.currency)}</span>
               </li>
             ))}
           </ul>
           <Separator />
           <dl className="space-y-1.5 text-sm">
-            <div className="flex justify-between"><dt className="text-muted-foreground">{tc("subtotal")}</dt><dd>{formatMoney(order.subtotalCents)}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">{tc("shipping")}</dt><dd>{order.shippingCents === 0 ? tc("free") : formatMoney(order.shippingCents)}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">{t("tax")}</dt><dd>{formatMoney(order.taxCents)}</dd></div>
-            {order.discountCents > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">{tc("discount")}</dt><dd>−{formatMoney(order.discountCents)}</dd></div>}
+            <div className="flex justify-between"><dt className="text-muted-foreground">{tc("subtotal")}</dt><dd>{formatOrderMoney(order.subtotalCents, order.currency)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted-foreground">{tc("shipping")}</dt><dd>{order.shippingCents === 0 ? tc("free") : formatOrderMoney(order.shippingCents, order.currency)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted-foreground">{t("tax")}</dt><dd>{formatOrderMoney(order.taxCents, order.currency)}</dd></div>
+            {order.discountCents > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">{tc("discount")}</dt><dd>−{formatOrderMoney(order.discountCents, order.currency)}</dd></div>}
             <Separator className="my-2" />
-            <div className="flex justify-between text-base font-semibold"><dt>{tc("total")}</dt><dd data-testid="pay-total">{formatMoney(order.totalCents)}</dd></div>
+            <div className="flex justify-between text-base font-semibold"><dt>{tc("total")}</dt><dd data-testid="pay-total">{formatOrderMoney(order.totalCents, order.currency)}</dd></div>
           </dl>
           <div className="grid gap-3 sm:grid-cols-2">
             <AddressCard title={t("shipTo")} a={order.shippingAddress} />
@@ -173,7 +174,7 @@ export function PaymentPage({ token }: { token: string }) {
             </div>
             <div className="mt-5">
               {adapter === "mock" && <MockCardForm token={token} total={order.totalCents} onPaid={(n) => { clear(); router.replace(`/${locale}/order/${n}`); }} />}
-              {adapter && adapter !== "mock" && <RedirectPay key={adapter} token={token} adapterId={adapter} total={order.totalCents} onBeforeRedirect={clear} />}
+              {adapter && adapter !== "mock" && <RedirectPay key={adapter} token={token} adapterId={adapter} total={order.totalCents} currency={order.currency} />}
               {!adapter && <p className="text-sm text-muted-foreground">No payment methods enabled.</p>}
             </div>
             <p className="mt-4 text-xs text-muted-foreground">{t("agreeLine")}</p>
@@ -225,33 +226,34 @@ function MockCardForm({ token, total, onPaid }: { token: string; total: number; 
       </div>
       <div className="space-y-1.5"><Label htmlFor="name">{t("mock.name")}</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} required /></div>
       {err && <p className="text-sm text-destructive">{err}</p>}
-      <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="pay-button">{busy ? t("paying") : t("pay", { amount: formatMoney(total) })}</Button>
+      <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="pay-button">{busy ? t("paying") : t("pay", { amount: formatOrderMoney(total) })}</Button>
       <p className="text-[11px] text-muted-foreground">{t("mock.hint")}</p>
     </form>
   );
 }
 
-function RedirectPay({ token, adapterId, total, onBeforeRedirect }: { token: string; adapterId: string; total: number; onBeforeRedirect: () => void }) {
+function RedirectPay({ token, adapterId, total, currency }: { token: string; adapterId: string; total: number; currency: string }) {
   const t = useTranslations("checkout");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const go = async () => {
     setBusy(true);
     setFailed(false);
+    try {
     const r = await fetch("/api/checkout/pay", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, adapterId }) });
     const d = await r.json().catch(() => ({}));
     if (d.kind === "redirect") {
-      onBeforeRedirect();
       window.location.assign(d.url);
     } else {
       setFailed(true);
       setBusy(false);
     }
+    } catch { setFailed(true); setBusy(false); }
   };
   return (
     <>
-      {failed && <p className="mb-3 text-sm text-destructive">{t("providerError")}</p>}
-      <Button size="lg" className="w-full" onClick={go} disabled={busy} data-testid="redirect-pay-button">{busy ? t("paying") : t("pay", { amount: formatMoney(total) })}</Button>
+      {failed && <p className="mb-3 text-sm text-destructive">{t("providerError")} <Link href={`/checkout/failure?session=${encodeURIComponent(token)}`} className="underline">{t("backToStore")}</Link></p>}
+      <Button size="lg" className="w-full" onClick={go} disabled={busy} data-testid="redirect-pay-button">{busy ? t("paying") : t("pay", { amount: formatOrderMoney(total, currency) })}</Button>
     </>
   );
 }

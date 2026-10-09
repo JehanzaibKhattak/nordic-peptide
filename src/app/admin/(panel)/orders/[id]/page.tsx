@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { formatMoney } from "@/lib/money";
+import { formatOrderMoney } from "@/lib/money";
 import type { Address, Affiliate } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cancelAction, fulfilAction, markPaidAction, refundAction, resendEmailAction, resendPostbackAction } from "../../../actions";
+import { reconcilePaymentAction, cancelAction, fulfilAction, markPaidAction, refundAction, resendEmailAction, resendPostbackAction } from "../../../actions";
 
 export default async function AdminOrderDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,7 +16,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
   const bill = o.billingAddress as Address;
   const aff = o.affiliate as Affiliate | null;
   const payable = o.status === "RESERVED" || o.status === "PENDING";
-  const paid = o.status === "PAID";
+  const paid = o.status === "PAID" && o.paymentProvider !== "stripe";
   const refundable = o.status === "PAID" || o.status === "FULFILLED";
 
   return (
@@ -28,11 +28,13 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
         <span className="text-sm text-muted-foreground">{o.createdAt.toISOString().slice(0, 16).replace("T", " ")} UTC</span>
       </div>
 
+      {o.paymentProvider === "stripe" && <p className="rounded-xl border p-4">Stripe test order — no real funds collected. Do not dispatch goods for test payments.</p>}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
+        {o.stripeSessionId && <form action={reconcilePaymentAction}><input type="hidden" name="id" value={o.id} /><Button variant="outline">Reconcile Stripe status</Button></form>}
         {payable && (
           <>
-            <form action={markPaidAction}><input type="hidden" name="id" value={o.id} /><Button type="submit">Mark paid</Button></form>
-            <form action={cancelAction}><input type="hidden" name="id" value={o.id} /><Button type="submit" variant="outline">Cancel order</Button></form>
+            {!o.purchaserId && <form action={markPaidAction}><input type="hidden" name="id" value={o.id} /><Button type="submit">Mark paid</Button></form>}
+            <form action={cancelAction}><input type="hidden" name="id" value={o.id} /><Button type="submit" variant="outline">{o.paymentProvider === "stripe" ? "Expire Stripe session" : "Cancel order"}</Button></form>
           </>
         )}
         {paid && (
@@ -57,14 +59,14 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
           <h2 className="text-sm font-semibold">Items</h2>
           <ul className="mt-3 divide-y text-sm">
             {o.items.map((i) => (
-              <li key={i.id} className="flex justify-between py-2"><span>{i.qty} × {i.name} <span className="text-muted-foreground">({i.variantLabel})</span></span><span>{formatMoney(i.lineCents)}</span></li>
+              <li key={i.id} className="flex justify-between py-2"><span>{i.qty} × {i.name} <span className="text-muted-foreground">({i.variantLabel})</span></span><span>{formatOrderMoney(i.lineCents, o.currency)}</span></li>
             ))}
           </ul>
           <dl className="mt-3 space-y-1 border-t pt-3 text-sm">
-            <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>{formatMoney(o.subtotalCents)}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Shipping ({o.shippingMethod})</dt><dd>{formatMoney(o.shippingCents)}</dd></div>
-            {o.discountCents > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">Discount ({o.couponCode})</dt><dd>−{formatMoney(o.discountCents)}</dd></div>}
-            <div className="flex justify-between font-semibold"><dt>Total</dt><dd>{formatMoney(o.totalCents)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>{formatOrderMoney(o.subtotalCents, o.currency)}</dd></div>
+            <div className="flex justify-between"><dt className="text-muted-foreground">Shipping ({o.shippingMethod})</dt><dd>{formatOrderMoney(o.shippingCents, o.currency)}</dd></div>
+            {o.discountCents > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">Discount ({o.couponCode})</dt><dd>−{formatOrderMoney(o.discountCents, o.currency)}</dd></div>}
+            <div className="flex justify-between font-semibold"><dt>Total</dt><dd>{formatOrderMoney(o.totalCents, o.currency)}</dd></div>
           </dl>
         </section>
 

@@ -12,6 +12,7 @@ import {
 import { getSettings } from "./settings";
 import type { Address, Affiliate, OrderStatus } from "./types";
 import { applyCoupon } from "./coupons";
+import { assertEligibility, checkoutRate, trustedAmount } from "./commerce-policy";
 import { shippingCost } from "@/config/shipping";
 
 const storeBase = () => process.env.STORE_BASE_URL ?? "http://localhost:3000";
@@ -29,6 +30,8 @@ export function newSessionToken() {
 }
 
 export type CreateOrderInput = {
+  purchaserId: string;
+  currency?: string;
   locale: string;
   email: string;
   shippingAddress: Address;
@@ -42,10 +45,18 @@ export type CreateOrderInput = {
 /** Validates items against live prices/stock, prices the order, creates it RESERVED with a checkout session. */
 export async function createOrder(input: CreateOrderInput) {
   if (input.items.length === 0) throw new OrderError("empty_cart");
+  if (input.items.length > 30 || new Set(input.items.map(i => i.variantId)).size !== input.items.length || input.items.some(i => !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 10)) throw new OrderError("invalid_items");
+  let eligibility;
+  try { eligibility = await assertEligibility(input.purchaserId, input.shippingAddress.country, input.items.map(i => i.variantId)); }
+  catch (e) { throw new OrderError(e instanceof Error ? e.message : "not_eligible"); }
+  if (input.email.trim().toLowerCase() !== eligibility.purchaser.email) throw new OrderError("email_mismatch");
+  const currency = input.currency ?? "EUR";
+  let rate;
+  try { rate = await checkoutRate(currency); } catch { throw new OrderError("currency_not_configured"); }
   const settings = await getSettings();
 
   const variants = await db.variant.findMany({
-    where: { id: { in: input.items.map((i) => i.variantId) } },
+    where: { id: { in: input.items.map((i) => i.variantId) }, isActive: true },
     include: { product: true },
   });
   if (variants.length !== input.items.length) throw new OrderError("unknown_variant");
@@ -54,6 +65,8 @@ export async function createOrder(input: CreateOrderInput) {
     const v = variants.find((x) => x.id === i.variantId)!;
     if (!v.product.isActive) throw new OrderError("inactive_product");
     if (v.stock < i.qty) throw new OrderError("insufficient_stock", { variantId: v.id, available: v.stock });
+    if (v.currency !== "EUR") throw new OrderError("invalid_catalog_currency");
+    trustedAmount(v.priceCents, rate);
     const images = v.product.images as string[];
     return {
       productId: v.productId,
@@ -67,18 +80,25 @@ export async function createOrder(input: CreateOrderInput) {
     };
   });
 
-  const subtotalCents = lines.reduce((s, l) => s + l.lineCents, 0);
-  const coupon = await applyCoupon(input.couponCode, subtotalCents);
-  const discountCents = coupon.ok ? coupon.discountCents : 0;
+  const baseSubtotal = lines.reduce((sum, line) => sum + line.lineCents, 0);
+  const coupon = await applyCoupon(input.couponCode, baseSubtotal);
+  const discountCents = trustedAmount(coupon.ok ? coupon.discountCents : 0, rate);
   const country = input.shippingAddress.country;
-  const shippingCents = shippingCost(country, input.shippingMethod, subtotalCents - discountCents);
-  const taxCents = 0; // TAX_MODE=none; see README for inclusive/exclusive modes
-  const totalCents = subtotalCents - discountCents + shippingCents + taxCents;
-
-  const reservedUntil = new Date(Date.now() + settings.reservationMinutes * 60_000);
+  const shippingCents = trustedAmount(shippingCost(country, input.shippingMethod, baseSubtotal - (coupon.ok ? coupon.discountCents : 0)), rate);
+  for (const line of lines) {
+    line.unitCents = trustedAmount(line.unitCents, rate);
+    line.lineCents = line.unitCents * line.qty;
+  }
+  const subtotalCents = lines.reduce((sum, line) => sum + line.lineCents, 0);
+  const taxCents = 0;
+  const totalCents = subtotalCents - discountCents + shippingCents;
+  trustedAmount(totalCents, 1);
+  if (totalCents <= 0) throw new OrderError("invalid_total");
+  const reservedUntil = new Date(Date.now() + Math.max(35, Math.min(1440, settings.reservationMinutes)) * 60_000);
   const orderNumber = await generateOrderNumber();
 
   const order = await db.$transaction(async (tx) => {
+    await assertEligibility(input.purchaserId, country, input.items.map(i => i.variantId), tx);
     // Reserve stock atomically.
     for (const l of lines) {
       const r = await tx.variant.updateMany({
@@ -92,9 +112,10 @@ export async function createOrder(input: CreateOrderInput) {
     return tx.order.create({
       data: {
         orderNumber,
-        status: "RESERVED",
+        status: "PENDING",
+        purchaserId: input.purchaserId,
         locale: input.locale,
-        currency: "EUR",
+        currency,
         subtotalCents,
         shippingCents,
         discountCents,
@@ -123,7 +144,7 @@ export async function createOrder(input: CreateOrderInput) {
 
   const token = order.sessions[0].token;
   const payUrl = `${storeBase()}/${order.locale}/checkout/pay?session=${token}`;
-  void sendEmail({ to: order.email, subject: `Complete your order ${order.orderNumber}`, react: OrderReservedEmail({ order, payUrl }) })
+  await sendEmail({ to: order.email, subject: `Complete your order ${order.orderNumber}`, react: OrderReservedEmail({ order, payUrl }) })
     .then(() => logEvent(order.id, "email.sent", { template: "order_reserved" }))
     .catch((e) => logEvent(order.id, "email.failed", { template: "order_reserved", error: String(e) }));
 
@@ -153,6 +174,11 @@ async function releaseStock(orderId: string) {
  * webhook retries and from the mock confirm endpoint concurrently.
  */
 export async function markPaid(orderId: string, provider: string, providerRef: string) {
+  const existing = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
+  if (existing.purchaserId) {
+    if (provider !== "stripe") throw new OrderError("stripe_confirmation_required");
+    await assertEligibility(existing.purchaserId, existing.shippingCountry, existing.items.map(i => i.variantId));
+  }
   const claimed = await db.order.updateMany({
     where: { id: orderId, status: { in: ["PENDING", "RESERVED"] } },
     data: { status: "PAID", paymentMethod: "card", paymentProvider: provider, providerRef, reservedUntil: null },
@@ -181,6 +207,9 @@ export async function markPaid(orderId: string, provider: string, providerRef: s
 }
 
 export async function markFulfilled(orderId: string, trackingNo?: string) {
+  const existing = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
+  if (existing.paymentProvider === "stripe") throw new OrderError("test_orders_cannot_be_fulfilled");
+  if (existing.purchaserId) await assertEligibility(existing.purchaserId, existing.shippingCountry, existing.items.map(i => i.variantId));
   const r = await db.order.updateMany({
     where: { id: orderId, status: "PAID" },
     data: { status: "FULFILLED", trackingNo: trackingNo ?? null },
@@ -208,30 +237,34 @@ export async function markRefunded(orderId: string, source: "admin" | "webhook",
   return order;
 }
 
-export async function expireOrder(orderId: string, notify = true) {
-  const r = await db.order.updateMany({
-    where: { id: orderId, status: { in: ["PENDING", "RESERVED"] } },
-    data: { status: "EXPIRED", reservedUntil: null },
+async function closeUnpaidOrder(orderId: string, status: "EXPIRED" | "CANCELLED") {
+  return db.$transaction(async tx => {
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, status: { in: ["PENDING", "RESERVED"] }, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }] },
+      data: { status, reservedUntil: null },
+    });
+    if (!claimed.count) return null;
+    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
+    for (const item of order.items) await tx.variant.update({ where: { id: item.variantId }, data: { stock: { increment: item.qty } } });
+    await tx.checkoutSession.updateMany({ where: { orderId }, data: { status: "EXPIRED" } });
+    await tx.orderEvent.create({ data: { orderId, type: `order.${status.toLowerCase()}`, payload: {} } });
+    return order;
   });
-  if (r.count === 0) return null;
-  await db.checkoutSession.updateMany({ where: { orderId }, data: { status: "EXPIRED" } });
-  await releaseStock(orderId);
-  await logEvent(orderId, "order.expired", {});
-  const order = (await db.order.findUnique({ where: { id: orderId }, include: { items: true } }))!;
-  if (notify) {
-    await sendEmail({
-      to: order.email,
-      subject: `Order ${order.orderNumber} expired`,
-      react: ReservationExpiredEmail({ order, shopUrl: `${storeBase()}/${order.locale}/shop` }),
-    }).catch(() => undefined);
-  }
+}
+
+export async function expireOrder(orderId: string, notify = true) {
+  const order = await closeUnpaidOrder(orderId, "EXPIRED");
+  if (order && notify) await sendEmail({
+    to: order.email, subject: `Order ${order.orderNumber} expired`,
+    react: ReservationExpiredEmail({ order, shopUrl: `${storeBase()}/${order.locale}/shop` }),
+  }).catch(() => undefined);
   return order;
 }
 
 /** Expire any RESERVED orders whose timer has passed. Called lazily on reads; no cron needed in dev. */
 export async function expireStaleOrders() {
   const stale = await db.order.findMany({
-    where: { status: { in: ["PENDING", "RESERVED"] }, reservedUntil: { lt: new Date() } },
+    where: { status: { in: ["PENDING", "RESERVED"] }, stripeSessionId: null, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }], reservedUntil: { lt: new Date() } },
     select: { id: true },
   });
   for (const o of stale) await expireOrder(o.id);
@@ -239,17 +272,11 @@ export async function expireStaleOrders() {
 }
 
 export async function cancelOrder(orderId: string) {
-  const r = await db.order.updateMany({
-    where: { id: orderId, status: { in: ["PENDING", "RESERVED"] } },
-    data: { status: "CANCELLED", reservedUntil: null },
-  });
-  if (r.count === 0) throw new OrderError("invalid_transition");
-  await releaseStock(orderId);
-  await logEvent(orderId, "order.cancelled", {});
+  if (!(await closeUnpaidOrder(orderId, "CANCELLED"))) throw new OrderError("invalid_transition_or_active_stripe_session");
 }
 
 export function isTerminal(status: string) {
-  return (["PAID", "FULFILLED", "CANCELLED", "REFUNDED", "EXPIRED"] as OrderStatus[]).includes(status as OrderStatus);
+  return (["PAID", "FULFILLED", "CANCELLED", "REFUNDED", "EXPIRED", "PAYMENT_FAILED"] as OrderStatus[]).includes(status as OrderStatus);
 }
 
 export type OrderPublic = Pick<

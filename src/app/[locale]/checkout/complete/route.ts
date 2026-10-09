@@ -1,3 +1,4 @@
+import { currentPurchaser } from "@/lib/purchaser-session";
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { logEvent, markPaid } from "@/lib/orders";
@@ -14,7 +15,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ loca
   const token = req.nextUrl.searchParams.get("session") ?? "";
   const session = await db.checkoutSession.findUnique({ where: { token }, include: { order: true } });
   const base = process.env.STORE_BASE_URL ?? req.nextUrl.origin;
-  if (!session) return NextResponse.redirect(`${base}/${locale}/shop`);
+  const purchaser = await currentPurchaser();
+  if (!session || !purchaser || session.order.purchaserId !== purchaser.id) return NextResponse.redirect(`${base}/${locale}/shop`);
 
   const order = session.order;
   if ((order.status === "RESERVED" || order.status === "PENDING") && order.paymentProvider) {

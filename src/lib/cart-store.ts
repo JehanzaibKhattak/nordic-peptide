@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { DisplayCurrency } from "./money";
 
 export type CartItem = {
   productId: string;
@@ -18,12 +19,14 @@ type CartState = {
   items: CartItem[];
   couponCode: string | null;
   country: string;
+  currency: DisplayCurrency | null;
   isOpen: boolean;
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   remove: (variantId: string) => void;
   setQty: (variantId: string, qty: number) => void;
   setCoupon: (code: string | null) => void;
   setCountry: (country: string) => void;
+  setCurrency: (currency: DisplayCurrency) => void;
   open: () => void;
   close: () => void;
   clear: () => void;
@@ -35,6 +38,7 @@ export const useCart = create<CartState>()(
       items: [],
       couponCode: null,
       country: "ES",
+      currency: null,
       isOpen: false,
       add: (item, qty = 1) =>
         set((s) => {
@@ -54,13 +58,14 @@ export const useCart = create<CartState>()(
         })),
       setCoupon: (couponCode) => set({ couponCode }),
       setCountry: (country) => set({ country }),
+      setCurrency: (currency) => set({ currency }),
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
       clear: () => set({ items: [], couponCode: null }),
     }),
     {
       name: "nps-cart",
-      partialize: (s) => ({ items: s.items, couponCode: s.couponCode, country: s.country }),
+      partialize: (s) => ({ items: s.items, couponCode: s.couponCode, country: s.country, currency: s.currency }),
     },
   ),
 );

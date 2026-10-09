@@ -3,13 +3,14 @@ import { cookies } from "next/headers";
 
 export type AdminSession = { isAdmin?: boolean };
 
-const options: SessionOptions = {
-  password: process.env.SESSION_SECRET ?? "dev-only-insecure-session-secret-change-me!!",
-  cookieName: "nps_admin",
-  cookieOptions: { secure: process.env.NODE_ENV === "production", sameSite: "lax", httpOnly: true },
-};
-
 export async function getAdminSession() {
+  const password = process.env.SESSION_SECRET;
+  if (!password || password.length < 32) throw new Error("SESSION_SECRET must be at least 32 characters");
+  const options: SessionOptions = {
+    password,
+    cookieName: "avion_admin",
+    cookieOptions: { secure: process.env.NODE_ENV === "production", sameSite: "lax", httpOnly: true, path: "/", maxAge: 60 * 60 * 8 },
+  };
   return getIronSession<AdminSession>(await cookies(), options);
 }
 
