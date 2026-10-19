@@ -1,0 +1,48 @@
+name: Frontend checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: file:./ci.db
+      NEXT_PUBLIC_BROWSE_ONLY: "true"
+      NEXT_PUBLIC_DEMO_CHECKOUT: "true"
+      NEXT_PUBLIC_AVION_CHECKOUT: "false"
+      NEXT_PUBLIC_UK_ONLY_SHIPPING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint source
+        run: pnpm exec eslint src tests prisma next.config.ts
+      - name: Build preview
+        run: |
+          pnpm db:push
+          pnpm build
+      - name: Check types
+        run: pnpm typecheck
+      - name: Test order and checkout logic
+        run: pnpm test

@@ -10,7 +10,7 @@ The storefront is hosted at `https://peptbay.com` on DigitalOcean using the supp
 Dockerfile and standalone Next.js output. The separate PHP Avion backend is at
 `https://admin.peptbay.com`; its source is maintained outside this frontend repository.
 Pushing this repository does **not** automatically deploy to that droplet. GitHub-to-server
-continuous deployment has not been configured.
+continuous deployment has not been configured. See [change review and manual release control](docs/change-control.md) for the contributor workflow.
 
 The public site currently uses browse-only/demo checkout, Great Britain delivery and
 Royal Mail Tracked 24. The supplied Peptbay logos and molecular pattern are in
