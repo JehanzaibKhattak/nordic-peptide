@@ -45,4 +45,7 @@ jobs:
       - name: Check types
         run: pnpm typecheck
       - name: Test order and checkout logic
+        # Commerce fixtures cover international destinations; shipping tests also exercise UK-only mode.
+        env:
+          NEXT_PUBLIC_UK_ONLY_SHIPPING: "false"
         run: pnpm test
