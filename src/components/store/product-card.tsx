@@ -45,7 +45,7 @@ export function ProductCard({ product }: { product: CardProduct }) {
   return (
     <div className="group flex flex-col rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/products/${product.slug}`} className="relative block aspect-square overflow-hidden rounded-xl bg-secondary">
-        {product.images[0] ? <Image src={product.images[0]} alt={`${name} product packaging`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain transition-transform group-hover:scale-[1.03]" /> : <div className="grid h-full place-items-center p-5 text-center font-serif text-lg text-primary">Avion-PEPT<br /><span className="mt-2 text-sm font-sans text-muted-foreground">Product photo coming soon</span></div>}
+        {product.images[0] ? <Image src={product.images[0]} alt={`${name} product packaging`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain transition-transform group-hover:scale-[1.03]" /> : <div className="grid h-full place-items-center p-5 text-center font-serif text-lg text-primary">Peptbay<br /><span className="mt-2 text-sm font-sans text-muted-foreground">Product photo coming soon</span></div>}
         {product.isPopular && <Badge className="absolute left-2 top-2 uppercase tracking-wide">{t("popular")}</Badge>}
       </Link>
       <div className="mt-3 flex flex-1 flex-col px-1">

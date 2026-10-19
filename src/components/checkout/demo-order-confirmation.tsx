@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { BadgeCheck, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/routing";
 import { formatMoney } from "@/lib/money";
-import { loadDemoOrder, type DemoOrder } from "@/lib/demo-checkout";
+import { loadDemoOrder } from "@/lib/demo-checkout";
 
 export function DemoOrderConfirmation({ orderNumber }: { orderNumber: string }) {
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
-  const [order, setOrder] = useState<DemoOrder | null>(null);
+  const mounted = useHydrated();
+  const order = useMemo(() => mounted ? loadDemoOrder(orderNumber) : null, [mounted, orderNumber]);
 
-  useEffect(() => setOrder(loadDemoOrder(orderNumber)), [orderNumber]);
 
   if (!order) return <div className="mx-auto max-w-2xl px-4 py-24 text-center">
     <Info className="mx-auto size-10 text-muted-foreground" />
@@ -28,8 +29,8 @@ export function DemoOrderConfirmation({ orderNumber }: { orderNumber: string }) 
     <div className="text-center">
       <BadgeCheck className="mx-auto size-12 text-[#2d6047]" />
       <p className="mt-4 text-xs font-medium uppercase tracking-widest text-[#788b76]">{t("demoConfirmationEyebrow")}</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#18382b]">{t("demoConfirmationTitle")}</h1>
-      <p className="mt-2 text-muted-foreground">{t("demoConfirmationBody")}</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#18382b]">{t(order.paymentMethod === "bank_transfer" ? "bankAwaitingPayment" : "demoConfirmationTitle")}</h1>
+      <p className="mt-2 text-muted-foreground">{t(order.paymentMethod === "bank_transfer" ? "bankTransferPreview" : "demoConfirmationBody")}</p>
       <p className="mt-4 inline-flex rounded-full bg-[#edf1e9] px-3 py-1 text-sm font-medium text-[#435d4e]">{order.orderNumber}</p>
     </div>
 

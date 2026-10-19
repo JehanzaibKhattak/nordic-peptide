@@ -10,7 +10,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
     return (
       <div className="grid aspect-square place-items-center rounded-2xl bg-white p-8 text-center">
         <div>
-          <p className="font-serif text-3xl font-semibold text-primary">Avion-PEPT</p>
+          <Image src="/brand/peptbay-logo.svg" alt="Peptbay" width={2017} height={530} className="mx-auto h-auto w-48" />
           <p className="mt-2 text-sm text-muted-foreground">Product photography coming soon</p>
         </div>
       </div>

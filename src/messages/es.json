@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Avion-PEPT",
+    "name": "Peptbay",
     "tagline": "Compuestos y combinaciones de péptidos."
   },
   "banner": "Vista previa del catálogo",
@@ -19,7 +19,7 @@
   "home": {
     "heroTitle": "Compuestos y combinaciones de péptidos",
     "heroTitleSecond": "",
-    "heroSub": "Explora el catálogo inicial de productos Avion-PEPT.",
+    "heroSub": "Explora el catálogo inicial de productos Peptbay.",
     "ctaPrimary": "Ver productos",
     "ctaSecondary": "",
     "reviews": "{rating}/5 de {count} opiniones",
@@ -119,6 +119,7 @@
     }
   },
   "cart": {
+    "viewCart": "Ver carrito completo",
     "title": "Tu carrito",
     "itemCount": "{count, plural, one {# artículo} other {# artículos}}",
     "browseOnly": "Esta vista previa aún no admite carritos ni pagos.",
@@ -143,6 +144,38 @@
     "invalidCoupon": "Ese código no es válido."
   },
   "checkout": {
+    "avionReviewBody": "Tu pedido se ha guardado. Nuestro equipo debe revisar su transferencia al sistema de gestión. Contacta con nosotros con la referencia indicada y no repitas el pedido.",
+    "avionPlaceOrder": "Realizar pedido",
+    "avionPaymentLink": "Enlace de pago después del pedido",
+    "avionPaymentBody": "Envía tu pedido a nuestro equipo. El pago se realiza por separado mediante un enlace; esta página no carga tu tarjeta.",
+    "avionReceived": "Pedido recibido",
+    "avionReceivedBody": "Tu pedido está en nuestro sistema de gestión. Nuestro equipo organizará el pago y la entrega.",
+    "avionPending": "Pedido guardado — transferencia pendiente",
+    "avionPendingBody": "Tu pedido se ha guardado de forma segura. El sistema de gestión no está disponible temporalmente y reintentaremos la transferencia. No repitas el pedido.",
+    "avionNoCharge": "Esta página no ha cobrado ningún pago.",
+    "avionCheckStatus": "Consultar estado de transferencia",
+    "yourDetails": "Tus datos",
+    "edit": "Editar",
+    "emailHint": "Enviaremos la confirmación de tu pedido aquí.",
+    "logIn": "Iniciar sesión",
+    "continueShipping": "Continuar al envío",
+    "addressPlaceholder": "Introduce tu dirección...",
+    "apartmentPlaceholder": "Apartamento, unidad, empresa",
+    "deliveryQuestion": "¿Cómo debemos entregar tu pedido?",
+    "homeDelivery": "Entrega a domicilio",
+    "toYourAddress": "A tu dirección",
+    "fastDelivery": "Entrega rápida y discreta",
+    "deliveryHint": "Embalaje sin marcas de productos. Envío el mismo día laborable antes de las 16:00.",
+    "privacyPayment": "Pago con privacidad",
+    "creditDebitCard": "Tarjeta de crédito o débito",
+    "paymentRedirect": "Continuarás a nuestra página de pago para completar tu pedido de forma segura.",
+    "completePayment": "Completar pago",
+    "completeRequired": "Completa todos los campos obligatorios",
+    "showSummary": "Mostrar resumen del pedido",
+    "hideSummary": "Ocultar resumen del pedido",
+    "needHelp": "¿Necesitas ayuda?",
+    "secureCheckout": "Pago seguro",
+    "dispatchBefore": "Envío el mismo día antes de las 16:00",
     "title": "Finalizar compra",
     "browseOnly": "El pago online no está disponible en esta vista previa.",
     "browseCollection": "Ver la colección",
@@ -210,7 +243,13 @@
       "name": "Nombre en la tarjeta",
       "hint": "Modo de prueba: 4242 4242 4242 4242 aprobada · 4000 0000 0000 0002 rechazada · 4000 0000 0000 0341 aprobada tras un retraso",
       "declined": "Tu tarjeta fue rechazada. Prueba con otra."
-    }
+    },
+    "bankTransfer": "Transferencia bancaria",
+    "bankTransferBody": "Realiza el pedido y paga por transferencia bancaria usando el número de pedido como referencia. El pedido queda pendiente de pago hasta que nuestro equipo confirme la recepción. Solo se envía tras confirmar el pago.",
+    "bankTransferPreview": "Solo demostración: no se crea ningún pedido real, transferencia, correo de confirmación ni envío. Los datos bancarios están pendientes de aprobación. No envíes ningún pago.",
+    "bankTransferUnavailable": "La transferencia bancaria aún no está disponible para esta moneda. Se requieren datos bancarios aprobados para activarla.",
+    "bankPlaceOrder": "Realizar pedido · Transferencia",
+    "bankAwaitingPayment": "Pedido de demostración — Pendiente de pago"
   },
   "order": {
     "title": "Pedido {number}",
@@ -247,7 +286,7 @@
   },
   "contact": {
     "title": "Contacto",
-    "intro": "Envía un mensaje a Avion-PEPT.",
+    "intro": "Envía un mensaje a Peptbay.",
     "name": "Nombre",
     "email": "Correo electrónico",
     "message": "Mensaje",
@@ -265,7 +304,7 @@
     "shop": "Tienda",
     "info": "Información",
     "companyHeading": "Empresa",
-    "about": "Avion-PEPT — cuidado de la piel con péptidos, formulado con atención y analizado con transparencia. Descubre la colección y encuentra tu rutina.",
+    "about": "Peptbay — cuidado de la piel con péptidos, formulado con atención y analizado con transparencia. Descubre la colección y encuentra tu rutina.",
     "contactUs": "Escríbenos",
     "legal": "Legal",
     "contact": "Contacto",
@@ -274,7 +313,7 @@
     "payments": "Aceptamos"
   },
   "calculator": {
-    "title": "Cálculo Avion-PEPT",
+    "title": "Cálculo Peptbay",
     "intro": "Estima la masa molecular media de un péptido lineal a partir de su secuencia de aminoácidos de una letra.",
     "sequenceLabel": "Secuencia de aminoácidos",
     "placeholder": "Por ejemplo: ACDEFGHIK",

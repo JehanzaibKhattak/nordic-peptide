@@ -37,3 +37,24 @@ describe("shipping", () => {
     expect(est.to.getDay()).toBe(4);
   });
 });
+
+describe("UK launch settings", () => {
+  it("limits destinations and services, retaining standard charges", async () => {
+    const { vi } = await import("vitest");
+    vi.stubEnv("NEXT_PUBLIC_UK_ONLY_SHIPPING", "true");
+    vi.resetModules();
+    const shipping = await import("@/config/shipping");
+    expect(shipping.SHIPPING_COUNTRIES.map(c => c.code)).toEqual(["GB"]);
+    expect(shipping.shippingAllowed("ES", "standard")).toBe(false);
+    expect(shipping.shippingAllowed("GB", "express")).toBe(false);
+    expect(shipping.shippingAllowed("GB", "standard")).toBe(true);
+    expect(shipping.shippingAllowed("GB", "standard", "BT1 1AA")).toBe(false);
+    expect(shipping.shippingAllowed("GB", "standard", "SW1A 1AA")).toBe(true);
+    expect(shipping.zoneForCountry("GB").methods[0].carriers).toEqual(["Royal Mail Tracked 24"]);
+    expect(shipping.shippingCost("GB", "standard", 8499)).toBe(690);
+    expect(shipping.shippingCost("GB", "standard", 8500)).toBe(0);
+    expect(shipping.CUTOFF_TZ).toBe("Europe/London");
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+});

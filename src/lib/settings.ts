@@ -16,7 +16,7 @@ export type Settings = {
 };
 
 const defaults = (): Settings => ({
-  brandName: process.env.BRAND_NAME ?? "Avion-PEPT",
+  brandName: process.env.BRAND_NAME ?? "Peptbay",
   legalEntityName: process.env.LEGAL_ENTITY_NAME ?? "Avion-PEPT",
   cutoffHour: 16,
   reservationMinutes: Number(process.env.RESERVATION_MINUTES ?? 30),

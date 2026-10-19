@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
@@ -55,7 +56,7 @@ export default async function LocaleLayout({
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
         <NextIntlClientProvider>
           <Gtm id={process.env.GTM_ID} />
-          <AffiliateCapture />
+          <Suspense fallback={null}><AffiliateCapture /></Suspense>
           <Header />
           <main className="min-h-[60dvh]">{children}</main>
           <Footer products={products.map((p) => ({ sku: p.sku, slug: p.slug, name: p.name as Record<string, string>, variants: p.variants.map((v) => ({ label: v.label })) }))} />

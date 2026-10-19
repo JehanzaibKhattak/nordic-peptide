@@ -53,6 +53,8 @@ export type Affiliate = {
   sub4?: string;
   sub5?: string;
   source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
   capturedAt: string;
 };
 

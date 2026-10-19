@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useHydrated } from "@/lib/use-hydrated";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter } from "@/i18n/routing";
@@ -11,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/routing";
 import { useCart } from "@/lib/cart-store";
 import { formatMoney } from "@/lib/money";
-import { loadDemoCheckout, saveDemoOrder, type DemoCheckoutDraft } from "@/lib/demo-checkout";
+import { loadDemoCheckout, saveDemoOrder } from "@/lib/demo-checkout";
 
 const successCard = "4242424242424242";
 const declinedCard = "4000000000000002";
@@ -21,7 +22,8 @@ export function DemoPaymentPage({ token }: { token: string }) {
   const tc = useTranslations("cart");
   const router = useRouter();
   const clearCart = useCart((state) => state.clear);
-  const [draft, setDraft] = useState<DemoCheckoutDraft | null>(null);
+  const mounted = useHydrated();
+  const draft = useMemo(() => mounted ? loadDemoCheckout(token) : null, [mounted, token]);
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
@@ -29,10 +31,6 @@ export function DemoPaymentPage({ token }: { token: string }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!token) return;
-    setDraft(loadDemoCheckout(token));
-  }, [token]);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -40,19 +38,19 @@ export function DemoPaymentPage({ token }: { token: string }) {
     setError("");
     setBusy(true);
     const normalized = cardNumber.replace(/\D/g, "");
-    if (normalized === declinedCard) {
+    if (draft.paymentMethod !== "bank_transfer" && normalized === declinedCard) {
       setError(t("demoDeclined"));
       setBusy(false);
       return;
     }
-    if (normalized !== successCard) {
+    if (draft.paymentMethod !== "bank_transfer" && normalized !== successCard) {
       setError(t("demoCardHint"));
       setBusy(false);
       return;
     }
 
     const orderNumber = `DEMO-${Date.now().toString().slice(-8)}`;
-    saveDemoOrder({ ...draft, orderNumber, paidAt: new Date().toISOString() });
+    saveDemoOrder({ ...draft, orderNumber, paidAt: draft.paymentMethod === "bank_transfer" ? null : new Date().toISOString() });
     clearCart();
     router.replace(`/demo-order/${orderNumber}`);
   };
@@ -97,9 +95,10 @@ export function DemoPaymentPage({ token }: { token: string }) {
 
       <section className="lg:pt-8">
         <div className="rounded-2xl border bg-card p-5 sm:p-7">
-          <h2 className="text-lg font-semibold">{t("demoPaymentTitle")}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t("demoPaymentBody")}</p>
+          <h2 className="text-lg font-semibold">{t(draft.paymentMethod === "bank_transfer" ? "bankTransfer" : "demoPaymentTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t(draft.paymentMethod === "bank_transfer" ? "bankTransferPreview" : "demoPaymentBody")}</p>
           <form onSubmit={submit} className="mt-6 space-y-4">
+            {draft.paymentMethod !== "bank_transfer" && <>
             <div className="space-y-1.5"><Label htmlFor="demo-card-number">{t("mock.cardNumber")}</Label><Input id="demo-card-number" inputMode="numeric" autoComplete="off" value={cardNumber} onChange={(event) => setCardNumber(event.target.value.replace(/\D/g, "").slice(0, 16))} placeholder="4242 4242 4242 4242" required /></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label htmlFor="demo-expiry">{t("mock.expiry")}</Label><Input id="demo-expiry" autoComplete="off" value={expiry} onChange={(event) => setExpiry(event.target.value)} placeholder="12 / 29" required /></div>
@@ -107,8 +106,9 @@ export function DemoPaymentPage({ token }: { token: string }) {
             </div>
             <div className="space-y-1.5"><Label htmlFor="demo-card-name">{t("mock.name")}</Label><Input id="demo-card-name" autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} required /></div>
             <p className="text-xs text-muted-foreground">{t("demoCardHint")}</p>
+            </>}
             {error && <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
-            <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? t("paying") : t("demoPay", { amount: formatMoney(draft.totalCents, "EUR") })}</Button>
+            <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? t("paying") : draft.paymentMethod === "bank_transfer" ? t("bankPlaceOrder") : t("demoPay", { amount: formatMoney(draft.totalCents, "EUR") })}</Button>
             <p className="text-center text-xs text-muted-foreground">{t("demoNoCharge")}</p>
           </form>
         </div>

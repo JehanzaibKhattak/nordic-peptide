@@ -6,3 +6,6 @@ export const BROWSE_ONLY = process.env.NEXT_PUBLIC_BROWSE_ONLY !== "false";
 // The public catalogue can show a complete, simulated checkout without a
 // database or payment provider. Disable with NEXT_PUBLIC_DEMO_CHECKOUT=false.
 export const DEMO_CHECKOUT = process.env.NEXT_PUBLIC_DEMO_CHECKOUT !== "false";
+
+// Opt in only after the Avion source key, persistent store database and worker are configured.
+export const AVION_CHECKOUT = process.env.NEXT_PUBLIC_AVION_CHECKOUT === "true";

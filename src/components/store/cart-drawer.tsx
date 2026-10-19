@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckoutTrust } from "@/components/store/checkout-trust";
+import { PaymentLogos } from "@/components/store/payment-logos";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -76,7 +78,7 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(o) => (o ? undefined : close())}>
-      <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+      <SheetContent className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-md">
         <SheetHeader className="border-b px-5 py-4">
           <SheetTitle>{t("title")}</SheetTitle>
         </SheetHeader>
@@ -90,7 +92,7 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+            <div className="min-h-24 flex-1 space-y-4 overflow-y-auto px-5 py-4">
               {remainingForFree > 0 ? (
                 <div className="space-y-1.5">
                   <p className="text-xs text-muted-foreground">{t("freeShippingProgress", { amount: formatMoney(remainingForFree, currency) })}</p>
@@ -136,7 +138,7 @@ export function CartDrawer() {
               {couponError && <p className="text-xs text-destructive">{couponError}</p>}
             </div>
 
-            <div className="border-t px-5 py-4">
+            <div className="shrink-0 border-t px-5 py-4">
               <dl className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><dt className="text-muted-foreground">{t("subtotal")}</dt><dd>{formatMoney(subtotal, currency)}</dd></div>
                 {discount > 0 && (
@@ -147,8 +149,10 @@ export function CartDrawer() {
                 <div className="flex justify-between text-base font-semibold"><dt>{t("total")}</dt><dd>{formatMoney(total, currency)}</dd></div>
               </dl>
               {currency !== "EUR" && <p className="mt-1 text-[11px] text-muted-foreground">Charged in EUR · {formatMoney(total, "EUR")}</p>}
-              {BROWSE_ONLY && DEMO_CHECKOUT && <p className="mt-3 text-center text-xs text-muted-foreground">{t("demoCheckoutNote")}</p>}
+              <CheckoutTrust />
               <Button className="mt-4 w-full" size="lg" onClick={checkout} lang={locale} disabled={BROWSE_ONLY && !DEMO_CHECKOUT}>{t("checkout")}</Button>
+              <Button className="mt-2 w-full" size="lg" variant="outline" onClick={close} render={<Link href="/cart" />}>{t("viewCart")}</Button>
+              <div className="mt-4"><PaymentLogos /></div>
             </div>
           </>
         )}

@@ -3,6 +3,7 @@ import type { Address } from "@/lib/types";
 
 export type DemoCheckoutDraft = {
   token: string;
+  paymentMethod?: "card" | "bank_transfer";
   locale: string;
   email: string;
   shippingAddress: Address;
@@ -18,7 +19,7 @@ export type DemoCheckoutDraft = {
 
 export type DemoOrder = DemoCheckoutDraft & {
   orderNumber: string;
-  paidAt: string;
+  paidAt: string | null;
 };
 
 const checkoutKey = (token: string) => `avion-pept-demo-checkout:${token}`;

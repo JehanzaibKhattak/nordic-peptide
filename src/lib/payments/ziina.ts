@@ -80,7 +80,7 @@ export const ziinaAdapter: PaymentAdapter = {
       }
     }
 
-    const brand = process.env.BRAND_NAME ?? "Avion-PEPT";
+    const brand = process.env.BRAND_NAME ?? "Peptbay";
     const payPage = ctx.returnUrl.replace("/checkout/complete", "/checkout/pay");
     const intent = await api<ZiinaIntent>("/payment_intent", {
       method: "POST",

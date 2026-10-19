@@ -17,7 +17,7 @@ async function main() {
     const categoryId = category.id;
     const variantRows = variants.map((entry) => {
       const variant = entry as typeof entry & { images?: string[] };
-      const { id: _id, productId: _productId, images: _images, ...row } = variant;
+      const { productId: _productId, images: _images, description: _description, ...row } = variant;
       return { ...row, sizeMl: Number(row.sizeMl), isActive: true };
     });
     await prisma.product.upsert({
@@ -30,7 +30,7 @@ async function main() {
       update: {
         ...fields,
         categoryId,
-        variants: { deleteMany: {}, create: variantRows },
+        variants: { upsert: variantRows.map(row => ({ where: { sku: row.sku }, create: row, update: { label: row.label, concentration: row.concentration, sizeMl: row.sizeMl, priceCents: row.priceCents, currency: row.currency, sortOrder: row.sortOrder } })) },
       },
     });
   }

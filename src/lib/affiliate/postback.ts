@@ -23,6 +23,7 @@ export function buildPostbackUrl(order: Order, status: PostbackStatus, payoutCen
 }
 
 export async function firePostback(order: Order, status: PostbackStatus, payoutCents: number) {
+  if (process.env.KEITARO_POSTBACK_ENABLED !== "true" || process.env.NEXT_PUBLIC_AVION_CHECKOUT === "true" || order.paymentProvider === "stripe") return { ok: false, skipped: true };
   const url = buildPostbackUrl(order, status, payoutCents);
   if (!url) {
     await db.orderEvent.create({
@@ -37,20 +38,20 @@ export async function firePostback(order: Order, status: PostbackStatus, payoutC
     if (delays[attempt]) await new Promise((r) => setTimeout(r, delays[attempt]));
     try {
       const res = await fetch(url, { method: "GET", signal: AbortSignal.timeout(8000) });
-      const body = (await res.text()).slice(0, 500);
+
       await db.orderEvent.create({
         data: {
           orderId: order.id,
           type: res.ok ? "postback.sent" : "postback.failed",
-          payload: { status, url, attempt: attempt + 1, httpStatus: res.status, body },
+          payload: { status, attempt: attempt + 1, httpStatus: res.status },
         },
       });
       if (res.ok) return { ok: true };
       lastError = `HTTP ${res.status}`;
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : String(e);
+    } catch {
+      lastError = "postback_transport_failed";
       await db.orderEvent.create({
-        data: { orderId: order.id, type: "postback.failed", payload: { status, url, attempt: attempt + 1, error: lastError } },
+        data: { orderId: order.id, type: "postback.failed", payload: { status, attempt: attempt + 1, error: lastError } },
       });
     }
   }

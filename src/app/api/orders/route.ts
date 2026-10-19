@@ -1,3 +1,4 @@
+import { avionEnabled } from "@/lib/avion";
 import { commerceRateLimit } from "@/lib/commerce-rate-limit";
 import { currentPurchaser } from "@/lib/purchaser-session";
 import { stripeTestEnabled } from "@/lib/commerce-policy";
@@ -7,6 +8,8 @@ import { createOrder, OrderError } from "@/lib/orders";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { LOCALES } from "@/lib/types";
 import { BROWSE_ONLY } from "@/lib/deployment-mode";
+
+export const maxDuration = 45;
 
 const address = z.object({
   firstName: z.string().min(1).max(80),
@@ -20,6 +23,8 @@ const address = z.object({
 });
 
 const body = z.object({
+  checkoutId: z.string().uuid().optional(),
+  paymentMethod: z.enum(["card", "bank_transfer"]).default("card"),
   currency: z.string().length(3).default("EUR"),
   locale: z.enum(LOCALES).default("en"),
   email: z.string().email(),
@@ -33,7 +38,7 @@ const body = z.object({
 
 export async function POST(req: Request) {
   if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
-  if (!stripeTestEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
+  if (!avionEnabled() && !stripeTestEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
   if (req.headers.get("origin") !== new URL(req.url).origin) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   const purchaser = await currentPurchaser();
   if (!purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
@@ -43,6 +48,8 @@ export async function POST(req: Request) {
 
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid_body", issues: parsed.error.flatten() }, { status: 400 });
+
+  if (avionEnabled() && !parsed.data.checkoutId) return NextResponse.json({ error: "checkout_reference_required" }, { status: 400 });
 
   try {
     const d = parsed.data;

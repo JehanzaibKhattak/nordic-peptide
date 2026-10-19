@@ -32,7 +32,7 @@ export async function requestCode(fd: FormData) {
     });
     return true;
   });
-  if (sent) await sendEmail({ to: email, subject: "Avion-PEPT sign-in code", react: createElement("p", null, `Your sign-in code is ${code}. It expires in 10 minutes. Do not share it.`) });
+  if (sent) await sendEmail({ to: email, subject: "Peptbay sign-in code", react: createElement("p", null, `Your sign-in code is ${code}. It expires in 10 minutes. Do not share it.`) });
   redirect(`/${locale}/account?message=code_sent`);
 }
 

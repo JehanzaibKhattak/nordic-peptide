@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
@@ -40,7 +41,7 @@ export function Header() {
       )}
       <div className="border-b border-[#e1dbce] bg-[#fffdf8]">
         <div className="mx-auto flex h-[72px] max-w-[1264px] items-center gap-6 px-4 md:px-8">
-          <Link href="/" className="shrink-0 font-semibold tracking-tight text-primary sm:text-xl" aria-label="Avion-PEPT home">Avion-PEPT</Link>
+          <Link href="/" className="shrink-0 font-semibold tracking-tight text-primary sm:text-xl" aria-label="Peptbay home"><Image src="/brand/peptbay-logo.svg" alt="Peptbay" width={2017} height={530} priority className="h-8 w-auto sm:h-10" /></Link>
           <nav className="hidden flex-1 items-center justify-center gap-4 md:flex xl:gap-7" aria-label="Main navigation">
             {nav.map((item) => (
               <Link key={item.href} href={item.href} className={cn("whitespace-nowrap text-xs font-medium uppercase tracking-[0.1em] text-[#294238] transition-colors hover:text-[#9a754d] xl:text-[13px] xl:tracking-[0.11em]", item.href.startsWith("/#") ? undefined : pathname.startsWith(item.href) && "text-[#9a754d]")}>{item.label}</Link>
@@ -68,7 +69,7 @@ export function Header() {
         <DialogContent showCloseButton={false} className="max-h-[calc(100dvh-2rem)] max-w-[calc(100%-1.5rem)] gap-0 overflow-y-auto rounded-2xl border border-[#d9d1c1] bg-[#f6f2e9] p-6 text-[#193b2e] shadow-2xl sm:max-w-[720px] sm:rounded-[20px] sm:p-9">
           <DialogClose render={<button type="button" aria-label="Close welcome offer" className="absolute right-4 top-4 rounded p-1 text-[#637568] hover:bg-[#e8e4dc] sm:right-6 sm:top-6" />}><X aria-hidden="true" className="size-5" /></DialogClose>
           <DialogTitle className="pr-8 font-serif text-3xl font-semibold leading-tight text-[#193b2e] sm:text-4xl">10% Welcome discount</DialogTitle>
-          <DialogDescription className="mt-3 text-base leading-6 text-[#788c70] sm:text-xl sm:leading-7">Try Avion-PEPT and get 10% off your first order.</DialogDescription>
+          <DialogDescription className="mt-3 text-base leading-6 text-[#788c70] sm:text-xl sm:leading-7">Try Peptbay and get 10% off your first order.</DialogDescription>
           <form className="mt-6 sm:mt-8" onSubmit={(event) => { event.preventDefault(); setGiftSubmitted(true); }}>
             <label htmlFor="gift-email" className="mb-2 block text-base font-medium text-[#193b2e] sm:text-lg">Email</label>
             <Input id="gift-email" type="email" autoComplete="email" required className="h-14 rounded-xl border-2 border-[#315b43] bg-white px-4 text-base ring-4 ring-[#aeb9a6]/50 focus-visible:ring-[#aeb9a6]" />

@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Avion-PEPT",
+    "name": "Peptbay",
     "tagline": "Research-grade peptides and blends."
   },
   "banner": "Product catalogue preview",
@@ -19,7 +19,7 @@
   "home": {
     "heroTitle": "Research peptides Europe",
     "heroTitleSecond": "",
-    "heroSub": "Browse Avion-PEPT research peptides and blends.",
+    "heroSub": "Browse Peptbay research peptides and blends.",
     "ctaPrimary": "View products",
     "ctaSecondary": "",
     "reviews": "{rating}/5 from {count} reviews",
@@ -120,6 +120,7 @@
     }
   },
   "cart": {
+    "viewCart": "View Full Cart",
     "title": "Your cart",
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "browseOnly": "This preview does not support carts or checkout yet.",
@@ -144,6 +145,38 @@
     "invalidCoupon": "That code isn't valid."
   },
   "checkout": {
+    "avionReviewBody": "Your order has been saved. Our team needs to review its transfer to the back office. Please contact us with the reference above and do not place the same order again.",
+    "avionPlaceOrder": "Place order",
+    "avionPaymentLink": "Payment link after ordering",
+    "avionPaymentBody": "Submit your order to our team. Payment is completed separately using a payment link; this page does not charge your card.",
+    "avionReceived": "Order received",
+    "avionReceivedBody": "Your order is now in our back office. Our team will arrange payment and fulfilment.",
+    "avionPending": "Order saved — transfer pending",
+    "avionPendingBody": "Your order has been saved securely. Our back office is temporarily unavailable, and we will retry the transfer. Please do not place the same order again.",
+    "avionNoCharge": "No payment has been collected on this page.",
+    "avionCheckStatus": "Check transfer status",
+    "yourDetails": "Your Details",
+    "edit": "Edit",
+    "emailHint": "We'll send your order confirmation here.",
+    "logIn": "Log in",
+    "continueShipping": "Continue to Shipping",
+    "addressPlaceholder": "Start typing your address...",
+    "apartmentPlaceholder": "Apt 4, unit, company name",
+    "deliveryQuestion": "How should we deliver your order?",
+    "homeDelivery": "Home delivery",
+    "toYourAddress": "To your address",
+    "fastDelivery": "Fast & discreet delivery",
+    "deliveryHint": "Plain packaging, no product branding. Shipped the same business day before 16:00.",
+    "privacyPayment": "Privacy-First Payment",
+    "creditDebitCard": "Credit or Debit Card",
+    "paymentRedirect": "You'll continue to our payment page to complete your order securely.",
+    "completePayment": "Complete payment",
+    "completeRequired": "Please complete all required fields",
+    "showSummary": "Show order summary",
+    "hideSummary": "Hide order summary",
+    "needHelp": "Need help?",
+    "secureCheckout": "Secure checkout",
+    "dispatchBefore": "Same-day dispatch before 16:00",
     "title": "Checkout",
     "browseOnly": "Online checkout is not available in this preview.",
     "browseCollection": "Browse the collection",
@@ -211,7 +244,13 @@
       "name": "Name on card",
       "hint": "Test mode: 4242 4242 4242 4242 succeeds · 4000 0000 0000 0002 declines · 4000 0000 0000 0341 succeeds after a delay",
       "declined": "Your card was declined. Please try another card."
-    }
+    },
+    "bankTransfer": "Bank Transfer / Wire",
+    "bankTransferBody": "Place your order and pay by bank transfer using your order number as the reference. Your order stays awaiting payment until our team confirms receipt. Dispatch starts only after payment is confirmed.",
+    "bankTransferPreview": "Demo only: no real order, transfer, confirmation email or shipment is created. Bank details are awaiting approval. Do not send payment.",
+    "bankTransferUnavailable": "Bank transfer is not yet available for this currency. Approved bank details are required before activation.",
+    "bankPlaceOrder": "Place order · Bank Transfer",
+    "bankAwaitingPayment": "Demo order — Awaiting payment"
   },
   "order": {
     "title": "Order {number}",
@@ -248,7 +287,7 @@
   },
   "contact": {
     "title": "Contact us",
-    "intro": "Send a message to Avion-PEPT.",
+    "intro": "Send a message to Peptbay.",
     "name": "Name",
     "email": "Email",
     "message": "Message",
@@ -266,7 +305,7 @@
     "shop": "Shop",
     "info": "Info",
     "companyHeading": "Company",
-    "about": "Avion-PEPT — peptide compounds and blends.",
+    "about": "Peptbay — peptide compounds and blends.",
     "contactUs": "Get in touch",
     "legal": "Legal",
     "contact": "Contact",
@@ -275,7 +314,7 @@
     "payments": "We accept"
   },
   "calculator": {
-    "title": "Avion-PEPT Calculation",
+    "title": "Peptbay Calculation",
     "intro": "Estimate the average molecular mass of a linear peptide from its one-letter amino-acid sequence.",
     "sequenceLabel": "Amino-acid sequence",
     "placeholder": "For example: ACDEFGHIK",

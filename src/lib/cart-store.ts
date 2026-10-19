@@ -1,4 +1,5 @@
 "use client";
+import { UK_ONLY_SHIPPING } from "@/config/shipping";
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -37,7 +38,7 @@ export const useCart = create<CartState>()(
     (set) => ({
       items: [],
       couponCode: null,
-      country: "ES",
+      country: UK_ONLY_SHIPPING ? "GB" : "ES",
       currency: null,
       isOpen: false,
       add: (item, qty = 1) =>
@@ -57,7 +58,7 @@ export const useCart = create<CartState>()(
               : s.items.map((i) => (i.variantId === variantId ? { ...i, qty } : i)),
         })),
       setCoupon: (couponCode) => set({ couponCode }),
-      setCountry: (country) => set({ country }),
+      setCountry: (country) => set({ country: UK_ONLY_SHIPPING ? "GB" : country }),
       setCurrency: (currency) => set({ currency }),
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
@@ -65,6 +66,7 @@ export const useCart = create<CartState>()(
     }),
     {
       name: "nps-cart",
+      merge: (persisted, current) => ({ ...current, ...(persisted as Partial<CartState>), ...(UK_ONLY_SHIPPING ? { country: "GB" } : {}) }),
       partialize: (s) => ({ items: s.items, couponCode: s.couponCode, country: s.country, currency: s.currency }),
     },
   ),

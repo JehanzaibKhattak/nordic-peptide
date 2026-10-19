@@ -1,10 +1,11 @@
+import { bankTransferConfig } from "@/lib/bank-transfer";
 import { currentPurchaser } from "@/lib/purchaser-session";
 import { purchaserApproved } from "@/lib/commerce-policy";
 import { db } from "@/lib/db";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { Link } from "@/i18n/routing";
-import { BROWSE_ONLY, DEMO_CHECKOUT } from "@/lib/deployment-mode";
+import { BROWSE_ONLY, DEMO_CHECKOUT, AVION_CHECKOUT } from "@/lib/deployment-mode";
 
 export async function generateMetadata() {
   const t = await getTranslations("checkout");
@@ -23,7 +24,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
     const r = await getTranslations("research");
     if (!purchaserApproved(purchaser)) return <main className="mx-auto max-w-2xl space-y-4 px-4 py-16"><h1 className="text-2xl font-semibold">{r("approvalRequired")}</h1><Link href="/account" className="underline">{r("accountLink")}</Link></main>;
     const configured = await db.checkoutCurrency.findMany({ where: { enabled: true } });
-    return <CheckoutForm verifiedEmail={purchaser!.email} paymentCurrencies={["EUR", ...configured.map(c => c.code)]} />;
+    return <CheckoutForm verifiedEmail={purchaser!.email} paymentCurrencies={["EUR", ...configured.map(c => c.code)]} paymentRates={Object.fromEntries([["EUR", 1], ...configured.map(c => [c.code, c.eurRate])])} avionCheckout={AVION_CHECKOUT} bankCurrency={AVION_CHECKOUT ? bankTransferConfig()?.currency : null} />;
   }
   return <CheckoutForm />;
 }

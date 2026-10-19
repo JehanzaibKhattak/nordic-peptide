@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props) {
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  return { title: `${lt(product.name, locale)} | Avion-PEPT`, description: lt(product.description, locale) || lt(product.shortDescription, locale) };
+  return { title: `${lt(product.name, locale)} | Peptbay`, description: lt(product.description, locale) || lt(product.shortDescription, locale) };
 }
 
 export default async function ProductPage({ params, searchParams }: Props) {

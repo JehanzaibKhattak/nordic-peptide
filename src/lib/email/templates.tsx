@@ -22,7 +22,7 @@ const styles = {
   },
 };
 
-const brand = () => process.env.BRAND_NAME ?? "Avion-PEPT";
+const brand = () => process.env.BRAND_NAME ?? "Peptbay";
 
 function Items({ order }: { order: OrderWithItems }) {
   return (
@@ -134,4 +134,13 @@ export function ContactEmail({ name, email, message }: { name: string; email: st
       <Text style={{ ...styles.p, whiteSpace: "pre-wrap" }}>{message}</Text>
     </Shell>
   );
+}
+
+export function BankTransferEmail({ order, instructions, deadline }: { order: OrderWithItems; instructions: string; deadline: string }) {
+  return <Shell preview={`Awaiting bank transfer — ${order.orderNumber}`}>
+    <Heading style={styles.h1}>Your order is awaiting payment</Heading>
+    <Text style={styles.p}>Use reference <strong>{order.orderNumber}</strong>. Transfer exactly {formatOrderMoney(order.totalCents, order.currency)} before {deadline}. Dispatch starts only after our team confirms receipt.</Text>
+    <Text style={{ ...styles.p, whiteSpace: "pre-line" }}>{instructions}</Text>
+    <Items order={order} />
+  </Shell>;
 }

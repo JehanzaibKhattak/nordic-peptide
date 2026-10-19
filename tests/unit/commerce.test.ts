@@ -231,3 +231,98 @@ describe("session creation and ownership", () => {
     expect((await sessionRoute(new NextRequest(`https://store.example/api/checkout/session?token=${token}`))).status).toBe(200);
   });
 });
+
+describe("durable Avion order intake", () => {
+  it("creates one website order and reservation when the client retries the same checkout", async () => {
+    vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+    vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+    vi.stubEnv("AVION_API_KEY", "test-only-key");
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true, order_number: "AV-10045", id: 45, duplicate: false }), { status: 201 }));
+    vi.stubGlobal("fetch", fetch);
+    const request = { ...input, affiliate: { ktSubid: "TEST_CLICK", affId: "publisher1", capturedAt: new Date().toISOString() }, checkoutId: "b5ed5e3a-0e54-4d7e-9bf8-65e64c4e2f58" };
+    const first = await createOrder(request);
+    const second = await createOrder(request);
+    expect(second.order.id).toBe(first.order.id);
+    expect(first.payUrl).toContain("/checkout/received?session=");
+    expect(await fixture.db.order.count()).toBe(1);
+    expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(8);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(fetch.mock.calls[0][1].body).affiliate).toMatchObject({ ktSubid: "TEST_CLICK", affId: "publisher1" });
+    expect((await fixture.db.order.findFirstOrThrow()).affiliate).toMatchObject({ ktSubid: "TEST_CLICK" });
+    expect(await fixture.db.orderEvent.count({ where: { type: "avion.synced" } })).toBe(1);
+    vi.unstubAllGlobals();
+  });
+  it("keeps a failed transfer in the database and retries it without creating another order", async () => {
+    vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+    vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+    vi.stubEnv("AVION_API_KEY", "test-only-key");
+    const fetch = vi.fn().mockResolvedValue(new Response("", { status: 503 })); vi.stubGlobal("fetch", fetch);
+    const request = { ...input, checkoutId: "fde85d70-4ef7-44bf-a934-a35c74775a3c" };
+    const first = await createOrder(request);
+    expect(await fixture.db.orderEvent.count({ where: { orderId: first.order.id, type: "avion.pending" } })).toBe(1);
+    fetch.mockResolvedValue(new Response(JSON.stringify({ ok: true, order_number: "AV-10046", id: 46, duplicate: true }), { status: 200 }));
+    const second = await createOrder(request);
+    expect(second.order.id).toBe(first.order.id);
+    expect(await fixture.db.order.count()).toBe(1);
+    expect(await fixture.db.orderEvent.count({ where: { orderId: first.order.id, type: "avion.synced" } })).toBe(1);
+    vi.unstubAllGlobals();
+  });
+  it("does not let another purchaser reuse the checkout reference", async () => {
+    const request = { ...input, checkoutId: "07d65464-55cb-4985-a1d3-9b160733f49d" };
+    await createOrder(request);
+    await fixture.db.purchaser.create({ data: { id: "other-buyer", email: "other@lab.example", emailVerifiedAt: new Date(), status: "APPROVED", approvedUntil: new Date(Date.now() + 86400000) } });
+    await expect(createOrder({ ...request, purchaserId: "other-buyer", email: "other@lab.example" })).rejects.toThrow("checkout_conflict");
+  });
+});
+
+// Opt-in: uses a separately hosted, disposable Avion database. Never point at production.
+it.runIf(Boolean(process.env.AVION_INTEGRATION_URL && process.env.AVION_INTEGRATION_KEY_FILE))("website HTTP order handler hands a GBP order to real Avion intake once", async () => {
+  const endpoint = process.env.AVION_INTEGRATION_URL!;
+  if (!endpoint.startsWith("http://127.0.0.1:")) throw new Error("Integration test requires a local isolated backend");
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+  vi.stubEnv("AVION_API_URL", endpoint);
+  vi.stubEnv("AVION_API_KEY", readFileSync(process.env.AVION_INTEGRATION_KEY_FILE!, "utf8").trim());
+  await fixture.db.shippingApproval.create({ data: { country: "GB", approved: true } });
+  await fixture.db.product.update({ where: { id: "product" }, data: { approvedCountries: ["GB"] } });
+  await fixture.db.variant.update({ where: { id: "variant" }, data: { sku: "RET20" } });
+  await fixture.db.checkoutCurrency.create({ data: { code: "GBP", eurRate: 0.85, enabled: true } });
+  const address = { firstName: "Integration", lastName: "Test", line1: "Test address only", city: "London", postcode: "SW1A 1AA", country: "GB" };
+  const body = { ...input, affiliate: { ktSubid: "KT-BRIDGE-20261016", affId: "test-publisher", sub1: "network-test-click", capturedAt: new Date().toISOString() }, shippingAddress: address, billingAddress: address, currency: "GBP", checkoutId: crypto.randomUUID() };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await createOrderRoute(new Request("https://store.example/api/orders", { method: "POST", headers: { origin: "https://store.example", "content-type": "application/json" }, body: JSON.stringify(body) }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ ok: true, payUrl: expect.stringContaining("/checkout/received?session=") });
+  }
+  expect(await fixture.db.order.count()).toBe(1);
+  expect(await fixture.db.orderEvent.count({ where: { type: "avion.synced" } })).toBe(1);
+  const saved = await fixture.db.order.findFirstOrThrow();
+  expect(saved.currency).toBe("GBP"); expect(saved.shippingCents).toBe(587); expect(saved.totalCents).toBe(3987);
+  expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(8);
+});
+
+it("keeps bank transfers unpaid, preserves instructions, and sends the method to Avion once", async () => {
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+  vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+  vi.stubEnv("AVION_API_KEY", "test-key");
+  await expect(createOrder({ ...input, paymentMethod: "bank_transfer" })).rejects.toThrow("bank_transfer_unavailable");
+  expect(await fixture.db.order.count()).toBe(0);
+  vi.stubEnv("BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("BANK_TRANSFER_CURRENCY", "EUR");
+  vi.stubEnv("BANK_TRANSFER_INSTRUCTIONS", "Approved test instructions");
+  vi.stubEnv("BANK_TRANSFER_DEADLINE_HOURS", "48");
+  const fetch = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ ok: true, order_number: "AV-10099", id: 99, duplicate: false }), { status: 201 }));
+  vi.stubGlobal("fetch", fetch);
+  const checkoutId = "e4b04684-d930-4c55-b661-f688bde7f171";
+  const result = await createOrder({ ...input, paymentMethod: "bank_transfer", checkoutId });
+  expect(result.order.status).toBe("PENDING");
+  expect(result.order.paymentMethod).toBe("bank_transfer");
+  expect(result.order.paymentProvider).toBeNull();
+  expect(result.order.reservedUntil!.getTime() - Date.now()).toBeGreaterThan(47 * 3600000);
+  expect(JSON.parse(fetch.mock.calls[0][1].body).payment_method).toBe("bank_transfer");
+  const instructions = await fixture.db.orderEvent.findFirstOrThrow({ where: { orderId: result.order.id, type: "bank_transfer.instructions" } });
+  expect(instructions.payload).toMatchObject({ reference: result.order.orderNumber, currency: "EUR", instructions: "Approved test instructions" });
+  await createOrder({ ...input, paymentMethod: "bank_transfer", checkoutId });
+  expect(fetch).toHaveBeenCalledTimes(1);
+  expect(sendEmail).toHaveBeenCalledTimes(1);
+  vi.unstubAllGlobals();
+});

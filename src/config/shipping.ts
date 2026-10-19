@@ -17,7 +17,8 @@ export type ShippingZone = {
 };
 
 export const CUTOFF_HOUR = 16;
-export const CUTOFF_TZ = "Europe/Berlin";
+export const UK_ONLY_SHIPPING = process.env.NEXT_PUBLIC_UK_ONLY_SHIPPING === "true";
+export const CUTOFF_TZ = UK_ONLY_SHIPPING ? "Europe/London" : "Europe/Berlin";
 
 const EU = [
   "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE",
@@ -40,8 +41,10 @@ export const SHIPPING_ZONES: ShippingZone[] = [
     countries: ["GB"],
     freeThresholdCents: 8500,
     methods: [
-      { id: "standard", price: 690, etaDays: [3, 5], carriers: ["Royal Mail", "DPD"] },
-      { id: "express", price: 1490, etaDays: [1, 3], carriers: ["DHL Express"] },
+      ...(UK_ONLY_SHIPPING ? [{ id: "standard" as const, price: 690, etaDays: [1, 2] as [number, number], carriers: ["Royal Mail Tracked 24"] }] : [
+        { id: "standard" as const, price: 690, etaDays: [3, 5] as [number, number], carriers: ["Royal Mail", "DPD"] },
+        { id: "express" as const, price: 1490, etaDays: [1, 3] as [number, number], carriers: ["DHL Express"] },
+      ]),
     ],
   },
   {
@@ -66,7 +69,7 @@ export const SHIPPING_ZONES: ShippingZone[] = [
   },
 ];
 
-export const SHIPPING_COUNTRIES: { code: string; name: string }[] = [
+export const BILLING_COUNTRIES: { code: string; name: string }[] = [
   ...EU.map((code) => ({ code, name: regionName(code) })),
   { code: "GB", name: "United Kingdom" },
   { code: "CH", name: "Switzerland" },
@@ -76,6 +79,12 @@ export const SHIPPING_COUNTRIES: { code: string; name: string }[] = [
   { code: "AU", name: "Australia" },
   { code: "AE", name: "United Arab Emirates" },
 ].sort((a, b) => a.name.localeCompare(b.name));
+
+export const SHIPPING_COUNTRIES = UK_ONLY_SHIPPING ? [{ code: "GB", name: "United Kingdom" }] : BILLING_COUNTRIES;
+
+export function shippingAllowed(country: string, method: string, postcode?: string) {
+  return (!UK_ONLY_SHIPPING || (country === "GB" && !/^(BT|JE|GY)/i.test(postcode?.trim() ?? ""))) && zoneForCountry(country).methods.some(m => m.id === method);
+}
 
 function regionName(code: string) {
   try {

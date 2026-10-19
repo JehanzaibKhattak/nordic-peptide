@@ -1,9 +1,13 @@
+import { bankTransferConfig } from "./bank-transfer";
+import { normalizeAttribution } from "./affiliate/attribution";
+import { avionEnabled, syncAvionOrder, type AvionPayload } from "./avion";
 import { randomBytes, randomInt } from "node:crypto";
 import type { Order, Prisma } from "@prisma/client";
 import { db } from "./db";
 import { firePostback } from "./affiliate/postback";
 import { sendEmail } from "./email";
 import {
+  BankTransferEmail,
   OrderReservedEmail,
   OrderShippedEmail,
   PaymentReceivedEmail,
@@ -13,7 +17,7 @@ import { getSettings } from "./settings";
 import type { Address, Affiliate, OrderStatus } from "./types";
 import { applyCoupon } from "./coupons";
 import { assertEligibility, checkoutRate, trustedAmount } from "./commerce-policy";
-import { shippingCost } from "@/config/shipping";
+import { shippingCost, shippingAllowed } from "@/config/shipping";
 
 const storeBase = () => process.env.STORE_BASE_URL ?? "http://localhost:3000";
 
@@ -31,7 +35,9 @@ export function newSessionToken() {
 
 export type CreateOrderInput = {
   purchaserId: string;
+  checkoutId?: string;
   currency?: string;
+  paymentMethod?: "card" | "bank_transfer";
   locale: string;
   email: string;
   shippingAddress: Address;
@@ -44,12 +50,24 @@ export type CreateOrderInput = {
 
 /** Validates items against live prices/stock, prices the order, creates it RESERVED with a checkout session. */
 export async function createOrder(input: CreateOrderInput) {
+  const bank = input.paymentMethod === "bank_transfer" ? bankTransferConfig() : null;
+  if (input.paymentMethod === "bank_transfer" && (!avionEnabled() || !bank || bank.currency !== (input.currency ?? "EUR"))) throw new OrderError("bank_transfer_unavailable");
+  if (!shippingAllowed(input.shippingAddress.country, input.shippingMethod, input.shippingAddress.postcode)) throw new OrderError("shipping_unavailable");
   if (input.items.length === 0) throw new OrderError("empty_cart");
   if (input.items.length > 30 || new Set(input.items.map(i => i.variantId)).size !== input.items.length || input.items.some(i => !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 10)) throw new OrderError("invalid_items");
   let eligibility;
   try { eligibility = await assertEligibility(input.purchaserId, input.shippingAddress.country, input.items.map(i => i.variantId)); }
   catch (e) { throw new OrderError(e instanceof Error ? e.message : "not_eligible"); }
   if (input.email.trim().toLowerCase() !== eligibility.purchaser.email) throw new OrderError("email_mismatch");
+  if (input.checkoutId) {
+    const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
+    if (existing) {
+      if (existing.order.purchaserId !== input.purchaserId) throw new OrderError("checkout_conflict");
+      if (["CANCELLED", "EXPIRED", "REFUNDED"].includes(existing.order.status)) throw new OrderError("checkout_expired");
+      if (avionEnabled()) await syncAvionOrder(existing.order.id);
+      return { order: existing.order, token: existing.token, payUrl: `${storeBase()}/${existing.order.locale}/checkout/${avionEnabled() ? "received" : "pay"}?session=${existing.token}` };
+    }
+  }
   const currency = input.currency ?? "EUR";
   let rate;
   try { rate = await checkoutRate(currency); } catch { throw new OrderError("currency_not_configured"); }
@@ -94,8 +112,20 @@ export async function createOrder(input: CreateOrderInput) {
   const totalCents = subtotalCents - discountCents + shippingCents;
   trustedAmount(totalCents, 1);
   if (totalCents <= 0) throw new OrderError("invalid_total");
-  const reservedUntil = new Date(Date.now() + Math.max(35, Math.min(1440, settings.reservationMinutes)) * 60_000);
+  const reservedUntil = new Date(Date.now() + (bank ? bank.hours * 60 : Math.max(35, Math.min(1440, settings.reservationMinutes))) * 60_000);
   const orderNumber = await generateOrderNumber();
+
+  const address = input.shippingAddress;
+  const affiliate = normalizeAttribution(input.affiliate);
+  const avionPayload: AvionPayload = {
+    payment_method: bank ? "bank_transfer" : "link",
+    order_ref: orderNumber, currency,
+    customer: { name: `${address.firstName} ${address.lastName}`, phone: address.phone ?? "", email: input.email.trim().toLowerCase(), country: address.country },
+    delivery: { name: `${address.firstName} ${address.lastName}`, phone: address.phone ?? "", address: [address.line1, address.line2, address.city, address.postcode, address.country].filter(Boolean).join("\n") },
+    items: lines.map((line) => ({ sku: variants.find(v => v.id === line.variantId)!.sku, qty: line.qty, unit_price: line.unitCents / 100 })),
+    shipping_amount: shippingCents / 100, discount_amount: discountCents / 100, total_amount: totalCents / 100,
+    affiliate, channel: "retail", notes: `Payment method: ${bank ? "Bank Transfer — awaiting payment" : "payment link"}; Shipping service: ${input.shippingMethod}${input.couponCode ? `; coupon: ${input.couponCode}` : ""}`,
+  };
 
   const order = await db.$transaction(async (tx) => {
     await assertEligibility(input.purchaserId, country, input.items.map(i => i.variantId), tx);
@@ -113,6 +143,7 @@ export async function createOrder(input: CreateOrderInput) {
       data: {
         orderNumber,
         status: "PENDING",
+        paymentMethod: bank ? "bank_transfer" : null,
         purchaserId: input.purchaserId,
         locale: input.locale,
         currency,
@@ -127,22 +158,37 @@ export async function createOrder(input: CreateOrderInput) {
         shippingMethod: input.shippingMethod,
         shippingCountry: country,
         couponCode: coupon.ok ? coupon.code : null,
-        affiliate: input.affiliate ?? undefined,
+        affiliate: affiliate ?? undefined,
         reservedUntil,
         items: { create: lines },
-        sessions: { create: { token: newSessionToken(), expiresAt: reservedUntil } },
+        sessions: { create: { token: input.checkoutId ?? newSessionToken(), expiresAt: reservedUntil } },
         events: {
           create: [
+            ...(bank ? [{ type: "bank_transfer.instructions", payload: { ...bank, reference: orderNumber, deadline: reservedUntil.toISOString() } }] : []),
             { type: "order.created", payload: { subtotalCents, shippingCents, discountCents, totalCents } },
-            ...(input.affiliate ? [{ type: "affiliate.attached", payload: input.affiliate as object }] : []),
+            ...(avionEnabled() ? [{ type: "avion.pending", payload: avionPayload as unknown as Prisma.InputJsonObject }] : []),
+            ...(affiliate ? [{ type: "affiliate.attached", payload: affiliate as object }] : []),
           ],
         },
       },
       include: { items: true, sessions: true },
     });
+  }).catch(async (error) => {
+    if (input.checkoutId && error instanceof Error && "code" in error && error.code === "P2002") {
+      const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
+      if (existing?.order.purchaserId === input.purchaserId) return existing.order;
+    }
+    throw error;
   });
 
   const token = order.sessions[0].token;
+  if (avionEnabled()) {
+    await syncAvionOrder(order.id);
+    if (bank) await sendEmail({ to: order.email, subject: `Bank transfer instructions — ${order.orderNumber}`, react: BankTransferEmail({ order, instructions: bank.instructions, deadline: reservedUntil.toISOString() }) })
+      .then(() => logEvent(order.id, "email.sent", { template: "bank_transfer" }))
+      .catch(() => logEvent(order.id, "email.failed", { template: "bank_transfer" }));
+    return { order, token, payUrl: `${storeBase()}/${order.locale}/checkout/received?session=${token}` };
+  }
   const payUrl = `${storeBase()}/${order.locale}/checkout/pay?session=${token}`;
   await sendEmail({ to: order.email, subject: `Complete your order ${order.orderNumber}`, react: OrderReservedEmail({ order, payUrl }) })
     .then(() => logEvent(order.id, "email.sent", { template: "order_reserved" }))
