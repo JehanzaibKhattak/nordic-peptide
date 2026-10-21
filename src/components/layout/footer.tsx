@@ -45,6 +45,7 @@ export async function Footer({ products }: { products: Product[] }) {
           <h2 className={sectionClass}>Information</h2>
           <ul className="space-y-3 text-sm text-[#c4cdc1]">
             <li><Link href="/testing" className={linkClass}>Batch documents</Link></li>
+            <li><Link href="/legal/privacy" className={linkClass}>Privacy Policy</Link></li>
             <li><Link href="/#faq" className={linkClass}>Catalogue questions</Link></li>
           </ul>
         </div>
@@ -61,7 +62,6 @@ export async function Footer({ products }: { products: Product[] }) {
             <div className="flex flex-wrap gap-2" aria-label="Payment method logos shown for visual reference; checkout is disabled">
               <PaymentLogos methods={["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna", "iDEAL", "Bancontact"]} />
             </div>
-            <p className="mt-2 text-[11px] text-[#a6b5a6]">Shown as a design reference; checkout is not enabled.</p>
           </div>
         </div>
       </div>
