@@ -1,3 +1,4 @@
+import { offlineInventoryEnabled } from "./inventory";
 import { guestBankCheckoutEnabled, guestOwnerMatches } from "./guest-checkout";
 import { bankTransferConfig } from "./bank-transfer";
 import { normalizeAttribution } from "./affiliate/attribution";
@@ -57,6 +58,7 @@ export async function createOrder(input: CreateOrderInput) {
   if (!shippingAllowed(input.shippingAddress.country, input.shippingMethod, input.shippingAddress.postcode)) throw new OrderError("shipping_unavailable");
   if (input.items.length === 0) throw new OrderError("empty_cart");
   if (input.items.length > 30 || new Set(input.items.map(i => i.variantId)).size !== input.items.length || input.items.some(i => !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 10)) throw new OrderError("invalid_items");
+  const offlineInventory = Boolean(bank && offlineInventoryEnabled());
   const guest = Boolean(input.guestCheckoutId && !input.purchaserId && bank && guestBankCheckoutEnabled() && input.shippingAddress.country === "GB");
   if (!guest) {
     let eligibility;
@@ -90,7 +92,7 @@ export async function createOrder(input: CreateOrderInput) {
   const lines = input.items.map((i) => {
     const v = variants.find((x) => x.id === i.variantId)!;
     if (!v.product.isActive) throw new OrderError("inactive_product");
-    if (v.stock < i.qty) throw new OrderError("insufficient_stock", { variantId: v.id, available: v.stock });
+    if (!offlineInventory && v.stock < i.qty) throw new OrderError("insufficient_stock", { variantId: v.id, available: v.stock });
     if (v.currency !== "EUR") throw new OrderError("invalid_catalog_currency");
     trustedAmount(v.priceCents, rate);
     const images = v.product.images as string[];
@@ -138,7 +140,7 @@ export async function createOrder(input: CreateOrderInput) {
   const order = await db.$transaction(async (tx) => {
     if (!guest) await assertEligibility(input.purchaserId ?? "", country, input.items.map(i => i.variantId), tx);
     // Reserve stock atomically.
-    for (const l of lines) {
+    if (!offlineInventory) for (const l of lines) {
       const r = await tx.variant.updateMany({
         where: { id: l.variantId, stock: { gte: l.qty } },
         data: { stock: { decrement: l.qty } },
@@ -172,6 +174,7 @@ export async function createOrder(input: CreateOrderInput) {
         sessions: { create: { token: input.checkoutId ?? newSessionToken(), expiresAt: reservedUntil } },
         events: {
           create: [
+            ...(offlineInventory ? [{ type: "inventory.offline", payload: {} }] : []),
             ...(guest ? [{ type: "guest.owner", payload: { id: input.guestCheckoutId! } }] : []),
             ...(bank ? [{ type: "bank_transfer.instructions", payload: { ...bank, reference: orderNumber, deadline: reservedUntil.toISOString() } }] : []),
             { type: "order.created", payload: { subtotalCents, shippingCents, discountCents, totalCents } },
@@ -220,6 +223,7 @@ export function logEvent(orderId: string, type: string, payload: Prisma.InputJso
 }
 
 async function releaseStock(orderId: string) {
+  if (await db.orderEvent.findFirst({ where: { orderId, type: "inventory.offline" } })) return;
   const items = await db.orderItem.findMany({ where: { orderId } });
   for (const i of items) await db.variant.update({ where: { id: i.variantId }, data: { stock: { increment: i.qty } } });
 }
@@ -300,7 +304,8 @@ async function closeUnpaidOrder(orderId: string, status: "EXPIRED" | "CANCELLED"
     });
     if (!claimed.count) return null;
     const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
-    for (const item of order.items) await tx.variant.update({ where: { id: item.variantId }, data: { stock: { increment: item.qty } } });
+    const offline = await tx.orderEvent.findFirst({ where: { orderId, type: "inventory.offline" } });
+    if (!offline) for (const item of order.items) await tx.variant.update({ where: { id: item.variantId }, data: { stock: { increment: item.qty } } });
     await tx.checkoutSession.updateMany({ where: { orderId }, data: { status: "EXPIRED" } });
     await tx.orderEvent.create({ data: { orderId, type: `order.${status.toLowerCase()}`, payload: {} } });
     return order;

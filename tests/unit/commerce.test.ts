@@ -18,7 +18,7 @@ import { GET as sessionRoute } from "@/app/api/checkout/session/route";
 import { GET as statusRoute } from "@/app/api/orders/by-number/[orderNumber]/route";
 import { sendEmail } from "@/lib/email";
 import { stripeAdapter } from "@/lib/payments/stripe";
-import { createOrder, expireOrder, expireStaleOrders, markPaid } from "@/lib/orders";
+import { createOrder, expireOrder, expireStaleOrders, markPaid, cancelOrder, markRefunded } from "@/lib/orders";
 import { assertEligibility, purchaserApproved, productApproved, stripeTestEnabled, trustedAmount } from "@/lib/commerce-policy";
 import { processStripeEvent, verifyStripeEvent } from "@/lib/payments/stripe-webhook";
 
@@ -360,5 +360,33 @@ it("accepts only enabled GBP guest bank orders, binds retries to the guest, and 
   await expireOrder(order.id, false);
   expect((await fixture.db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("EXPIRED");
   expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(8);
+  vi.unstubAllGlobals();
+});
+
+it("accepts zero-stock bank orders in offline mode without changing quantities on retries, cancellation or refund", async () => {
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+  vi.stubEnv("NEXT_PUBLIC_INVENTORY_MODE", "offline");
+  vi.stubEnv("BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("BANK_TRANSFER_CURRENCY", "EUR");
+  vi.stubEnv("BANK_TRANSFER_INSTRUCTIONS", "Test bank instructions");
+  vi.stubEnv("BANK_TRANSFER_DEADLINE_HOURS", "48");
+  vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+  vi.stubEnv("AVION_API_KEY", "test-key");
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ ok: true, order_number: "AV-10099", id: 99, duplicate: false }), { status: 201 })));
+  await fixture.db.variant.update({ where: { id: "variant" }, data: { stock: 0 } });
+  const request = { ...input, paymentMethod: "bank_transfer" as const, checkoutId: crypto.randomUUID() };
+  const { order } = await createOrder(request);
+  expect(order.status).toBe("PENDING");
+  expect((await createOrder(request)).order.id).toBe(order.id);
+  expect(await fixture.db.orderEvent.count({ where: { orderId: order.id, type: "inventory.offline" } })).toBe(1);
+  // The order snapshot must survive a later switch back to online inventory.
+  vi.stubEnv("NEXT_PUBLIC_INVENTORY_MODE", "online");
+  await cancelOrder(order.id);
+  expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(0);
+  vi.stubEnv("NEXT_PUBLIC_INVENTORY_MODE", "offline");
+  const second = await createOrder({ ...request, checkoutId: crypto.randomUUID() });
+  await fixture.db.order.update({ where: { id: second.order.id }, data: { status: "PAID" } });
+  await markRefunded(second.order.id, "admin");
+  expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(0);
   vi.unstubAllGlobals();
 });

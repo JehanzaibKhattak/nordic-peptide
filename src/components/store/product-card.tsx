@@ -1,4 +1,5 @@
 "use client";
+import { offlineInventoryEnabled } from "@/lib/inventory";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -31,7 +32,7 @@ export function ProductCard({ product }: { product: CardProduct }) {
   const name = lt(product.name, locale);
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? "");
   const selected = product.variants.find((variant) => variant.id === variantId) ?? product.variants[0];
-  const canAdd = Boolean(selected && selected.priceCents > 0 && (BROWSE_ONLY || selected.stock > 0));
+  const canAdd = Boolean(selected && selected.priceCents > 0 && (BROWSE_ONLY || offlineInventoryEnabled() || selected.stock > 0));
 
   const addToCart = () => {
     if (!selected || !canAdd) return;
