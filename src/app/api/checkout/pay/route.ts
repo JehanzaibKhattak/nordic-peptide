@@ -1,3 +1,4 @@
+import { isStoreOrigin } from "@/lib/store-origin";
 import { commerceRateLimit } from "@/lib/commerce-rate-limit";
 import { currentPurchaser } from "@/lib/purchaser-session";
 import { assertEligibility, checkoutRate } from "@/lib/commerce-policy";
@@ -15,7 +16,7 @@ const body = z.object({ token: z.string().min(10), adapterId: z.string() });
 // reloads; the order itself guards against double payment (markPaid is idempotent).
 export async function POST(req: Request) {
   if (BROWSE_ONLY) return NextResponse.json({ error: "browse_only" }, { status: 503 });
-  if (req.headers.get("origin") !== new URL(req.url).origin) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
+  if (!isStoreOrigin(req)) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   const purchaser = await currentPurchaser();
   if (!purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
   if (!(await commerceRateLimit(`pay:${purchaser.id}`, 20, 60000))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });

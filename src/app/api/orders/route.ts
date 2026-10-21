@@ -1,3 +1,4 @@
+import { isStoreOrigin } from "@/lib/store-origin";
 import { guestBankCheckoutEnabled, guestCheckoutId } from "@/lib/guest-checkout";
 import { avionEnabled } from "@/lib/avion";
 import { commerceRateLimit } from "@/lib/commerce-rate-limit";
@@ -40,7 +41,7 @@ const body = z.object({
 export async function POST(req: Request) {
   if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
   if (!avionEnabled() && !stripeTestEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
-  if (req.headers.get("origin") !== new URL(req.url).origin) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
+  if (!isStoreOrigin(req)) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid_body", issues: parsed.error.flatten() }, { status: 400 });
   const guest = guestBankCheckoutEnabled() && parsed.data.paymentMethod === "bank_transfer";
