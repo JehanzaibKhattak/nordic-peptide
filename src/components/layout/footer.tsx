@@ -45,6 +45,7 @@ export async function Footer({ products }: { products: Product[] }) {
           <h2 className={sectionClass}>Information</h2>
           <ul className="space-y-3 text-sm text-[#c4cdc1]">
             <li><Link href="/testing" className={linkClass}>Batch documents</Link></li>
+            <li><Link href="/legal/privacy" className={linkClass}>Privacy Policy</Link></li>
             <li><Link href="/#faq" className={linkClass}>Catalogue questions</Link></li>
           </ul>
         </div>
