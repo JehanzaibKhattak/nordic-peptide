@@ -63,7 +63,9 @@ export async function POST(req: Request) {
       billingAddress: { ...d.billingAddress, line2: d.billingAddress.line2 ?? undefined, phone: d.billingAddress.phone ?? undefined },
       affiliate: d.affiliate && Object.keys(d.affiliate).length ? { capturedAt: new Date().toISOString(), ...d.affiliate } : null,
     });
-    return NextResponse.json({ ok: true, orderNumber: order.orderNumber, token, payUrl });
+    // Keep the receipt on the customer's storefront host so its private cookie remains valid.
+    const checkoutUrl = new URL(payUrl);
+    return NextResponse.json({ ok: true, orderNumber: order.orderNumber, token, payUrl: `${checkoutUrl.pathname}${checkoutUrl.search}` });
   } catch (e) {
     if (e instanceof OrderError) return NextResponse.json({ ok: false, error: e.code, meta: e.meta }, { status: 409 });
     console.error(e);

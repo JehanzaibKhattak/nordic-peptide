@@ -390,3 +390,16 @@ it("accepts zero-stock bank orders in offline mode without changing quantities o
   expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(0);
   vi.unstubAllGlobals();
 });
+
+it("keeps a checkout receipt on the initiating approved storefront host", async () => {
+  vi.stubEnv("STORE_BASE_URL", "https://store.example");
+  vi.stubEnv("STORE_ADDITIONAL_ORIGINS", "https://www.store.example");
+  vi.stubEnv("STRIPE_CHECKOUT_ENABLED", "true");
+  vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_example");
+  vi.stubEnv("LIVE_PAYMENTS_ENABLED", "false");
+  const response = await createOrderRoute(new Request("http://localhost:3000/api/orders", { method: "POST", headers: { origin: "https://www.store.example", "content-type": "application/json" }, body: JSON.stringify(input) }));
+  expect(response.status).toBe(200);
+  const data = await response.json();
+  expect(data.payUrl).toMatch(/^\/en\/checkout\/pay\?session=/);
+  expect(new URL(data.payUrl, "https://www.store.example").origin).toBe("https://www.store.example");
+});

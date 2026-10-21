@@ -21,3 +21,11 @@ describe("checkout origin validation behind the reverse proxy", () => {
     expect(isStoreOrigin(request("http://localhost:3000"), { NODE_ENV: "development" })).toBe(true);
   });
 });
+
+it("accepts only explicitly configured alternate store origins", () => {
+  const env = { ...production, STORE_ADDITIONAL_ORIGINS: "https://www.peptbay.com" };
+  expect(isStoreOrigin(request("https://www.peptbay.com"), production)).toBe(false);
+  expect(isStoreOrigin(request("https://www.peptbay.com"), env)).toBe(true);
+  expect(isStoreOrigin(request("https://www.peptbay.com.evil.example"), env)).toBe(false);
+  expect(isStoreOrigin(request("http://www.peptbay.com"), env)).toBe(false);
+});
