@@ -62,10 +62,11 @@ export async function Footer({ products }: { products: Product[] }) {
             <Link href="/contact" className="inline-flex items-center gap-2 text-sm text-[#c4cdc1] hover:text-white"><Mail aria-hidden="true" className="size-4" />Contact Peptbay</Link>
           </div>
           <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]">{bankOnly ? "Payment method" : "Payment methods · preview"}</h2>
-            {bankOnly ? <p className="text-sm text-[#c4cdc1]">Bank Transfer · GBP</p> : <div className="flex flex-wrap gap-2" aria-label="Payment method logos shown for visual reference; checkout is disabled">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]">Payment methods</h2>
+            {bankOnly && <p className="mb-3 text-sm text-[#c4cdc1]">Bank Transfer · GBP</p>}
+            <div className="flex flex-wrap gap-2" aria-label="Payment providers">
               <PaymentLogos methods={["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna", "iDEAL", "Bancontact"]} />
-            </div>}
+            </div>
           </div>
         </div>
       </div>

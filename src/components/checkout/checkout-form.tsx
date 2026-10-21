@@ -238,7 +238,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><ShieldCheck aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("secureCheckout")}</p>
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><Package aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("dispatchBefore")}</p>
             </div>
-            {!guestBankCheckout && <div className="mt-5"><PaymentLogos /></div>}
+            <div className="mt-5"><PaymentLogos methods={["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna", "iDEAL", "Bancontact"]} /></div>
           </div>
         </aside>
 
