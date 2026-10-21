@@ -1,29 +1,24 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-
-const findMany = vi.hoisted(() => vi.fn().mockResolvedValue([]));
-vi.mock("@/lib/db", () => ({ db: { orderEvent: { findMany } } }));
+const mocks = vi.hoisted(() => ({ findMany: vi.fn().mockResolvedValue([]), get: vi.fn() }));
+vi.mock("@/lib/db", () => ({ db: { orderEvent: { findMany: mocks.findMany } } }));
+vi.mock("@/lib/avion", () => ({ avionEnabled: () => process.env.NEXT_PUBLIC_AVION_CHECKOUT === "true", getAvionPostbacks: mocks.get }));
 vi.mock("@/app/admin/actions", () => ({ resendPostbackAction: vi.fn() }));
 import AdminPostbacks from "@/app/admin/(panel)/postbacks/page";
-
 afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks(); });
-
-it("routes Avion operators to the backend queue without exposing the endpoint or querying the wrong log", async () => {
+it("shows backend records in the existing admin without another login", async () => {
   vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
-  vi.stubEnv("KEITARO_POSTBACK_URL", "https://tracker.example/private-secret/postback");
+  mocks.get.mockResolvedValue({ enabled: true, configured: true, jobs: [{order_ref: "NPS123", event: "sale", status: "sent", attempts: 1, sent_at: "2026-10-21 12:00:00", last_error: null}] });
   const html = renderToStaticMarkup(await AdminPostbacks());
-  expect(html).toContain("Managed by the Avion backend");
-  for (const status of ["sent", "queued", "failed"]) {
-    expect(html).toContain(`https://admin.peptbay.com/tracking?status=${status}`);
-  }
-  expect(html).not.toContain("private-secret");
-  expect(html).not.toContain("not configured");
-  expect(findMany).not.toHaveBeenCalled();
+  expect(html).toContain("Enabled"); expect(html).toContain("NPS123"); expect(html).toContain("sent");
+  expect(html).not.toContain("admin.peptbay.com"); expect(mocks.findMany).not.toHaveBeenCalled();
 });
-
-it("keeps the storefront log for checkout modes that use its sender", async () => {
+it("does not present an unavailable backend as an empty queue", async () => {
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true"); mocks.get.mockRejectedValue(new Error("unavailable"));
+  expect(renderToStaticMarkup(await AdminPostbacks())).toContain("temporarily unavailable");
+});
+it("keeps the legacy log outside Avion mode", async () => {
   vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "false");
-  const html = renderToStaticMarkup(await AdminPostbacks());
-  expect(html).toContain("No postbacks yet.");
-  expect(findMany).toHaveBeenCalledOnce();
+  expect(renderToStaticMarkup(await AdminPostbacks())).toContain("No postbacks yet.");
+  expect(mocks.findMany).toHaveBeenCalledOnce();
 });

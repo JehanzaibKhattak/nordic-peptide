@@ -70,3 +70,29 @@ export async function syncAvionOrder(orderId: string) {
     return null;
   }
 }
+
+const postbacksSchema = z.object({
+  ok: z.literal(true), enabled: z.boolean(), configured: z.boolean(),
+  jobs: z.array(z.object({
+    order_ref: z.string().nullable(), event: z.enum(["sale", "rejected"]),
+    status: z.enum(["queued", "sent", "failed"]), attempts: z.number().int().nonnegative(),
+    last_error: z.string().nullable(), sent_at: z.string().nullable(),
+  })).max(100),
+});
+
+/** Read-only, source-scoped monitoring; credentials stay on the server. */
+export async function getAvionPostbacks() {
+  const base = process.env.AVION_API_URL;
+  const key = process.env.AVION_API_KEY;
+  if (!base || !key) throw new AvionError("avion_not_configured", false);
+  const url = new URL(base);
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) {
+    throw new AvionError("avion_invalid_url", false);
+  }
+  const endpoint = new URL("api/v1/postbacks", `${url.origin}${url.pathname.replace(/\/$/, "")}/`);
+  const response = await fetch(endpoint, {
+    headers: { "X-Avion-Key": key }, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(6000),
+  });
+  if (!response.ok) throw new AvionError("avion_monitor_unavailable", true);
+  return postbacksSchema.parse(await response.json());
+}
