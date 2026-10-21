@@ -96,3 +96,23 @@ export async function getAvionPostbacks() {
   if (!response.ok) throw new AvionError("avion_monitor_unavailable", true);
   return postbacksSchema.parse(await response.json());
 }
+
+export async function queueAvionPostback(orderId: string, event: "sale" | "rejected") {
+  const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+  if (order.paymentMethod !== "bank_transfer" || (event === "sale" ? !["PAID", "FULFILLED"].includes(order.status) : order.status !== "REFUNDED")) {
+    throw new AvionError("payment_confirmation_required", false);
+  }
+  if (!(await syncAvionOrder(orderId))) throw new AvionError("avion_sync_failed", true);
+  const base = process.env.AVION_API_URL;
+  const key = process.env.AVION_API_KEY;
+  if (!base || !key) throw new AvionError("avion_not_configured", false);
+  const url = new URL(base);
+  if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) throw new AvionError("avion_invalid_url", false);
+  const response = await fetch(new URL("api/v1/postbacks", `${url.origin}${url.pathname.replace(/\/$/, "")}/`), {
+    method: "POST", headers: { "content-type": "application/json", "X-Avion-Key": key },
+    body: JSON.stringify({ order_ref: order.orderNumber, event }),
+    redirect: "error", cache: "no-store", signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new AvionError("backend_reconciliation_failed", true);
+  return z.object({ ok: z.literal(true), status: z.enum(["queued", "sent", "no_click_id"]) }).parse(await response.json());
+}

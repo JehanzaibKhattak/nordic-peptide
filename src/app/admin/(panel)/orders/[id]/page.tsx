@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { reconcilePaymentAction, cancelAction, fulfilAction, markPaidAction, refundAction, resendEmailAction, resendPostbackAction } from "../../../actions";
 
-export default async function AdminOrderDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminOrderDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ postback?: string }> }) {
   const { id } = await params;
+  const { postback } = await searchParams;
+  const postbackMessage = postback === "queued" ? "Postback queued in the backend. Check Postbacks for delivery status." : postback === "sent" ? "Postback already sent successfully. No duplicate was sent." : postback === "no_click_id" ? "Payment synchronized, but this order has no Keitaro click ID. No conversion can be sent." : postback === "failed" ? "Postback could not be queued. Payment status was not reset. Please retry or contact support." : null;
   const o = await db.order.findUnique({ where: { id }, include: { items: true, events: { orderBy: { createdAt: "asc" } } } });
   if (!o) notFound();
   const ship = o.shippingAddress as Address;
@@ -21,6 +23,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
+      {postbackMessage && <p role="status" className="rounded-xl border bg-card p-4">{postbackMessage}</p>}
       <div className="flex flex-wrap items-center gap-3">
         <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground">← Orders</Link>
         <h1 className="font-mono text-xl font-semibold">{o.orderNumber}</h1>
