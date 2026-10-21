@@ -3,10 +3,29 @@ import { db } from "@/lib/db";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { resendPostbackAction } from "../../actions";
+import { avionEnabled } from "@/lib/avion";
 
 type Payload = { status?: string; url?: string; attempt?: number; httpStatus?: number; error?: string; reason?: string };
 
 export default async function AdminPostbacks() {
+  if (avionEnabled()) {
+    return (
+      <div className="max-w-2xl">
+        <h1 className="text-xl font-semibold">Keitaro postbacks</h1>
+        <div className="mt-6 space-y-4 rounded-xl border bg-card p-6">
+          <h2 className="font-semibold">Managed by the Avion backend</h2>
+          <p>Bank-transfer postbacks are sent by the back office. View their delivery status in the backend queue.</p>
+          <div className="flex flex-wrap gap-4 text-sm underline underline-offset-4">
+            <a href="https://admin.peptbay.com/tracking?status=sent">Sent postbacks</a>
+            <a href="https://admin.peptbay.com/tracking?status=queued">Queued postbacks</a>
+            <a href="https://admin.peptbay.com/tracking?status=failed">Failed postbacks</a>
+          </div>
+          <p className="text-sm text-muted-foreground">Sign in to the back office to view these records. A sale is queued only after payment is confirmed there and the order has a captured Keitaro click ID. Opening the echo test URL does not create a conversion.</p>
+        </div>
+      </div>
+    );
+  }
+
   const events = await db.orderEvent.findMany({
     where: { type: { startsWith: "postback." } },
     orderBy: { createdAt: "desc" },
