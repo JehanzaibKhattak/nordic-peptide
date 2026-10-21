@@ -1,5 +1,6 @@
 import type { Order } from "@prisma/client";
 import { db } from "../db";
+import { avionEnabled, queueAvionPostback } from "../avion";
 import type { Affiliate } from "../types";
 
 // Server-side Keitaro postback. Fired on PAID (status=sale) and on
@@ -23,6 +24,16 @@ export function buildPostbackUrl(order: Order, status: PostbackStatus, payoutCen
 }
 
 export async function firePostback(order: Order, status: PostbackStatus, payoutCents: number) {
+  if (avionEnabled() && order.paymentProvider !== "stripe") {
+    try {
+      const result = await queueAvionPostback(order.id, status);
+      await db.orderEvent.create({ data: { orderId: order.id, type: "postback.backend", payload: { status, result: result.status } } });
+      return { ok: result.status !== "no_click_id", result: result.status };
+    } catch {
+      await db.orderEvent.create({ data: { orderId: order.id, type: "postback.failed", payload: { status, error: "backend_reconciliation_failed" } } });
+      return { ok: false, error: "backend_reconciliation_failed" };
+    }
+  }
   if (process.env.KEITARO_POSTBACK_ENABLED !== "true" || process.env.NEXT_PUBLIC_AVION_CHECKOUT === "true" || order.paymentProvider === "stripe") return { ok: false, skipped: true };
   const url = buildPostbackUrl(order, status, payoutCents);
   if (!url) {

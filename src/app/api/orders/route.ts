@@ -1,3 +1,5 @@
+import { isStoreOrigin } from "@/lib/store-origin";
+import { guestBankCheckoutEnabled, guestCheckoutId } from "@/lib/guest-checkout";
 import { avionEnabled } from "@/lib/avion";
 import { commerceRateLimit } from "@/lib/commerce-rate-limit";
 import { currentPurchaser } from "@/lib/purchaser-session";
@@ -39,15 +41,15 @@ const body = z.object({
 export async function POST(req: Request) {
   if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
   if (!avionEnabled() && !stripeTestEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
-  if (req.headers.get("origin") !== new URL(req.url).origin) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
-  const purchaser = await currentPurchaser();
-  if (!purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
-  if (!(await commerceRateLimit(`orders:${purchaser.id}`, 10, 60000))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
-  const rl = rateLimit(`orders:${clientIp(req)}`, 10, 60_000);
-  if (!rl.ok) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
-
+  if (!isStoreOrigin(req)) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid_body", issues: parsed.error.flatten() }, { status: 400 });
+  const guest = guestBankCheckoutEnabled() && parsed.data.paymentMethod === "bank_transfer";
+  const purchaser = guest ? null : await currentPurchaser();
+  if (!guest && !purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
+  if (!(await commerceRateLimit(`orders:${purchaser?.id ?? clientIp(req)}`, 10, 60000))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  const rl = rateLimit(`orders:${clientIp(req)}`, 10, 60_000);
+  if (!rl.ok) return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
 
   if (avionEnabled() && !parsed.data.checkoutId) return NextResponse.json({ error: "checkout_reference_required" }, { status: 400 });
 
@@ -55,12 +57,15 @@ export async function POST(req: Request) {
     const d = parsed.data;
     const { order, token, payUrl } = await createOrder({
       ...d,
-      purchaserId: purchaser.id,
+      purchaserId: purchaser?.id,
+      guestCheckoutId: guest ? await guestCheckoutId(true) : undefined,
       shippingAddress: { ...d.shippingAddress, line2: d.shippingAddress.line2 ?? undefined, phone: d.shippingAddress.phone ?? undefined },
       billingAddress: { ...d.billingAddress, line2: d.billingAddress.line2 ?? undefined, phone: d.billingAddress.phone ?? undefined },
       affiliate: d.affiliate && Object.keys(d.affiliate).length ? { capturedAt: new Date().toISOString(), ...d.affiliate } : null,
     });
-    return NextResponse.json({ ok: true, orderNumber: order.orderNumber, token, payUrl });
+    // Keep the receipt on the customer's storefront host so its private cookie remains valid.
+    const checkoutUrl = new URL(payUrl);
+    return NextResponse.json({ ok: true, orderNumber: order.orderNumber, token, payUrl: `${checkoutUrl.pathname}${checkoutUrl.search}` });
   } catch (e) {
     if (e instanceof OrderError) return NextResponse.json({ ok: false, error: e.code, meta: e.meta }, { status: 409 });
     console.error(e);

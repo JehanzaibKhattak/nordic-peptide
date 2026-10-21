@@ -5,7 +5,7 @@ import { PaymentLogos } from "@/components/store/payment-logos";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { ArrowRight, Check, ChevronDown, CreditCard, Home, Lock, Package, ShieldCheck, ShoppingCart, Tag, Truck } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, CreditCard, Home, Landmark, Lock, Package, ShieldCheck, ShoppingCart, Tag, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,10 +26,10 @@ import { saveDemoCheckout } from "@/lib/demo-checkout";
 
 const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city: "", postcode: "", country: UK_ONLY_SHIPPING ? "GB" : "ES", phone: "" };
 
-export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null }) {
+export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean }) {
   const r = useTranslations("research");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
-  const [paymentCurrency, setPaymentCurrency] = useState("EUR");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(guestBankCheckout ? "bank_transfer" : "card");
+  const [paymentCurrency, setPaymentCurrency] = useState(guestBankCheckout ? bankCurrency ?? "GBP" : "EUR");
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
   const locale = useLocale();
@@ -238,13 +238,13 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><ShieldCheck aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("secureCheckout")}</p>
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><Package aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("dispatchBefore")}</p>
             </div>
-            <div className="mt-5"><PaymentLogos /></div>
+            <div className="mt-5"><PaymentLogos methods={["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna", "iDEAL", "Bancontact"]} /></div>
           </div>
         </aside>
 
         <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
           <CheckoutStep number={1} step={step} title={t("yourDetails")} summary={`${email} · ${ship.firstName} ${ship.lastName}`} editLabel={t("edit")} onEdit={() => setStep(1)} onNext={nextStep}>
-            {!BROWSE_ONLY && <div className="space-y-3 text-sm"><Link href="/account" className="underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border bg-white p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-xs text-[#7c9073]">{r("currencyNotice")}</p></div>}
+            {!BROWSE_ONLY && !guestBankCheckout && <div className="space-y-3 text-sm"><Link href="/account" className="underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border bg-white p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-xs text-[#7c9073]">{r("currencyNotice")}</p></div>}
             <Field id="email" label={t("email")} placeholder="your@email.com" type="email" value={email} onChange={setEmail} required />
             <p className="text-xs leading-5 text-[#7c9073]">{t("emailHint")} <Link href="/account" className="text-[#173b2e] underline">{t("logIn")}</Link></p>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -279,10 +279,13 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
           </CheckoutStep>
 
           <CheckoutStep number={3} step={step} title={t("paymentMethod")} editLabel={t("edit")} onEdit={() => setStep(3)} onNext={nextStep}>
-            <RadioGroup aria-label={t("paymentMethod")} value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "card" | "bank_transfer")}>
+            {guestBankCheckout ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-[#2d5b40] bg-[#edf2e9] p-4">
+              <span className="flex items-center gap-3 text-sm font-semibold text-[#173b2e]"><Landmark aria-hidden="true" className="size-5" />{t("bankTransfer")}</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#2d5b40]"><Check aria-hidden="true" className="size-3.5" />{locale === "es" ? "Seleccionado" : "Selected"}</span>
+            </div> : <RadioGroup aria-label={t("paymentMethod")} value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "card" | "bank_transfer")}>
               <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="card" />{t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</label>
               <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="bank_transfer" disabled={!(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency} />{t("bankTransfer")}</label>
-            </RadioGroup>
+            </RadioGroup>}
             {paymentMethod === "bank_transfer" ? <div className="rounded-xl border bg-white p-4 text-sm"><p>{t("bankTransferBody")}</p>{BROWSE_ONLY && <p className="mt-2 text-xs text-muted-foreground">{t("bankTransferPreview")}</p>}</div> : <>
             <div className="rounded-[14px] border-2 border-[#2d5b40] bg-[#f5f1e9] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3"><span className="flex items-center gap-2 text-sm font-semibold"><CreditCard aria-hidden="true" className="size-5 text-[#2d5b40]" />{t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</span><PaymentLogos methods={avionCheckout ? ["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna"] : ["Visa", "Mastercard"]} /></div>
@@ -291,7 +294,16 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
             </div>
             </>}
             {!(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency && <p className="text-xs text-muted-foreground">{t("bankTransferUnavailable")}</p>}
-            <label className="flex items-start gap-2 text-xs leading-5 text-[#7c9073]"><Checkbox checked={agree} onCheckedChange={(v) => setAgree(Boolean(v))} required className="mt-0.5" /><span>{t("agreeTerms")} (<Link href="/legal/terms" className="text-[#173b2e] underline" target="_blank">Terms</Link>, <Link href="/legal/privacy" className="text-[#173b2e] underline" target="_blank">Privacy</Link>)</span></label>
+            <div className={`rounded-xl border-2 bg-white p-4 transition-colors ${agree ? "border-[#2d5b40]" : "border-[#91a38b]"}`}>
+              <div className="flex items-start gap-3">
+                <input id="checkout-terms" type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} required aria-describedby="checkout-terms-hint" className="mt-0.5 size-6 shrink-0 cursor-pointer accent-[#173b2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#173b2e]" />
+                <div className="min-w-0">
+                  <label htmlFor="checkout-terms" className="block cursor-pointer text-sm font-semibold leading-6 text-[#173b2e]">{t("agreeTerms")}</label>
+                  <p className="mt-1 text-sm text-[#38583f]"><Link href="/legal/terms" className="underline underline-offset-4" target="_blank">{locale === "es" ? "Condiciones de venta" : "Terms of Sale"}</Link><span aria-hidden="true" className="mx-2">·</span><Link href="/legal/privacy" className="underline underline-offset-4" target="_blank">{locale === "es" ? "Política de privacidad" : "Privacy Policy"}</Link></p>
+                  <p id="checkout-terms-hint" className="mt-2 text-xs leading-5 text-[#38583f]">{agree ? (locale === "es" ? "Aceptado. Ya puedes realizar tu pedido." : "Agreed. You can now place your order.") : (locale === "es" ? "Marca la casilla para aceptar y realizar tu pedido." : "Tick the box above to agree and place your order.")}</p>
+                </div>
+              </div>
+            </div>
             {error && <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
             <Button type="submit" className={`${buttonClass} h-14 font-serif text-lg`} disabled={!agree || submitting} data-testid="continue-to-payment">{submitting ? t("paying") : `${t(paymentMethod === "bank_transfer" ? "bankPlaceOrder" : avionCheckout ? "avionPlaceOrder" : "continueToPayment")} · ${formattedTotal}`}</Button>
             <Link href="/contact" className="block text-center text-xs text-[#7c9073] underline">{t("needHelp")}</Link>

@@ -100,9 +100,11 @@ export async function resendPostbackAction(fd: FormData) {
   const order = await db.order.findUnique({ where: { id } });
   if (!order) return;
   const settings = await getSettings();
-  await firePostback(order, order.status === "REFUNDED" ? "rejected" : "sale", settings.affiliatePayoutCents);
+  const result = await firePostback(order, order.status === "REFUNDED" ? "rejected" : "sale", settings.affiliatePayoutCents);
   revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/admin/postbacks");
+  const outcome = "result" in result ? result.result : result.ok ? "sent" : "failed";
+  redirect(`/admin/orders/${id}?postback=${outcome}`);
 }
 
 export async function resendEmailAction(fd: FormData) {
