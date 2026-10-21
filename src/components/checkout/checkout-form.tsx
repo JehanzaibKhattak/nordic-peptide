@@ -26,10 +26,10 @@ import { saveDemoCheckout } from "@/lib/demo-checkout";
 
 const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city: "", postcode: "", country: UK_ONLY_SHIPPING ? "GB" : "ES", phone: "" };
 
-export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null }) {
+export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean }) {
   const r = useTranslations("research");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">("card");
-  const [paymentCurrency, setPaymentCurrency] = useState("EUR");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(guestBankCheckout ? "bank_transfer" : "card");
+  const [paymentCurrency, setPaymentCurrency] = useState(guestBankCheckout ? bankCurrency ?? "GBP" : "EUR");
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
   const locale = useLocale();
@@ -238,13 +238,13 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><ShieldCheck aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("secureCheckout")}</p>
               <p className="flex items-center gap-2.5"><span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf0eb]"><Package aria-hidden="true" className="size-4 text-[#2d5b40]" /></span>{t("dispatchBefore")}</p>
             </div>
-            <div className="mt-5"><PaymentLogos /></div>
+            {!guestBankCheckout && <div className="mt-5"><PaymentLogos /></div>}
           </div>
         </aside>
 
         <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
           <CheckoutStep number={1} step={step} title={t("yourDetails")} summary={`${email} · ${ship.firstName} ${ship.lastName}`} editLabel={t("edit")} onEdit={() => setStep(1)} onNext={nextStep}>
-            {!BROWSE_ONLY && <div className="space-y-3 text-sm"><Link href="/account" className="underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border bg-white p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-xs text-[#7c9073]">{r("currencyNotice")}</p></div>}
+            {!BROWSE_ONLY && !guestBankCheckout && <div className="space-y-3 text-sm"><Link href="/account" className="underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border bg-white p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-xs text-[#7c9073]">{r("currencyNotice")}</p></div>}
             <Field id="email" label={t("email")} placeholder="your@email.com" type="email" value={email} onChange={setEmail} required />
             <p className="text-xs leading-5 text-[#7c9073]">{t("emailHint")} <Link href="/account" className="text-[#173b2e] underline">{t("logIn")}</Link></p>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -280,7 +280,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
 
           <CheckoutStep number={3} step={step} title={t("paymentMethod")} editLabel={t("edit")} onEdit={() => setStep(3)} onNext={nextStep}>
             <RadioGroup aria-label={t("paymentMethod")} value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "card" | "bank_transfer")}>
-              <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="card" />{t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</label>
+              {!guestBankCheckout && <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="card" />{t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</label>}
               <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="bank_transfer" disabled={!(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency} />{t("bankTransfer")}</label>
             </RadioGroup>
             {paymentMethod === "bank_transfer" ? <div className="rounded-xl border bg-white p-4 text-sm"><p>{t("bankTransferBody")}</p>{BROWSE_ONLY && <p className="mt-2 text-xs text-muted-foreground">{t("bankTransferPreview")}</p>}</div> : <>

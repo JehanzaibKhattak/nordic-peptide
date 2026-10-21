@@ -11,3 +11,11 @@ describe("bank transfer activation", () => {
     expect(bankTransferConfig(configured)).toEqual({ instructions: "Approved bank details", currency: "GBP", hours: 48 });
   });
 });
+
+import { guestOwnerMatches } from "@/lib/guest-checkout";
+it("requires the private guest session to read a guest receipt", () => {
+  expect(guestOwnerMatches({ id: "owner" }, "owner")).toBe(true);
+  expect(guestOwnerMatches({ id: "owner" }, "other")).toBe(false);
+  expect(guestOwnerMatches({ id: "owner" }, undefined)).toBe(false);
+  expect(guestOwnerMatches(undefined, "owner")).toBe(false);
+});

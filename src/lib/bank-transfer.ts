@@ -6,3 +6,7 @@ export function bankTransferConfig(env: Record<string, string | undefined> = pro
   if (env.BANK_TRANSFER_ENABLED !== "true" || !instructions || !currency || !/^[A-Z]{3}$/.test(currency) || !Number.isInteger(hours) || hours < 1 || hours > 168) return null;
   return { instructions, currency, hours };
 }
+
+export function bankTransferOverdue(deadline: string, now = Date.now()) {
+  return Date.parse(deadline) <= now;
+}

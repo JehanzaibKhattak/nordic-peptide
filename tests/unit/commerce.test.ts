@@ -18,7 +18,7 @@ import { GET as sessionRoute } from "@/app/api/checkout/session/route";
 import { GET as statusRoute } from "@/app/api/orders/by-number/[orderNumber]/route";
 import { sendEmail } from "@/lib/email";
 import { stripeAdapter } from "@/lib/payments/stripe";
-import { createOrder, expireOrder } from "@/lib/orders";
+import { createOrder, expireOrder, expireStaleOrders, markPaid } from "@/lib/orders";
 import { assertEligibility, purchaserApproved, productApproved, stripeTestEnabled, trustedAmount } from "@/lib/commerce-policy";
 import { processStripeEvent, verifyStripeEvent } from "@/lib/payments/stripe-webhook";
 
@@ -217,7 +217,7 @@ describe("session creation and ownership", () => {
     vi.stubEnv("STRIPE_CHECKOUT_ENABLED", "true"); vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_example"); vi.stubEnv("LIVE_PAYMENTS_ENABLED", "false");
     fixture.purchaserId = null;
     expect((await createOrderRoute(new Request("https://store.example/api/orders", { method: "POST", headers: { origin: "https://evil.example" } }))).status).toBe(403);
-    expect((await createOrderRoute(new Request("https://store.example/api/orders", { method: "POST", headers: { origin: "https://store.example" } }))).status).toBe(401);
+    expect((await createOrderRoute(new Request("https://store.example/api/orders", { method: "POST", headers: { origin: "https://store.example", "content-type": "application/json" }, body: JSON.stringify(input) }))).status).toBe(401);
   });
   it("does not reveal order data or payment tokens to other purchasers", async () => {
     const { order: o, token } = await createOrder(input);
@@ -324,5 +324,41 @@ it("keeps bank transfers unpaid, preserves instructions, and sends the method to
   await createOrder({ ...input, paymentMethod: "bank_transfer", checkoutId });
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(sendEmail).toHaveBeenCalledTimes(1);
+  vi.unstubAllGlobals();
+});
+
+it("accepts only enabled GBP guest bank orders, binds retries to the guest, and expires unpaid stock", async () => {
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+  vi.stubEnv("GUEST_BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("BANK_TRANSFER_CURRENCY", "GBP");
+  vi.stubEnv("BANK_TRANSFER_INSTRUCTIONS", "Approved test instructions");
+  vi.stubEnv("BANK_TRANSFER_DEADLINE_HOURS", "48");
+  vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+  vi.stubEnv("AVION_API_KEY", "test-key");
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ ok: true, order_number: "AV-10099", id: 99, duplicate: false }), { status: 201 })));
+  await fixture.db.checkoutCurrency.create({ data: { code: "GBP", eurRate: 0.8472, enabled: true } });
+  // Guest launch uses the active catalogue rather than research-account approvals.
+  await fixture.db.product.update({ where: { id: "product" }, data: { researchApproved: false } });
+  const gb = { ...address, country: "GB", city: "London", postcode: "SW1A 1AA" };
+  const request = { ...input, purchaserId: undefined, guestCheckoutId: "private-guest-session", email: "guest@example.test", paymentMethod: "bank_transfer" as const, currency: "GBP", shippingAddress: gb, billingAddress: gb, checkoutId: crypto.randomUUID() };
+  const { order } = await createOrder(request);
+  expect(order).toMatchObject({ purchaserId: null, status: "PENDING", paymentProvider: null, paymentMethod: "bank_transfer", currency: "GBP" });
+  expect((await createOrder(request)).order.id).toBe(order.id);
+  await expect(createOrder({ ...request, guestCheckoutId: "different-session" })).rejects.toThrow("checkout_conflict");
+  await expect(createOrder({ ...request, guestCheckoutId: undefined, checkoutId: crypto.randomUUID() })).rejects.toThrow("purchaser_approval_required");
+  await expect(createOrder({ ...request, paymentMethod: "card", checkoutId: crypto.randomUUID() })).rejects.toThrow("purchaser_approval_required");
+  await expect(createOrder({ ...request, currency: "EUR", checkoutId: crypto.randomUUID() })).rejects.toThrow("bank_transfer_unavailable");
+  await expect(createOrder({ ...request, items: [{ variantId: "variant", qty: 10 }], checkoutId: crypto.randomUUID() })).rejects.toThrow("insufficient_stock");
+  expect(await fixture.db.order.count()).toBe(1);
+  const paid = await createOrder({ ...request, checkoutId: crypto.randomUUID() });
+  await markPaid(paid.order.id, "manual", "verified-test-receipt");
+  expect(await fixture.db.order.findUniqueOrThrow({ where: { id: paid.order.id } })).toMatchObject({ status: "PAID", paymentMethod: "bank_transfer" });
+  await fixture.db.order.update({ where: { id: order.id }, data: { reservedUntil: new Date(0) } });
+  await expireStaleOrders();
+  expect((await fixture.db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING");
+  await expireOrder(order.id, false);
+  expect((await fixture.db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("EXPIRED");
+  expect((await fixture.db.variant.findUniqueOrThrow({ where: { id: "variant" } })).stock).toBe(8);
   vi.unstubAllGlobals();
 });

@@ -1,3 +1,4 @@
+import { guestBankCheckoutEnabled, guestOwnerMatches } from "./guest-checkout";
 import { bankTransferConfig } from "./bank-transfer";
 import { normalizeAttribution } from "./affiliate/attribution";
 import { avionEnabled, syncAvionOrder, type AvionPayload } from "./avion";
@@ -34,7 +35,8 @@ export function newSessionToken() {
 }
 
 export type CreateOrderInput = {
-  purchaserId: string;
+  purchaserId?: string;
+  guestCheckoutId?: string;
   checkoutId?: string;
   currency?: string;
   paymentMethod?: "card" | "bank_transfer";
@@ -55,14 +57,20 @@ export async function createOrder(input: CreateOrderInput) {
   if (!shippingAllowed(input.shippingAddress.country, input.shippingMethod, input.shippingAddress.postcode)) throw new OrderError("shipping_unavailable");
   if (input.items.length === 0) throw new OrderError("empty_cart");
   if (input.items.length > 30 || new Set(input.items.map(i => i.variantId)).size !== input.items.length || input.items.some(i => !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 10)) throw new OrderError("invalid_items");
-  let eligibility;
-  try { eligibility = await assertEligibility(input.purchaserId, input.shippingAddress.country, input.items.map(i => i.variantId)); }
-  catch (e) { throw new OrderError(e instanceof Error ? e.message : "not_eligible"); }
-  if (input.email.trim().toLowerCase() !== eligibility.purchaser.email) throw new OrderError("email_mismatch");
+  const guest = Boolean(input.guestCheckoutId && !input.purchaserId && bank && guestBankCheckoutEnabled() && input.shippingAddress.country === "GB");
+  if (!guest) {
+    let eligibility;
+    try { eligibility = await assertEligibility(input.purchaserId ?? "", input.shippingAddress.country, input.items.map(i => i.variantId)); }
+    catch (e) { throw new OrderError(e instanceof Error ? e.message : "not_eligible"); }
+    if (input.email.trim().toLowerCase() !== eligibility.purchaser.email) throw new OrderError("email_mismatch");
+  }
+  const ownsExisting = async (order: Order) => guest
+    ? order.purchaserId === null && order.email === input.email.trim().toLowerCase() && guestOwnerMatches((await db.orderEvent.findFirst({ where: { orderId: order.id, type: "guest.owner" } }))?.payload, input.guestCheckoutId)
+    : order.purchaserId === input.purchaserId;
   if (input.checkoutId) {
     const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
     if (existing) {
-      if (existing.order.purchaserId !== input.purchaserId) throw new OrderError("checkout_conflict");
+      if (!(await ownsExisting(existing.order))) throw new OrderError("checkout_conflict");
       if (["CANCELLED", "EXPIRED", "REFUNDED"].includes(existing.order.status)) throw new OrderError("checkout_expired");
       if (avionEnabled()) await syncAvionOrder(existing.order.id);
       return { order: existing.order, token: existing.token, payUrl: `${storeBase()}/${existing.order.locale}/checkout/${avionEnabled() ? "received" : "pay"}?session=${existing.token}` };
@@ -128,7 +136,7 @@ export async function createOrder(input: CreateOrderInput) {
   };
 
   const order = await db.$transaction(async (tx) => {
-    await assertEligibility(input.purchaserId, country, input.items.map(i => i.variantId), tx);
+    if (!guest) await assertEligibility(input.purchaserId ?? "", country, input.items.map(i => i.variantId), tx);
     // Reserve stock atomically.
     for (const l of lines) {
       const r = await tx.variant.updateMany({
@@ -164,6 +172,7 @@ export async function createOrder(input: CreateOrderInput) {
         sessions: { create: { token: input.checkoutId ?? newSessionToken(), expiresAt: reservedUntil } },
         events: {
           create: [
+            ...(guest ? [{ type: "guest.owner", payload: { id: input.guestCheckoutId! } }] : []),
             ...(bank ? [{ type: "bank_transfer.instructions", payload: { ...bank, reference: orderNumber, deadline: reservedUntil.toISOString() } }] : []),
             { type: "order.created", payload: { subtotalCents, shippingCents, discountCents, totalCents } },
             ...(avionEnabled() ? [{ type: "avion.pending", payload: avionPayload as unknown as Prisma.InputJsonObject }] : []),
@@ -176,7 +185,7 @@ export async function createOrder(input: CreateOrderInput) {
   }).catch(async (error) => {
     if (input.checkoutId && error instanceof Error && "code" in error && error.code === "P2002") {
       const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
-      if (existing?.order.purchaserId === input.purchaserId) return existing.order;
+      if (existing && await ownsExisting(existing.order)) return existing.order;
     }
     throw error;
   });
@@ -227,7 +236,7 @@ export async function markPaid(orderId: string, provider: string, providerRef: s
   }
   const claimed = await db.order.updateMany({
     where: { id: orderId, status: { in: ["PENDING", "RESERVED"] } },
-    data: { status: "PAID", paymentMethod: "card", paymentProvider: provider, providerRef, reservedUntil: null },
+    data: { status: "PAID", paymentMethod: existing.paymentMethod === "bank_transfer" ? "bank_transfer" : "card", paymentProvider: provider, providerRef, reservedUntil: null },
   });
   if (claimed.count === 0) {
     await logEvent(orderId, "payment.duplicate", { provider, providerRef });
@@ -310,7 +319,8 @@ export async function expireOrder(orderId: string, notify = true) {
 /** Expire any RESERVED orders whose timer has passed. Called lazily on reads; no cron needed in dev. */
 export async function expireStaleOrders() {
   const stale = await db.order.findMany({
-    where: { status: { in: ["PENDING", "RESERVED"] }, stripeSessionId: null, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }], reservedUntil: { lt: new Date() } },
+    // shortcut: bank receipts are reconciled manually; staff must review overdue transfers before releasing stock.
+    where: { AND: [{ OR: [{ paymentMethod: null }, { paymentMethod: { not: "bank_transfer" } }] }], status: { in: ["PENDING", "RESERVED"] }, stripeSessionId: null, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }], reservedUntil: { lt: new Date() } },
     select: { id: true },
   });
   for (const o of stale) await expireOrder(o.id);

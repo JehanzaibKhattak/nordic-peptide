@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+import { guestBankCheckoutEnabled } from "@/lib/guest-checkout";
 import Image from "next/image";
 import { UK_ONLY_SHIPPING } from "@/config/shipping";
 import { PaymentLogos } from "@/components/store/payment-logos";
@@ -9,7 +11,9 @@ import { t as lt } from "@/lib/types";
 type Product = { sku: string; slug: string; name: Record<string, string>; variants: { label: string }[] };
 
 export async function Footer({ products }: { products: Product[] }) {
+  await connection();
   const locale = await getLocale();
+  const bankOnly = guestBankCheckoutEnabled();
   const sectionClass = "mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]";
   const linkClass = "transition-colors hover:text-white";
 
@@ -58,10 +62,10 @@ export async function Footer({ products }: { products: Product[] }) {
             <Link href="/contact" className="inline-flex items-center gap-2 text-sm text-[#c4cdc1] hover:text-white"><Mail aria-hidden="true" className="size-4" />Contact Peptbay</Link>
           </div>
           <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]">Payment methods · preview</h2>
-            <div className="flex flex-wrap gap-2" aria-label="Payment method logos shown for visual reference; checkout is disabled">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]">{bankOnly ? "Payment method" : "Payment methods · preview"}</h2>
+            {bankOnly ? <p className="text-sm text-[#c4cdc1]">Bank Transfer · GBP</p> : <div className="flex flex-wrap gap-2" aria-label="Payment method logos shown for visual reference; checkout is disabled">
               <PaymentLogos methods={["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna", "iDEAL", "Bancontact"]} />
-            </div>
+            </div>}
           </div>
         </div>
       </div>

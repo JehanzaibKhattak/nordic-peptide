@@ -1,3 +1,6 @@
+import { bankTransferOverdue } from "@/lib/bank-transfer";
+import { guestCheckoutId, guestOwnerMatches } from "@/lib/guest-checkout";
+import { expireStaleOrders } from "@/lib/orders";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { currentPurchaser } from "@/lib/purchaser-session";
@@ -14,14 +17,18 @@ export default async function ReceivedPage({ params, searchParams }: { params: P
   setRequestLocale(locale);
   if (!avionEnabled() || !session) notFound();
   const purchaser = await currentPurchaser();
-  if (!purchaser) notFound();
-  const checkout = await db.checkoutSession.findUnique({ where: { token: session }, include: { order: { include: { events: { where: { type: { in: ["avion.synced", "avion.pending", "avion.failed", "bank_transfer.instructions"] } }, orderBy: { createdAt: "asc" } } } } } });
-  if (!checkout || checkout.order.purchaserId !== purchaser.id) notFound();
+  await expireStaleOrders();
+  const checkout = await db.checkoutSession.findUnique({ where: { token: session }, include: { order: { include: { events: { where: { type: { in: ["avion.synced", "avion.pending", "avion.failed", "bank_transfer.instructions", "guest.owner"] } }, orderBy: { createdAt: "asc" } } } } } });
+  if (!checkout) notFound();
+  const guestOwner = checkout.order.events.find(event => event.type === "guest.owner");
+  const ownsGuestOrder = checkout.order.purchaserId === null && guestOwnerMatches(guestOwner?.payload, await guestCheckoutId());
+  if (!ownsGuestOrder && (!purchaser || checkout.order.purchaserId !== purchaser.id)) notFound();
   const t = await getTranslations("checkout");
   const order = checkout.order;
   if (!order.events.some(event => event.type === "avion.pending")) notFound();
   const receipt = order.events.find(event => event.type === "avion.synced")?.payload as { orderNumber: string } | undefined;
   const bank = order.events.find(event => event.type === "bank_transfer.instructions")?.payload as { instructions: string; reference: string; deadline: string } | undefined;
+  const bankOverdue = bank && bankTransferOverdue(bank.deadline);
   const failed = order.events.some(event => event.type === "avion.failed");
   return <section className="mx-auto max-w-2xl space-y-5 px-5 py-16 text-center">
     <h1 className="font-serif text-3xl text-[#173b2e]">{t(receipt ? "avionReceived" : "avionPending")}</h1>
@@ -30,7 +37,8 @@ export default async function ReceivedPage({ params, searchParams }: { params: P
     <p className="font-semibold">{formatOrderMoney(order.totalCents, order.currency)}</p>
     {bank ? <div className="space-y-3 rounded-xl border p-5 text-left">
       <h2 className="font-semibold">{order.status === "PENDING" || order.status === "RESERVED" ? "Awaiting payment — Bank Transfer" : `Order status: ${order.status}`}</h2>
-      {(order.status === "PENDING" || order.status === "RESERVED") && <>
+      {bankOverdue && (order.status === "PENDING" || order.status === "RESERVED") && <p>The payment window has ended. Please contact us before sending money; our team will review the order.</p>}
+      {!bankOverdue && (order.status === "PENDING" || order.status === "RESERVED") && <>
         <p>Use reference <strong>{bank.reference}</strong>. Payment deadline: {new Date(bank.deadline).toUTCString()}.</p>
         <p className="whitespace-pre-line">{bank.instructions}</p>
         <p>Dispatch starts only after our team confirms receipt of payment.</p>
