@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/routing";
 import { useRouter } from "@/i18n/routing";
-import { useCart, cartSubtotal } from "@/lib/cart-store";
+import { useCart, cartSubtotal, type CartItem } from "@/lib/cart-store";
 import { formatOrderMoney, formatMoney } from "@/lib/money";
 import { SHIPPING_COUNTRIES, BILLING_COUNTRIES, UK_ONLY_SHIPPING, shippingAllowed, shippingCost, zoneForCountry } from "@/config/shipping";
 import { readAttribution } from "@/lib/affiliate/capture";
@@ -26,7 +26,7 @@ import { saveDemoCheckout } from "@/lib/demo-checkout";
 
 const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city: "", postcode: "", country: UK_ONLY_SHIPPING ? "GB" : "ES", phone: "" };
 
-export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean }) {
+export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false, orderItems, embedded = false }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean; orderItems?: CartItem[]; embedded?: boolean }) {
   const r = useTranslations("research");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(guestBankCheckout ? "bank_transfer" : "card");
   const [paymentCurrency, setPaymentCurrency] = useState(guestBankCheckout ? bankCurrency ?? "GBP" : "EUR");
@@ -34,7 +34,8 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
   const tc = useTranslations("cart");
   const locale = useLocale();
   const router = useRouter();
-  const { items, couponCode, setCoupon, country, setCountry } = useCart();
+  const { items: cartItems, couponCode, setCoupon, country, setCountry } = useCart();
+  const items = orderItems ?? cartItems;
   const [step, setStep] = useState(1);
   const [showSummary, setShowSummary] = useState(false);
   const [code, setCode] = useState(couponCode ?? "");
@@ -194,9 +195,9 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
 
   return (
     <div data-checkout className="bg-[#f5f1e9] text-[#173b2e] [--primary:#2d5b40] [--muted-foreground:#7c9073] [--border:#e6dece]">
-      <h1 className="sr-only">{t("title")}</h1>
-      <form onSubmit={onSubmit} className="mx-auto grid max-w-[1144px] items-start gap-4 px-5 py-8 lg:min-h-[770px] lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 lg:py-10">
-        <aside className="min-w-0 lg:sticky lg:top-28 lg:col-start-2 lg:row-start-1" aria-label={t("orderSummary")}>
+      {!embedded && <h1 className="sr-only">{t("title")}</h1>}
+      <form onSubmit={onSubmit} className={embedded ? "grid items-start gap-4" : "mx-auto grid max-w-[1144px] items-start gap-4 px-5 py-8 lg:min-h-[770px] lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 lg:py-10"}>
+        <aside className={embedded ? "min-w-0 order-2" : "min-w-0 lg:sticky lg:top-28 lg:col-start-2 lg:row-start-1"} aria-label={t("orderSummary")}>
           <button type="button" className="flex w-full items-center justify-between rounded-[14px] border border-[#e6dece] bg-white px-4 py-4 text-sm font-semibold lg:hidden" aria-expanded={showSummary} aria-controls="checkout-summary" onClick={() => setShowSummary(!showSummary)}>
             <span className="flex items-center gap-2"><ShoppingCart aria-hidden="true" className="size-4" />{t(showSummary ? "hideSummary" : "showSummary")}<ChevronDown aria-hidden="true" className={`size-4 transition-transform ${showSummary ? "rotate-180" : ""}`} /></span>
             <span>{formattedTotal}</span>
@@ -242,7 +243,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
           </div>
         </aside>
 
-        <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
+        <div className={embedded ? "min-w-0 order-1 space-y-4" : "min-w-0 space-y-4 lg:col-start-1 lg:row-start-1"}>
           <CheckoutStep number={1} step={step} title={t("yourDetails")} summary={`${email} · ${ship.firstName} ${ship.lastName}`} editLabel={t("edit")} onEdit={() => setStep(1)} onNext={nextStep}>
             {!BROWSE_ONLY && !guestBankCheckout && <div className="space-y-3 text-sm"><Link href="/account" className="underline">{r("accountLink")}</Link><label className="block">{r("paymentCurrency")}<select value={paymentCurrency} onChange={e => setPaymentCurrency(e.target.value)} className="ml-3 rounded border bg-white p-2">{paymentCurrencies.map(c => <option key={c}>{c}</option>)}</select></label><p className="text-xs text-[#7c9073]">{r("currencyNotice")}</p></div>}
             <Field id="email" label={t("email")} placeholder="your@email.com" type="email" value={email} onChange={setEmail} required />
