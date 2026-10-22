@@ -38,8 +38,8 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
           <p className="text-xs font-semibold tracking-[0.24em] text-[#72816d]">THE PEPTBAY RESEARCH COLLECTION</p>
           <h1 className="mt-3 font-serif text-4xl leading-[1.05] tracking-tight md:text-5xl">Your research.<br /><span className="italic text-[#7b8c73]">A focused start.</span></h1>
           <p className="mt-5 max-w-md text-base leading-7 text-[#5e7065]">RETA · Retatrutide Pen. Choose the presentation and quantity for your laboratory, then complete your order below.</p>
-          <div className="relative mt-7 aspect-[5/2] overflow-hidden rounded-[28px] border border-[#e5e3d9] bg-[#eeeee5]">
-            {variant.images[0] && <Image key={variant.id} src={variant.images[0]} alt={`Retatrutide Pen packaging, ${variant.label}`} fill priority sizes="(max-width: 1024px) 100vw, 500px" className="object-contain p-8 mix-blend-multiply" />}
+          <div className="relative mt-7 aspect-[4/3] overflow-hidden rounded-[28px] border border-[#e5e3d9] bg-[#eeeee5]">
+            {variant.images[0] && <Image key={variant.id} src={variant.images[0]} alt={`Retatrutide Pen packaging, ${variant.label}`} fill priority sizes="(max-width: 1024px) 100vw, 500px" className="object-cover mix-blend-multiply" />}
             <span className="absolute bottom-5 left-5 rounded-full bg-white/90 px-4 py-2 text-xs font-medium">{variant.label} · Research use</span>
           </div>
           <div className="mt-5 grid grid-cols-3 gap-3 text-center text-xs leading-5 text-[#637769]">
