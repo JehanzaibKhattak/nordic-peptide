@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   distDir: process.env.NEXT_TEST_DIST_DIR || ".next",
   async headers() {
-    return ["/:locale/account", "/:locale/checkout/:path*", "/:locale/order/:path*"].map(source => ({ source, headers: [{ key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }] }));
+    return ["/:locale/account", "/:locale/reta", "/:locale/checkout/:path*", "/:locale/order/:path*"].map(source => ({ source, headers: [{ key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }] }));
   },
   images: {
     dangerouslyAllowSVG: true, // seed placeholders are SVG; swap for webp product shots
