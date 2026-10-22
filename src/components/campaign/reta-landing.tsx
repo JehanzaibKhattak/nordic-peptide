@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowRight, Check, ChevronDown, FlaskConical, Landmark, LockKeyhole, PackageCheck, Truck } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, FlaskConical, Landmark, PackageCheck, Truck } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { useCart } from "@/lib/cart-store";
 import { campaignCart } from "@/lib/campaign-cart";
@@ -32,10 +32,6 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
   const orderItems = campaignCart(items, { productId: product.id, variantId: variant.id, slug: product.slug, name: "Retatrutide Pen", variantLabel: variant.label, image: variant.images[0] ?? "", unitCents: variant.priceCents, qty });
   return <div className="bg-[#f7f5ef] text-[#193c30]">
     <section className="mx-auto max-w-6xl px-5 pb-10 pt-10 md:pt-14">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3 border-b border-[#d9ded4] pb-5 text-xs font-medium tracking-wide">
-        <span className="flex items-center gap-2"><FlaskConical className="size-4" aria-hidden="true" /> FOR LABORATORY RESEARCH ONLY</span>
-        <span className="flex items-center gap-2"><LockKeyhole className="size-4" aria-hidden="true" /> GBP checkout · UK delivery</span>
-      </div>
       <div className="grid items-start gap-8 lg:grid-cols-2">
         <div className="space-y-6">
         <div>
