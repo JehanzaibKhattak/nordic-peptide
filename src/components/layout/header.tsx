@@ -28,10 +28,12 @@ export function Header() {
     { href: "/shop", label: t("nav.shop") },
   ];
 
+  if (pathname === "/reta") return null;
+
   return (
     <header className="sticky top-0 z-40">
       {announcementOpen && (
-        <div className="relative flex h-9 items-center justify-center bg-[#28563e] px-10 text-center text-[11px] font-semibold text-white sm:px-12 sm:text-sm">
+        <div className="relative flex h-10 items-center justify-center bg-[#173b2e] px-10 text-center text-[11px] font-semibold text-white sm:px-12 sm:text-sm">
           <span className="whitespace-nowrap"><span className="sm:hidden">Research-grade peptides</span><span className="hidden sm:inline">Research-grade peptides for laboratories</span></span>
           <button type="button" onClick={() => { setGiftSubmitted(false); setGiftOpen(true); }} className="ml-2 whitespace-nowrap rounded-full border border-white/35 px-2 py-1 text-[10px] leading-none hover:bg-white/10 sm:ml-3 sm:px-3 sm:text-sm">Reveal a gift</button>
           <button type="button" onClick={() => setAnnouncementOpen(false)} aria-label="Dismiss announcement" className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-white/90 hover:bg-white/10">
@@ -39,12 +41,12 @@ export function Header() {
           </button>
         </div>
       )}
-      <div className="border-b border-[#e1dbce] bg-[#fffdf8]">
-        <div className="mx-auto flex h-[72px] max-w-[1264px] items-center gap-6 px-4 md:px-8">
-          <Link href="/" className="shrink-0 font-semibold tracking-tight text-primary sm:text-xl" aria-label="Peptbay home"><Image src="/brand/peptbay-logo.svg" alt="Peptbay" width={2017} height={530} priority className="h-8 w-auto sm:h-10" /></Link>
+      <div className="border-b border-[#173b2e24] bg-[#f4f2ec]">
+        <div className="mx-auto flex h-20 max-w-[1440px] items-center gap-6 px-5 min-[901px]:px-20">
+          <Link href="/" className="shrink-0 font-semibold tracking-tight text-primary sm:text-xl" aria-label="Peptbay home"><Image src="/v2/peptbay-logo.svg" alt="Peptbay" width={2017} height={530} priority className="h-8 w-auto sm:h-9" /></Link>
           <nav className="hidden flex-1 items-center justify-center gap-4 md:flex xl:gap-7" aria-label="Main navigation">
             {nav.map((item) => (
-              <Link key={item.href} href={item.href} className={cn("whitespace-nowrap text-xs font-medium uppercase tracking-[0.1em] text-[#294238] transition-colors hover:text-[#9a754d] xl:text-[13px] xl:tracking-[0.11em]", item.href.startsWith("/#") ? undefined : pathname.startsWith(item.href) && "text-[#9a754d]")}>{item.label}</Link>
+              <Link key={item.href} href={item.href} className={cn("whitespace-nowrap text-[15px] font-medium text-[#294238] transition-colors hover:text-[#9a754d]", item.href.startsWith("/#") ? undefined : pathname.startsWith(item.href) && "text-[#9a754d]")}>{item.label}</Link>
             ))}
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
@@ -55,13 +57,13 @@ export function Header() {
               <LocaleSwitcher />
               <ChevronDown aria-hidden="true" className="size-3 text-[#829083]" />
             </span>
-            <button type="button" onClick={openCart} aria-label={`${t("nav.cart")}${hydrated && itemCount ? `: ${itemCount}` : ""}`} className="relative grid size-9 place-items-center text-primary transition-colors hover:text-[#9a754d]">
+            <button type="button" onClick={openCart} aria-label={`${t("nav.cart")}${hydrated && itemCount ? `: ${itemCount}` : ""}`} className="relative grid size-11 place-items-center rounded-full bg-[#173b2e] text-white transition-colors hover:bg-[#28563e]">
               <ShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.8} />
               {hydrated && itemCount > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 grid min-h-4 min-w-4 place-items-center rounded-full bg-[#28563e] px-1 text-[10px] font-semibold leading-none text-white">{itemCount > 99 ? "99+" : itemCount}</span>}
             </button>
           </div>
         </div>
-        <nav className="flex gap-6 overflow-x-auto border-t border-[#e1dbce] px-4 py-2.5 text-xs md:hidden" aria-label="Main navigation">
+        <nav className="hidden" aria-label="Main navigation">
           {nav.map((item) => <Link key={item.href} href={item.href} className="whitespace-nowrap font-medium uppercase tracking-[0.1em] text-[#52685b]">{item.label}</Link>)}
         </nav>
       </div>

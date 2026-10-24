@@ -21,7 +21,7 @@ export type CardProduct = {
   isPopular: boolean;
   images: string[];
   category: { slug: string; name: Record<string, string> };
-  variants: { id: string; sku: string; label: string; priceCents: number; stock: number }[];
+  variants: { id: string; sku: string; label: string; priceCents: number; stock: number; images?: string[] }[];
 };
 
 export function ProductCard({ product }: { product: CardProduct }) {
@@ -32,11 +32,12 @@ export function ProductCard({ product }: { product: CardProduct }) {
   const name = lt(product.name, locale);
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? "");
   const selected = product.variants.find((variant) => variant.id === variantId) ?? product.variants[0];
+  const image = selected?.images?.[0] ?? product.images[0] ?? "";
   const canAdd = Boolean(selected && selected.priceCents > 0 && (BROWSE_ONLY || offlineInventoryEnabled() || selected.stock > 0));
 
   const addToCart = () => {
     if (!selected || !canAdd) return;
-    add({ productId: product.id, variantId: selected.id, slug: product.slug, name, variantLabel: selected.label, image: product.images[0] ?? "", unitCents: selected.priceCents });
+    add({ productId: product.id, variantId: selected.id, slug: product.slug, name, variantLabel: selected.label, image, unitCents: selected.priceCents });
     pushEvent("add_to_cart", {
       ecommerce: { currency: "EUR", value: selected.priceCents / 100, items: [{ item_id: selected.sku, item_name: name, item_variant: selected.label, price: selected.priceCents / 100, quantity: 1 }] },
     });
@@ -44,14 +45,14 @@ export function ProductCard({ product }: { product: CardProduct }) {
   };
 
   return (
-    <div className="group flex flex-col rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
-      <Link href={`/products/${product.slug}`} className="relative block aspect-square overflow-hidden rounded-xl bg-secondary">
-        {product.images[0] ? <Image src={product.images[0]} alt={`${name} product packaging`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain transition-transform group-hover:scale-[1.03]" /> : <div className="grid h-full place-items-center p-5 text-center font-serif text-lg text-primary">Peptbay<br /><span className="mt-2 text-sm font-sans text-muted-foreground">Product photo coming soon</span></div>}
+    <div className="pb-card group flex flex-col rounded-2xl border bg-card p-3">
+      <Link href={`/products/${product.slug}`} className="pb-card-image relative block aspect-square overflow-hidden rounded-xl bg-secondary">
+        {image ? <Image src={image} alt={`${name} product packaging`} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain transition-transform group-hover:scale-[1.03]" /> : <div className="grid h-full place-items-center p-5 text-center font-serif text-lg text-primary">Peptbay<br /><span className="mt-2 text-sm font-sans text-muted-foreground">Product photo coming soon</span></div>}
         {product.isPopular && <Badge className="absolute left-2 top-2 uppercase tracking-wide">{t("popular")}</Badge>}
       </Link>
-      <div className="mt-3 flex flex-1 flex-col px-1">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{lt(product.category.name, locale)}</p>
-        <Link href={`/products/${product.slug}`} className="mt-1 text-sm font-semibold leading-snug hover:underline">{name}</Link>
+      <div className="pb-card-body mt-3 flex flex-1 flex-col px-1">
+        <div className="pb-card-heading"><Link href={`/products/${product.slug}`} className="pb-card-name mt-1 text-sm font-semibold hover:underline">{name}</Link><span className="shrink-0 text-sm font-semibold text-primary">{selected?.priceCents ? fmt(selected.priceCents) : "—"}</span></div>
+        <p className="pb-card-meta text-xs text-muted-foreground">{selected?.sku} · {lt(product.category.name, locale)}</p>
         {selected && <div className="mt-auto pt-3">
           {product.variants.length > 1 && <label className="mb-2 block">
             <span className="sr-only">{locale === "es" ? "Elige la concentración" : "Choose strength"}</span>
@@ -60,7 +61,7 @@ export function ProductCard({ product }: { product: CardProduct }) {
             </select>
           </label>}
           <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm font-semibold tabular-nums text-primary">{selected.priceCents > 0 ? fmt(selected.priceCents) : "—"}</span>
+
             <Button size="sm" className="w-full sm:w-auto" onClick={addToCart} disabled={!canAdd} aria-label={`${t("addToCart")}: ${name}, ${selected.label}`}>
               {canAdd ? t("addToCart") : t("outOfStock")}
             </Button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function ProductGallery({ images, name }: { images: string[]; name: string }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -26,8 +27,12 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           fill
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-contain"
+          className="object-cover mix-blend-multiply"
         />
+        {images.length > 1 && <div className="absolute bottom-5 right-5 flex gap-2">
+          <button type="button" aria-label="Previous product photo" onClick={() => setActiveImage(i => (i - 1 + images.length) % images.length)} className="grid size-11 place-items-center rounded-full bg-white text-primary shadow-md"><ChevronLeft className="size-4" aria-hidden="true" /></button>
+          <button type="button" aria-label="Next product photo" onClick={() => setActiveImage(i => (i + 1) % images.length)} className="grid size-11 place-items-center rounded-full bg-white text-primary shadow-md"><ChevronRight className="size-4" aria-hidden="true" /></button>
+        </div>}
       </div>
       {images.length > 1 && (
         <div role="group" aria-label={`${name} product photos`} className="mt-3 flex gap-2 overflow-x-auto pb-2">

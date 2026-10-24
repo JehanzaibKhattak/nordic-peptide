@@ -35,7 +35,7 @@ export function WhatsAppButton({ phone }: { phone: string }) {
   );
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 sm:bottom-7 sm:right-7">
+    <div className="pb-whatsapp fixed bottom-4 right-4 z-40 sm:bottom-7 sm:right-7">
       {showHelp && (
         <div className="absolute bottom-full right-0 mb-4 flex items-center gap-4 whitespace-nowrap rounded-2xl border border-[#d5cdbd] bg-white px-4 py-3 text-lg text-[#173b2e] shadow-sm">
           <span>Need help?</span>
