@@ -28,6 +28,8 @@ export function Header() {
     { href: "/shop", label: t("nav.shop") },
   ];
 
+  if (pathname === "/reta") return null;
+
   return (
     <header className="sticky top-0 z-40">
       {announcementOpen && (
