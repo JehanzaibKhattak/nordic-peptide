@@ -49,7 +49,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const productFaqs = faqMap[locale] ?? faqMap.en ?? [];
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 py-8 md:px-8 md:py-12">
+    <div className="pb-v2"><div className="pb-wrap pt-8 md:pt-12">
       <nav className="mb-7 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground">Home</Link>
         <ChevronRight className="size-3" />
@@ -58,16 +58,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <span className="text-foreground">{name}</span>
       </nav>
 
-      <div className="grid items-start gap-8 md:grid-cols-2 md:gap-12">
-        <ProductGallery key={`${slug}-${selectedVariant?.sku ?? "default"}`} images={images} name={name} />
-        <div className="py-2">
+      <div className="pb-pdp">
+        <div className="pb-pdp-media"><ProductGallery key={`${slug}-${selectedVariant?.sku ?? "default"}`} images={images} name={name} /></div>
+        <div className="pb-pdp-buy">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#83907c]">{lt(product.category.name, locale)}</p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-tight text-primary">{name}</h1>
+          <h1 className="mt-5 text-primary">{name}</h1>
           <p className="mt-3 text-lg text-muted-foreground">{lt(product.shortDescription, locale)}</p>
-          <section className="mt-7">
-            <h2 className="font-serif text-2xl font-semibold text-primary">Product overview</h2>
-            <p className="mt-3 text-[15px] leading-7 text-[#596b5e]">{description}</p>
-          </section>
           <div className="mt-6"><PurchasePanel key={selectedVariant?.sku ?? "default"} product={{ id: product.id, slug: product.slug, name, image: images[0] ?? "" }} variants={variants.map((variant) => ({ id: variant.id, sku: variant.sku, label: variant.label, concentration: variant.concentration, sizeMl: Number(variant.sizeMl), priceCents: variant.priceCents, stock: variant.stock }))} browseOnly={BROWSE_ONLY} /></div>
           <aside className="mt-5 flex gap-3 rounded-xl bg-[#f3f0e8] p-4 text-sm leading-6 text-[#596b5e]">
             <FlaskConical aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -75,8 +71,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </aside>
         </div>
       </div>
+      <section className="pb-overview"><h2 className="pb-title">Product overview</h2><p className="text-xl leading-relaxed text-[#3e4c45]">{description}</p></section>
       <FaqAccordion eyebrow={locale === "es" ? "Preguntas del producto" : "Product questions"} title={locale === "es" ? `Preguntas sobre ${name}` : `Questions about ${name}`} faqs={productFaqs} />
-    </div>
+    </div></div>
   );
 }
 

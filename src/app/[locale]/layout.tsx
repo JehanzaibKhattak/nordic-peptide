@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getProducts } from "@/lib/queries";
 import { LOCALES } from "@/lib/types";
 import "../globals.css";
+import "../v2.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
