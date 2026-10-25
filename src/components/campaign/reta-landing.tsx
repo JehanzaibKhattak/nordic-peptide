@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Check, Landmark, ShieldCheck, LockKeyhole } from "lucide-react";
+import { CertificationReports } from "@/components/store/certification-reports";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { useCart } from "@/lib/cart-store";
 import { retaPackOffer, retaPackDiscount } from "@/lib/reta-offer";
@@ -72,6 +73,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
         <div className="rs-panel rs-payment-trust"><div className="rs-reassurance"><div><LockKeyhole aria-hidden="true" /><span>HTTPS encrypted connection</span></div><div><Landmark aria-hidden="true" /><span>Pay in your banking app</span></div><div><ShieldCheck aria-hidden="true" /><span>No card details collected</span></div></div><h3><LockKeyhole aria-hidden="true" /> Secure bank-transfer checkout</h3><p>Use the account details and payment reference on your order confirmation. Our team confirms receipt before dispatch.</p><Link href="/testing">View batch documentation <ArrowRight aria-hidden="true" /></Link></div>
       </div>
     </div>
+    <CertificationReports />
     <RetaFooter />
   </div>;
 }

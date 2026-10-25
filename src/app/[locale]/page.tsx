@@ -1,3 +1,4 @@
+import { CertificationReports } from "@/components/store/certification-reports";
 import { UK_ONLY_SHIPPING } from "@/config/shipping";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
@@ -73,7 +74,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
         <div className="pb-hero-media">
           <Image src="/v2/hex-dark.svg" alt="" width={300} height={300} className="pb-hex" aria-hidden="true" />
-          <Image src="/v2/avion-tirzep-pro-hero.png" alt="Avion Tirzep Pro prefilled pen kit" width={1600} height={1200} priority className="pb-hero-photo" />
+          <Image src="/sales/retatrutide-20mg.jpg" alt="Retatrutide Pen 20 mg kit" width={1200} height={1200} sizes="(max-width: 900px) 100vw, 42vw" priority className="pb-hero-photo pb-hero-photo-reta" />
         </div>
       </section>
       <section className="border-b border-[#173b2e24] bg-white"><div className="pb-wrap pb-trust">{trustPoints.map(({title,detail}) => <div key={title}><h2 className="text-[22px] font-semibold tracking-tight text-primary">{title}</h2><p className="mt-1.5 text-[15px] text-[#56645d]">{detail}</p></div>)}</div></section>
@@ -89,6 +90,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
       <FaqAccordion id="faq" title={locale === "es" ? "Preguntas habituales" : "Questions we hear most"} faqs={FAQs[locale] ?? FAQs.en} />
+      <CertificationReports />
     </div>
   );
 }
