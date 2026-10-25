@@ -1,9 +1,9 @@
+import { CertificationReports } from "@/components/store/certification-reports";
 import { UK_ONLY_SHIPPING } from "@/config/shipping";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, ClipboardList, FileCheck, Microscope, PackageCheck, ShieldCheck, Warehouse } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/store/product-grid";
 import { FaqAccordion } from "@/components/store/faq-accordion";
 import type { Faq } from "@/lib/types";
@@ -36,9 +36,9 @@ const FAQs: Record<string, Faq[]> = {
 };
 
 const commitments = [
-  { icon: Microscope, title: "Founded on rigour", body: "Researchers deserve a supplier that treats peptides with rigour, transparency, and genuine care." },
-  { icon: ClipboardList, title: "CoA is the price of entry", body: "Every peptide undergoes independent third-party analysis before it earns a place in our catalogue." },
-  { icon: PackageCheck, title: "Stock what meets the standard", body: "We don't chase the broadest range. We stock what meets our standard, document it, and deliver it fast." },
+  { title: "Founded on rigour", body: "Researchers deserve a supplier that treats peptides with rigour, transparency, and genuine care." },
+  { title: "CoA is the price of entry", body: "Every peptide undergoes independent third-party analysis before it earns a place in our catalogue." },
+  { title: "Stock what meets the standard", body: "We don't chase the broadest range. We stock what meets our standard, document it, and deliver it fast." },
 ];
 
 const commitmentStats = [
@@ -49,10 +49,10 @@ const commitmentStats = [
 ];
 
 const trustPoints = [
-  { icon: BadgeCheck, title: "99%+ purity", detail: "Every batch, every time" },
-  { icon: FileCheck, title: "Third-party verified", detail: "COA included with every order" },
-  { icon: Warehouse, title: "Same-day dispatch", detail: "Order before 16:00" },
-  { icon: ShieldCheck, title: "1–2 day delivery", detail: UK_ONLY_SHIPPING ? "Great Britain via Royal Mail Tracked 24" : "Across Europe via PostNL & DHL" },
+  { title: "99%+ purity", detail: "Every batch, every time" },
+  { title: "Third-party verified", detail: "COA included with every order" },
+  { title: "Same-day dispatch", detail: "Order before 16:00" },
+  { title: "1–2 day delivery", detail: UK_ONLY_SHIPPING ? "Great Britain via Royal Mail Tracked 24" : "Across Europe via PostNL & DHL" },
 ];
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -63,91 +63,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const cards = products.map(toCard);
 
   return (
-    <>
-      <section className="relative isolate overflow-hidden bg-[#f7f4ed]">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url(/brand/molecule-lattice-hero.svg)" }} />
-        <div className="absolute inset-x-0 bottom-0 top-[20%] overflow-hidden xl:hidden">
-          <Image src="/avion-tirzep-pro-hero.png" alt="" fill priority sizes="100vw" className="object-cover object-[center_60%] mix-blend-multiply opacity-65" />
+    <div className="pb-v2">
+      <section className="pb-hero">
+        <div className="pb-hero-copy">
+          <Image src="/v2/hex-light.svg" alt="" width={520} height={520} className="pb-hex" aria-hidden="true" />
+          <h1>Research peptides in Europe</h1>
+          <p className="mt-8 text-3xl font-medium leading-tight tracking-tight text-[#d5e0d8]">Verified, carefully curated.</p>
+          <p className="mt-8 max-w-[520px] text-lg leading-relaxed text-[#b9c9be]">Peptbay supplies research-grade peptides with third-party testing, discreet packaging and batch documentation. Our initial launch delivers within Great Britain using Royal Mail Tracked 24.</p>
+          <Link href="/shop" className="pb-pill mt-10 bg-[#f4f2ec] text-[#173b2e]">Browse the collection <ArrowRight className="size-4" aria-hidden="true" /></Link>
         </div>
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#f7f4ed] via-[#f7f4ed]/65 to-[#f7f4ed]/15 xl:hidden" />
-        <div className="absolute inset-y-0 left-[38%] right-0 hidden xl:block">
-          <Image src="/avion-tirzep-pro-hero.png" alt="" fill priority sizes="62vw" className="object-cover object-[62%_center] mix-blend-multiply" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#f7f4ed] via-[#f7f4ed]/50 to-transparent" />
+        <div className="pb-hero-media">
+          <Image src="/v2/hex-dark.svg" alt="" width={300} height={300} className="pb-hex" aria-hidden="true" />
+          <Image src="/sales/retatrutide-20mg.jpg" alt="Retatrutide Pen 20 mg kit" width={1200} height={1200} sizes="(max-width: 900px) 100vw, 42vw" priority className="pb-hero-photo pb-hero-photo-reta" />
         </div>
-        <div className="relative mx-auto flex max-w-[1264px] flex-col px-5 pt-8 md:px-8 md:pt-10 xl:min-h-[clamp(560px,calc(100svh-108px),760px)] xl:justify-center xl:py-12">
-          <div className="relative z-10 max-w-[570px] py-2 xl:w-[48%] xl:py-0">
-            <h1 className="font-serif text-[clamp(2rem,4.4vw,3.5rem)] font-semibold italic leading-[1.08] tracking-tight text-primary">
-              <span className="block">Research peptides in Europe</span>
-              <span aria-hidden="true" className="my-5 block h-1 w-12 bg-primary" />
-              <span className="block">verified, carefully curated.</span>
-            </h1>
-            <p className="mt-4 max-w-[34rem] font-serif text-base leading-7 text-[#455e50] sm:mt-5 sm:text-lg sm:leading-8 xl:text-xl">{UK_ONLY_SHIPPING ? "Peptbay supplies research-grade peptides with third-party testing, discreet packaging and batch documentation. Our initial launch delivers within Great Britain using Royal Mail Tracked 24." : "Peptbay is Europe’s verified source for research-grade peptides. Every compound is third-party tested, ships the same day before 16:00, and arrives within 1–2 days. Discreet packaging and meticulous documentation."}</p>
-            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 sm:mt-7">
-              <Button size="lg" className="gap-3 rounded-lg bg-[#2d6048] px-7 text-white hover:bg-[#244e3a]" render={<Link href="/shop" />}>
-                Browse the collection <ArrowRight aria-hidden="true" className="size-4" />
-              </Button>
-            </div>
+      </section>
+      <section className="border-b border-[#173b2e24] bg-white"><div className="pb-wrap pb-trust">{trustPoints.map(({title,detail}) => <div key={title}><h2 className="text-[22px] font-semibold tracking-tight text-primary">{title}</h2><p className="mt-1.5 text-[15px] text-[#56645d]">{detail}</p></div>)}</div></section>
+      <section className="pb-wrap pb-section"><ProductGrid products={cards} categories={cats} heading="The collection" shopLink /></section>
+      <section id="commitment" className="pb-commitment pb-section">
+        <div className="pb-wrap relative">
+          <h2 className="pb-title max-w-[700px] !text-white">Why researchers choose Peptbay</h2>
+          <div className="pb-stats">{commitmentStats.map(({value,label}) => <div key={value}><strong>{value}</strong><p>{label}</p></div>)}</div>
+          <div className="pb-values">{commitments.map(({title,body}) => <article key={title}><h3 className="text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-[#b9c9be]">{body}</p></article>)}</div>
+          <div className="pb-coa"><div><h3 className="max-w-[420px] text-4xl font-semibold leading-tight tracking-tight">COA included with every order</h3><Link href="/testing" className="mt-8 inline-flex rounded-full border border-white/30 px-5 py-3 text-sm">Batch documents →</Link></div>
+            <div className="bg-white p-8 text-[#173b2e] md:p-12"><Image src="/v2/peptbay-logo.svg" alt="Peptbay" width={140} height={40} className="h-auto w-28" /><p className="mt-8 font-mono text-xs uppercase tracking-widest">Batch documentation</p><h4 className="mt-3 text-2xl font-semibold">Know your batch.</h4><p className="mt-4 text-sm leading-7 text-[#56645d]">Match your product and batch number to its laboratory report. Review the laboratory, test results and report date in the available documents.</p><Link href="/testing" className="mt-7 inline-flex text-sm font-semibold underline underline-offset-4">View available reports →</Link></div>
           </div>
         </div>
       </section>
-
-      <section className="border-y border-[#e8e4dc] bg-white">
-        <div className="mx-auto grid max-w-[1264px] grid-cols-2 divide-x divide-y divide-[#e8e4dc] md:grid-cols-4 md:divide-y-0">
-          {trustPoints.map(({ icon: Icon, title, detail }) => (
-            <div key={title} className="flex min-h-[132px] flex-col items-center justify-center px-3 py-6 text-center md:min-h-[136px] md:px-4">
-              <Icon aria-hidden="true" className="size-7 text-primary md:size-8" strokeWidth={1.6} />
-              <p className="mt-2 text-sm font-semibold text-primary md:text-base">{title}</p>
-              <p className="mt-1 text-xs text-[#7c897c] md:text-sm">{detail}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-[#f6f2e9] py-14 md:py-20">
-        <div className="mx-auto max-w-[1264px] px-4 md:px-8">
-          <div className="mb-7 flex items-end justify-between">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#83907c]">From our catalogue</p>
-              <h2 className="font-serif text-3xl font-semibold tracking-tight text-primary md:text-4xl">The collection</h2>
-            </div>
-            <Link href="/shop" className="mb-1 flex items-center gap-1 text-sm font-medium text-primary hover:underline">All products <ArrowRight className="size-4" /></Link>
-          </div>
-          <ProductGrid products={cards} categories={cats} />
-        </div>
-      </section>
-
-      <section id="commitment" className="bg-[#f5f1e8] px-4 py-8 md:px-8 md:py-10">
-        <div className="mx-auto grid max-w-[1264px] gap-9 rounded-[18px] bg-[#1d4b37] px-6 py-8 text-white sm:px-8 md:px-12 md:py-12 lg:min-h-[476px] lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12 lg:px-[50px] lg:py-12">
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#aabbaa]">Our commitment</p>
-            <h2 className="font-serif text-3xl font-semibold italic tracking-tight text-white md:text-4xl">Why researchers choose Peptbay</h2>
-            <div className="mt-7">
-              {commitments.map(({ icon: Icon, title, body }, index) => (
-                <article key={title} className={`flex gap-4 py-4 ${index < commitments.length - 1 ? "border-b border-white/10" : ""}`}>
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 text-[#e5eadf]">
-                    <Icon aria-hidden="true" className="size-5" strokeWidth={1.7} />
-                  </span>
-                  <div>
-                    <h3 className="text-base font-semibold leading-5 text-white">{title}</h3>
-                    <p className="mt-1 text-sm leading-5 text-[#c5d0c6]">{body}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3.5 lg:gap-4">
-            {commitmentStats.map(({ value, label }) => (
-              <div key={value} className="flex min-h-[104px] flex-col items-center justify-center rounded-xl bg-white/10 px-3 py-4 text-center sm:min-h-[108px] sm:px-5">
-                <p className="font-serif text-3xl font-semibold leading-none text-white">{value}</p>
-                <p className="mt-2 max-w-[15rem] text-xs leading-4 text-[#c5d0c6] sm:text-sm sm:leading-5">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <FaqAccordion id="faq" eyebrow={locale === "es" ? "Preguntas frecuentes" : "Common questions"} title={locale === "es" ? "Preguntas habituales" : "Questions we hear most"} faqs={FAQs[locale] ?? FAQs.en} />
-    </>
+      <FaqAccordion id="faq" title={locale === "es" ? "Preguntas habituales" : "Questions we hear most"} faqs={FAQs[locale] ?? FAQs.en} />
+      <CertificationReports />
+    </div>
   );
 }
 

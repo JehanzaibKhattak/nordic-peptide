@@ -59,7 +59,7 @@ export function PurchasePanel({
     toast.success(t("added"));
   };
 
-  return <div className="space-y-4">
+  return <div className="pb-purchase space-y-6">
     {variants.length > 1 && <section aria-label="Choose product strength">
       <div className="mb-2 flex items-center justify-between gap-3"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-[#83907c]">{locale === "es" ? "Elige la concentración" : "Choose strength"}</h2><span className="text-xs text-muted-foreground">{locale === "es" ? "Selecciona una opción" : "Select an option"}</span></div>
       <div role="radiogroup" aria-label={locale === "es" ? "Concentración" : "Strength"} className="space-y-2">
@@ -75,7 +75,7 @@ export function PurchasePanel({
     </section>}
 
     <div className="flex items-center gap-3">
-      <div className="flex h-11 items-center rounded-lg border border-[#e8e4dc] bg-white">
+      <div className="pb-quantity flex h-11 items-center rounded-lg border border-[#e8e4dc] bg-white">
         <button type="button" className="px-3 text-primary" aria-label={locale === "es" ? "Reducir cantidad" : "Decrease quantity"} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="size-3.5" /></button>
         <span className="w-6 text-center text-sm tabular-nums">{quantity}</span>
         <button type="button" className="px-3 text-primary" aria-label={locale === "es" ? "Aumentar cantidad" : "Increase quantity"} onClick={() => setQuantity((value) => Math.min(10, value + 1))}><Plus className="size-3.5" /></button>
@@ -85,7 +85,8 @@ export function PurchasePanel({
       </Button>
     </div>
 
-    {selected && <dl className="grid grid-cols-2 gap-3 rounded-lg bg-[#f3f0e8] p-3 text-xs"><div><dt className="text-muted-foreground">SKU</dt><dd className="mt-1 font-medium text-primary">{selected.sku}</dd></div><div><dt className="text-muted-foreground">{locale === "es" ? "Cantidad / volumen" : "Amount / volume"}</dt><dd className="mt-1 font-medium text-primary">{selected.label}</dd></div></dl>}
+    {selected && <dl className="pb-specs grid grid-cols-2 gap-3 rounded-lg bg-[#f3f0e8] p-3 text-xs"><div><dt className="text-muted-foreground">SKU</dt><dd className="mt-1 font-medium text-primary">{selected.sku}</dd></div><div><dt className="text-muted-foreground">{locale === "es" ? "Cantidad / volumen" : "Amount / volume"}</dt><dd className="mt-1 font-medium text-primary">{selected.label}</dd></div></dl>}
     <DeliveryEstimate />
+    <div className="pb-pdp-mobilebar"><div><p className="text-xs text-[#56645d]">{product.name}</p><p className="mt-1 font-semibold text-primary">{fmt(selected.priceCents)} <span className="text-xs font-normal">· {selected.label}</span></p></div><button type="button" onClick={onAdd} disabled={!canAddToCart} className="disabled:opacity-50">{canAddToCart ? t("addToCart") : t("outOfStock")}</button></div>
   </div>;
 }

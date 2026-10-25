@@ -55,3 +55,7 @@ prisma/dev.db*
 
 /.next-e2e/
 /.next-build-check/
+
+# Isolated Next preview/build output (also excluded from Tailwind source scanning)
+/.next-*/
+/output/v2-review/

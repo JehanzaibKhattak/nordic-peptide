@@ -14,18 +14,14 @@ export async function Footer({ products }: { products: Product[] }) {
   await connection();
   const locale = await getLocale();
   const bankOnly = guestBankCheckoutEnabled();
-  const sectionClass = "mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]";
+  const sectionClass = "mb-4 text-sm font-semibold text-[#92aa99]";
   const linkClass = "transition-colors hover:text-white";
 
   return (
-    <footer className="mt-16 overflow-hidden rounded-t-[1.5rem] bg-[#173b2e] text-[#e7eadf]">
-      <div className="mx-auto grid max-w-[1264px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-14 lg:px-8 lg:py-14">
+    <footer className="pb-store-footer relative overflow-hidden bg-[#10291f] text-[#e7eadf]">
+      <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-14 lg:px-20 lg:py-14">
         <div>
-          <Link href="/" className="inline-flex flex-col leading-none">
-            <Image src="/brand/peptbay-logo-dark.svg" alt="Peptbay" width={2017} height={530} className="h-auto w-44 sm:w-48" />
-            <span className="mt-2 text-[9px] font-semibold uppercase tracking-[0.24em] text-[#92aa99]">Peptide compounds &amp; blends</span>
-          </Link>
-          <p className="mt-6 max-w-xs font-serif text-base leading-6 text-[#a6b5a6]">{UK_ONLY_SHIPPING ? "Peptbay. Research-grade peptides with third-party verification and batch documentation. Initial delivery within Great Britain via Royal Mail Tracked 24. For research purposes only." : "Peptbay Your source. Verified. Research-grade peptides, third-party verified and shipped to laboratories across Europe. Every product meets 99%+ purity and includes a full certificate of analysis. Discreet same-day dispatch on orders placed before 16:00 via PostNL and DHL. For research purposes only."}</p>
+          <p className="mt-6 max-w-xs text-sm leading-6 text-[#a6b5a6]">{UK_ONLY_SHIPPING ? "Peptbay. Research-grade peptides with third-party verification and batch documentation. Initial delivery within Great Britain via Royal Mail Tracked 24. For research purposes only." : "Peptbay Your source. Verified. Research-grade peptides, third-party verified and shipped to laboratories across Europe. Every product meets 99%+ purity and includes a full certificate of analysis. Discreet same-day dispatch on orders placed before 16:00 via PostNL and DHL. For research purposes only."}</p>
         </div>
 
         <div>
@@ -56,7 +52,7 @@ export async function Footer({ products }: { products: Product[] }) {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-[1264px] flex-col gap-7 px-6 py-7 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-6 py-7 sm:flex-row sm:items-center sm:justify-between lg:px-20">
           <div>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#92aa99]">Contact</h2>
             <Link href="/contact" className="inline-flex items-center gap-2 text-sm text-[#c4cdc1] hover:text-white"><Mail aria-hidden="true" className="size-4" />Contact Peptbay</Link>
@@ -71,6 +67,7 @@ export async function Footer({ products }: { products: Product[] }) {
         </div>
       </div>
 
+      <div className="mx-auto max-w-[1440px] px-5 py-10 lg:px-20"><Link href="/" aria-label="Peptbay home"><Image src="/v2/peptbay-logo-dark.svg" alt="Peptbay" width={2017} height={530} className="h-auto w-full" /></Link></div>
       <div className="border-t border-white/10">
         <p className="mx-auto max-w-4xl px-6 py-5 text-center text-xs leading-5 text-[#a6b5a6]">Disclaimer: The statements on this website have not been evaluated by the European Medicines Agency (EMA) or the U.S. Food and Drug Administration (FDA). The products offered by Peptbay are for research purposes only and are not intended to diagnose, treat, cure, or prevent any disease.</p>
       </div>

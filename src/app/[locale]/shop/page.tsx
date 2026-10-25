@@ -13,10 +13,10 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
   setRequestLocale(locale);
   const [t, categories, products] = await Promise.all([getTranslations(), getCategories(), getProducts()]);
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="mb-8 text-3xl font-semibold tracking-tight">{t("nav.shop")}</h1>
+    <div className="pb-v2"><div className="pb-wrap pb-section">
+      <h1 className="pb-title mb-10 flex items-start gap-3 !text-[clamp(52px,7vw,104px)]">{t("nav.shop")}<span className="pt-2 font-mono text-lg font-medium tracking-normal text-[#56645d]">{products.length}</span></h1>
       <ProductGrid products={products.map(toCard)} categories={categories.map((c) => ({ slug: c.slug, name: c.name as Record<string, string> }))} />
-    </div>
+    </div></div>
   );
 }
 

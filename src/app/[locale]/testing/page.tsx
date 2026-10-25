@@ -1,3 +1,4 @@
+import { CertificationReports } from "@/components/store/certification-reports";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ export default async function TestingPage({ params, searchParams }: { params: Pr
           </TableBody>
         </Table>
       </div>
+      <CertificationReports />
     </div>
   );
 }

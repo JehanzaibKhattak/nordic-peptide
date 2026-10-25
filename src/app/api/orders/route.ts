@@ -26,6 +26,7 @@ const address = z.object({
 
 const body = z.object({
   checkoutId: z.string().uuid().optional(),
+  campaign: z.literal("reta").optional(),
   paymentMethod: z.enum(["card", "bank_transfer"]).default("card"),
   currency: z.string().length(3).default("EUR"),
   locale: z.enum(LOCALES).default("en"),
