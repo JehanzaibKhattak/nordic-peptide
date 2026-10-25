@@ -18,7 +18,7 @@ export async function Footer({ products }: { products: Product[] }) {
   const linkClass = "transition-colors hover:text-white";
 
   return (
-    <footer className="relative overflow-hidden bg-[#10291f] text-[#e7eadf]">
+    <footer className="pb-store-footer relative overflow-hidden bg-[#10291f] text-[#e7eadf]">
       <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-14 lg:px-20 lg:py-14">
         <div>
           <p className="mt-6 max-w-xs text-sm leading-6 text-[#a6b5a6]">{UK_ONLY_SHIPPING ? "Peptbay. Research-grade peptides with third-party verification and batch documentation. Initial delivery within Great Britain via Royal Mail Tracked 24. For research purposes only." : "Peptbay Your source. Verified. Research-grade peptides, third-party verified and shipped to laboratories across Europe. Every product meets 99%+ purity and includes a full certificate of analysis. Discreet same-day dispatch on orders placed before 16:00 via PostNL and DHL. For research purposes only."}</p>
