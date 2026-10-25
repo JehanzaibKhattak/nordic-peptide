@@ -403,3 +403,39 @@ it("keeps a checkout receipt on the initiating approved storefront host", async 
   expect(data.payUrl).toMatch(/^\/en\/checkout\/pay\?session=/);
   expect(new URL(data.payUrl, "https://www.store.example").origin).toBe("https://www.store.example");
 });
+
+it.each([[1, 16720], [2, 31350], [3, 43890]])("stores and forwards the approved RETA %i-pen price without trusting browser amounts", async (qty, totalCents) => {
+  vi.stubEnv("NEXT_PUBLIC_AVION_CHECKOUT", "true");
+  vi.stubEnv("GUEST_BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("NEXT_PUBLIC_INVENTORY_MODE", "offline");
+  vi.stubEnv("BANK_TRANSFER_ENABLED", "true");
+  vi.stubEnv("BANK_TRANSFER_CURRENCY", "GBP");
+  vi.stubEnv("BANK_TRANSFER_INSTRUCTIONS", "Test bank details");
+  vi.stubEnv("BANK_TRANSFER_DEADLINE_HOURS", "48");
+  vi.stubEnv("AVION_API_URL", "https://backend.example.com");
+  vi.stubEnv("AVION_API_KEY", "test-key");
+  const fetch = vi.fn(async () => new Response(JSON.stringify({ ok: true, order_number: "AV-TEST", id: 99, duplicate: false }), { status: 201 }));
+  vi.stubGlobal("fetch", fetch);
+  try {
+    await fixture.db.checkoutCurrency.create({ data: { code: "GBP", eurRate: 0.8472, enabled: true } });
+    await fixture.db.variant.update({ where: { id: "variant" }, data: { sku: "RET20", priceCents: 24669, stock: 0 } });
+    const gb = { ...address, country: "GB", city: "London", postcode: "SW1A 1AA" };
+    const request = { ...input, purchaserId: undefined, guestCheckoutId: "test-owner", checkoutId: crypto.randomUUID(), campaign: "reta" as const, currency: "GBP", paymentMethod: "bank_transfer" as const, shippingAddress: gb, billingAddress: gb, items: [{ variantId: "variant", qty }] };
+    const { order } = await createOrder(request);
+    expect(order.totalCents).toBe(totalCents);
+    expect(order.subtotalCents - order.discountCents + order.shippingCents).toBe(totalCents);
+    const payload = JSON.parse((fetch.mock.calls as unknown as [string, { body: string }][])[0][1].body);
+    expect(payload.total_amount).toBe(totalCents / 100);
+    expect(payload.discount_amount).toBe(order.discountCents / 100);
+    expect((await createOrder(request)).order.id).toBe(order.id);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await expect(createOrder({ ...request, checkoutId: crypto.randomUUID(), couponCode: "EXTRA" })).rejects.toThrow("offer_not_combinable");
+    const normal = await createOrder({ ...request, campaign: undefined, checkoutId: crypto.randomUUID() });
+    expect(normal.order.discountCents).toBe(0);
+    expect(normal.order.totalCents).toBe(20900 * qty);
+    await fixture.db.variant.update({ where: { id: "variant" }, data: { sku: "RET40" } });
+    const otherStrength = await createOrder({ ...request, checkoutId: crypto.randomUUID() });
+    expect(otherStrength.order.discountCents).toBe(0);
+    expect(otherStrength.order.totalCents).toBe(20900 * qty);
+  } finally { vi.unstubAllGlobals(); }
+});

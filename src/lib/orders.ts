@@ -1,3 +1,4 @@
+import { retaPackDiscount } from "./reta-offer";
 import { offlineInventoryEnabled } from "./inventory";
 import { guestBankCheckoutEnabled, guestOwnerMatches } from "./guest-checkout";
 import { bankTransferConfig } from "./bank-transfer";
@@ -36,6 +37,7 @@ export function newSessionToken() {
 }
 
 export type CreateOrderInput = {
+  campaign?: "reta";
   purchaserId?: string;
   guestCheckoutId?: string;
   checkoutId?: string;
@@ -109,10 +111,14 @@ export async function createOrder(input: CreateOrderInput) {
   });
 
   const baseSubtotal = lines.reduce((sum, line) => sum + line.lineCents, 0);
+  if (input.campaign === "reta" && input.couponCode) throw new OrderError("offer_not_combinable");
   const coupon = await applyCoupon(input.couponCode, baseSubtotal);
-  const discountCents = trustedAmount(coupon.ok ? coupon.discountCents : 0, rate);
+  const campaignDiscount = input.campaign === "reta" && bank && currency === "GBP"
+    ? lines.reduce((sum, line) => sum + retaPackDiscount(variants.find(v => v.id === line.variantId)!.sku, line.qty, currency, trustedAmount(line.unitCents, rate)), 0)
+    : 0;
+  const discountCents = campaignDiscount || trustedAmount(coupon.ok ? coupon.discountCents : 0, rate);
   const country = input.shippingAddress.country;
-  const shippingCents = trustedAmount(shippingCost(country, input.shippingMethod, baseSubtotal - (coupon.ok ? coupon.discountCents : 0)), rate);
+  const shippingCents = trustedAmount(shippingCost(country, input.shippingMethod, baseSubtotal - (campaignDiscount ? Math.round(campaignDiscount / rate) : coupon.ok ? coupon.discountCents : 0)), rate);
   for (const line of lines) {
     line.unitCents = trustedAmount(line.unitCents, rate);
     line.lineCents = line.unitCents * line.qty;
@@ -174,6 +180,7 @@ export async function createOrder(input: CreateOrderInput) {
         sessions: { create: { token: input.checkoutId ?? newSessionToken(), expiresAt: reservedUntil } },
         events: {
           create: [
+            ...(campaignDiscount ? [{ type: "campaign.reta", payload: { discountCents: campaignDiscount } }] : []),
             ...(offlineInventory ? [{ type: "inventory.offline", payload: {} }] : []),
             ...(guest ? [{ type: "guest.owner", payload: { id: input.guestCheckoutId! } }] : []),
             ...(bank ? [{ type: "bank_transfer.instructions", payload: { ...bank, reference: orderNumber, deadline: reservedUntil.toISOString() } }] : []),

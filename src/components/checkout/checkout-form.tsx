@@ -1,5 +1,7 @@
 "use client";
 
+import { retaPackDiscount } from "@/lib/reta-offer";
+
 import { CheckoutTrust } from "@/components/store/checkout-trust";
 import { PaymentLogos } from "@/components/store/payment-logos";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -26,7 +28,7 @@ import { saveDemoCheckout } from "@/lib/demo-checkout";
 
 const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city: "", postcode: "", country: UK_ONLY_SHIPPING ? "GB" : "ES", phone: "" };
 
-export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false, orderItems, embedded = false }: { verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean; orderItems?: CartItem[]; embedded?: boolean }) {
+export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false, orderItems, embedded = false, retaOfferVariantId }: { retaOfferVariantId?: string; verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean; orderItems?: CartItem[]; embedded?: boolean }) {
   const r = useTranslations("research");
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(guestBankCheckout ? "bank_transfer" : "card");
   const [paymentCurrency, setPaymentCurrency] = useState(guestBankCheckout ? bankCurrency ?? "GBP" : "EUR");
@@ -59,13 +61,15 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
   const [method, setMethod] = useState<"standard" | "express">("standard");
   const [agree, setAgree] = useState(false);
   const [fetchedDiscount, setFetchedDiscount] = useState<{ code: string; cents: number } | null>(null);
-  const discount = couponCode && fetchedDiscount?.code === couponCode ? fetchedDiscount.cents : 0;
+  const offerItem = retaOfferVariantId ? items.find(item => item.variantId === retaOfferVariantId) : undefined;
+  const offerDiscount = offerItem && paymentMethod === "bank_transfer" ? retaPackDiscount("RET20", offerItem.qty, chargedCurrency, Math.round(offerItem.unitCents * rate)) : 0;
+  const discount = retaOfferVariantId ? Math.round(offerDiscount / rate) : couponCode && fetchedDiscount?.code === couponCode ? fetchedDiscount.cents : 0;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const subtotal = cartSubtotal(items);
   useEffect(() => {
-    if (!couponCode) return;
+    if (!couponCode || retaOfferVariantId) return;
     const code = couponCode;
     fetch("/api/coupons/validate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code, subtotalCents: subtotal }) })
       .then((r) => r.json())
@@ -74,14 +78,14 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
         setCouponError(d.ok ? "" : tc("invalidCoupon"));
       })
       .catch(() => setFetchedDiscount(null));
-  }, [couponCode, subtotal, tc]);
+  }, [couponCode, subtotal, tc, retaOfferVariantId]);
 
   const zone = zoneForCountry(ship.country);
   const shipping = shippingCost(ship.country, method, subtotal - discount);
   const total = subtotal - discount + shipping;
   const pricedSubtotal = items.reduce((sum, item) => sum + Math.round(item.unitCents * rate) * item.qty, 0);
   const formattedSubtotal = avionCheckout ? formatOrderMoney(pricedSubtotal, chargedCurrency) : fmt(subtotal);
-  const formattedTotal = avionCheckout ? formatOrderMoney(pricedSubtotal - Math.round(discount * rate) + Math.round(shipping * rate), chargedCurrency) : fmt(total);
+  const formattedTotal = avionCheckout ? formatOrderMoney(pricedSubtotal - (retaOfferVariantId ? offerDiscount : Math.round(discount * rate)) + Math.round(shipping * rate), chargedCurrency) : fmt(total);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +118,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
       const payload = {
         locale, currency: chargedCurrency, paymentMethod, email, shippingAddress: ship,
         billingAddress: billingSame ? ship : bill, shippingMethod: method,
-        couponCode, affiliate: readAttribution(),
+        couponCode: retaOfferVariantId ? null : couponCode, campaign: retaOfferVariantId ? "reta" : undefined, affiliate: readAttribution(),
         items: items.map((i) => ({ variantId: i.variantId, qty: i.qty })),
       };
       const body = JSON.stringify(payload);
@@ -216,23 +220,23 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
               ))}
             </ul>
             <Separator className="my-5" />
-            <div className="flex gap-2">
+            {!retaOfferVariantId && <div className="flex gap-2">
               <div className="relative min-w-0 flex-1">
                 <Tag aria-hidden="true" className="absolute left-3 top-3.5 size-3.5 text-[#7c9073]" />
                 <Input aria-label={tc("coupon")} placeholder={tc("coupon")} className="h-[42px] rounded-[10px] border-[#d5cbb9] bg-white pl-9 text-xs placeholder:text-[#9eaf97]" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCode(); } }} />
               </div>
               <Button type="button" className="h-[42px] rounded-[10px] bg-[#2d5b40] px-4 text-white hover:bg-[#234832]" onClick={applyCode}>{tc("apply")}</Button>
-            </div>
+            </div>}
             {couponError && <p role="alert" className="mt-2 text-xs text-destructive">{couponError}</p>}
             <dl className="mt-5 space-y-2.5 text-xs">
               <div className="flex justify-between"><dt>{tc("subtotal")} ({tc("itemCount", { count: items.reduce((count, i) => count + i.qty, 0) })})</dt><dd>{formattedSubtotal}</dd></div>
-              {discount > 0 && <div className="flex justify-between"><dt>{tc("discount")} ({couponCode})</dt><dd>−{fmt(discount)}</dd></div>}
+              {discount > 0 && <div className="flex justify-between"><dt>{tc("discount")} ({retaOfferVariantId ? "RETA pack offer" : couponCode})</dt><dd>−{retaOfferVariantId ? formatOrderMoney(offerDiscount, chargedCurrency) : fmt(discount)}</dd></div>}
               <div className="flex justify-between"><dt>{tc("shipping")}</dt><dd>{shipping === 0 ? tc("free") : fmt(shipping)}</dd></div>
               <div className="flex justify-between text-[#7c9073]"><dt>{t("tax")}</dt><dd>{fmt(0)}</dd></div>
               <Separator className="my-5" />
               <div className="flex justify-between font-serif text-xl"><dt>{tc("total")}</dt><dd className="font-semibold">{formattedTotal}</dd></div>
             </dl>
-            {currency !== "EUR" && <p className="mt-2 text-[11px] text-[#7c9073]">{avionCheckout ? "Charged in" : "Approximate display conversion · Charged in"} {chargedCurrency} ({avionCheckout ? fmt(total) : formatMoney(total, "EUR")})</p>}
+            {currency !== "EUR" && <p className="mt-2 text-[11px] text-[#7c9073]">{avionCheckout ? "Charged in" : "Approximate display conversion · Charged in"} {chargedCurrency} ({avionCheckout ? formattedTotal : formatMoney(total, "EUR")})</p>}
             <Button type="submit" className={`${buttonClass} mt-6 text-sm`} disabled={step !== 3 || !agree || submitting}>{submitting ? t("paying") : t(paymentMethod === "bank_transfer" ? "bankPlaceOrder" : avionCheckout ? "avionPlaceOrder" : "completePayment")}</Button>
             {(step !== 3 || !agree) && <p className="mt-2 text-center text-xs text-[#b98a52]">{t("completeRequired")}</p>}
             <div className="mt-5 space-y-3 border-t border-[#e6dece] pt-4 text-xs">
