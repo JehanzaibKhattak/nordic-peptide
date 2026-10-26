@@ -1,3 +1,4 @@
+import { argentEnabled } from "@/lib/payments/argent-config";
 import { connection } from "next/server";
 import { guestBankCheckoutEnabled } from "@/lib/guest-checkout";
 import Image from "next/image";
@@ -13,7 +14,7 @@ type Product = { sku: string; slug: string; name: Record<string, string>; varian
 export async function Footer({ products }: { products: Product[] }) {
   await connection();
   const locale = await getLocale();
-  const bankOnly = guestBankCheckoutEnabled();
+  const bankOnly = guestBankCheckoutEnabled() && !argentEnabled();
   const sectionClass = "mb-4 text-sm font-semibold text-[#92aa99]";
   const linkClass = "transition-colors hover:text-white";
 

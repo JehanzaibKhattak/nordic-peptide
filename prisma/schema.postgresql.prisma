@@ -78,6 +78,7 @@ model BatchTest {
 
 model Order {
   id              String    @id @default(cuid())
+  argentPayment   ArgentPayment?
   purchaserId     String?
   purchaser       Purchaser? @relation(fields: [purchaserId], references: [id])
   stripeSessionId String? @unique
@@ -223,4 +224,20 @@ model CommerceRateLimit {
   count Int @default(1)
   expiresAt DateTime
   @@index([expiresAt])
+}
+
+// One provider attempt per order; an unknown POST outcome is never recharged automatically.
+model ArgentPayment {
+  orderId String @id
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reference String @unique
+  intentId String? @unique
+  paymentId String? @unique
+  checkoutUrl String?
+  status String @default("CREATING")
+  live Boolean
+  refundId String? @unique
+  refundState String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

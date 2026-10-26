@@ -1,6 +1,6 @@
 # ArgentPlatforms payment review
 
-Reviewed 24 October 2026. Documentation review only: no credentials, SDK installation, payment requests, webhook registration, or live card activation.
+Initial review: 24 October 2026. The hosted integration was subsequently implemented and fixture-tested on 26 October; see [implementation and setup](argent-integration.md). No merchant credentials, real payment requests, webhook registration or live card activation have occurred.
 
 Sources: client-supplied `ArgentPlatforms _ PaymentJS.pdf` (11 pages), https://api.argentplatforms.com/docs and its linked https://api.argentplatforms.com/schema/ OpenAPI document.
 
@@ -27,7 +27,7 @@ Sources: client-supplied `ArgentPlatforms _ PaymentJS.pdf` (11 pages), https://a
 
 The current guest checkout is bank-transfer-only, and its backend synchronization endpoint only confirms GBP bank-transfer payments. Argent requires its own verified provider reconciliation path; it must not reuse that manual confirmation endpoint as proof of a card payment.
 
-## Required before implementation/testing
+## Required before merchant testing/activation
 
 - Approved merchant account, sandbox publishable key, sandbox server key and a private path for storing them.
 - Confirmed GBP acceptance/settlement and the supported methods enabled for this merchant.

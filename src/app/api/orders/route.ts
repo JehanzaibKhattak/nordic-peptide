@@ -1,3 +1,4 @@
+import { argentEnabled } from "@/lib/payments/argent-config";
 import { isStoreOrigin } from "@/lib/store-origin";
 import { guestBankCheckoutEnabled, guestCheckoutId } from "@/lib/guest-checkout";
 import { avionEnabled } from "@/lib/avion";
@@ -41,11 +42,11 @@ const body = z.object({
 
 export async function POST(req: Request) {
   if (BROWSE_ONLY) return NextResponse.json({ ok: false, error: "browse_only" }, { status: 503 });
-  if (!avionEnabled() && !stripeTestEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
+  if (!avionEnabled() && !stripeTestEnabled() && !argentEnabled()) return NextResponse.json({ error: "checkout_disabled" }, { status: 503 });
   if (!isStoreOrigin(req)) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ ok: false, error: "invalid_body", issues: parsed.error.flatten() }, { status: 400 });
-  const guest = guestBankCheckoutEnabled() && parsed.data.paymentMethod === "bank_transfer";
+  const guest = (guestBankCheckoutEnabled() && parsed.data.paymentMethod === "bank_transfer") || (argentEnabled() && parsed.data.paymentMethod === "card");
   const purchaser = guest ? null : await currentPurchaser();
   if (!guest && !purchaser) return NextResponse.json({ error: "sign_in_required" }, { status: 401 });
   if (!(await commerceRateLimit(`orders:${purchaser?.id ?? clientIp(req)}`, 10, 60000))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
