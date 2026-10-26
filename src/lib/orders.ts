@@ -1,3 +1,4 @@
+import { argentConfig, argentEnabled } from "./payments/argent-config";
 import { retaPackDiscount } from "./reta-offer";
 import { offlineInventoryEnabled } from "./inventory";
 import { guestBankCheckoutEnabled, guestOwnerMatches } from "./guest-checkout";
@@ -55,13 +56,17 @@ export type CreateOrderInput = {
 
 /** Validates items against live prices/stock, prices the order, creates it RESERVED with a checkout session. */
 export async function createOrder(input: CreateOrderInput) {
+  const argent = input.paymentMethod === "card" && argentEnabled();
+  const argentTest = argent && !argentConfig()!.live;
+  const syncToAvion = avionEnabled() && !argentTest;
+  const receiptUrl = (locale: string, token: string) => `${storeBase()}/${locale}/checkout/${argent ? "argent" : avionEnabled() ? "received" : "pay"}?session=${token}`;
   const bank = input.paymentMethod === "bank_transfer" ? bankTransferConfig() : null;
   if (input.paymentMethod === "bank_transfer" && (!avionEnabled() || !bank || bank.currency !== (input.currency ?? "EUR"))) throw new OrderError("bank_transfer_unavailable");
   if (!shippingAllowed(input.shippingAddress.country, input.shippingMethod, input.shippingAddress.postcode)) throw new OrderError("shipping_unavailable");
   if (input.items.length === 0) throw new OrderError("empty_cart");
   if (input.items.length > 30 || new Set(input.items.map(i => i.variantId)).size !== input.items.length || input.items.some(i => !Number.isInteger(i.qty) || i.qty < 1 || i.qty > 10)) throw new OrderError("invalid_items");
-  const offlineInventory = Boolean(bank && offlineInventoryEnabled());
-  const guest = Boolean(input.guestCheckoutId && !input.purchaserId && bank && guestBankCheckoutEnabled() && input.shippingAddress.country === "GB");
+  const offlineInventory = Boolean((bank || argent) && offlineInventoryEnabled());
+  const guest = Boolean(input.guestCheckoutId && !input.purchaserId && ((bank && guestBankCheckoutEnabled()) || argent) && input.shippingAddress.country === "GB");
   if (!guest) {
     let eligibility;
     try { eligibility = await assertEligibility(input.purchaserId ?? "", input.shippingAddress.country, input.items.map(i => i.variantId)); }
@@ -74,10 +79,11 @@ export async function createOrder(input: CreateOrderInput) {
   if (input.checkoutId) {
     const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
     if (existing) {
+      if ((existing.order.paymentProvider === "argent") !== Boolean(argent)) throw new OrderError("checkout_conflict");
       if (!(await ownsExisting(existing.order))) throw new OrderError("checkout_conflict");
       if (["CANCELLED", "EXPIRED", "REFUNDED"].includes(existing.order.status)) throw new OrderError("checkout_expired");
-      if (avionEnabled()) await syncAvionOrder(existing.order.id);
-      return { order: existing.order, token: existing.token, payUrl: `${storeBase()}/${existing.order.locale}/checkout/${avionEnabled() ? "received" : "pay"}?session=${existing.token}` };
+      if (syncToAvion) await syncAvionOrder(existing.order.id);
+      return { order: existing.order, token: existing.token, payUrl: receiptUrl(existing.order.locale, existing.token) };
     }
   }
   const currency = input.currency ?? "EUR";
@@ -113,7 +119,7 @@ export async function createOrder(input: CreateOrderInput) {
   const baseSubtotal = lines.reduce((sum, line) => sum + line.lineCents, 0);
   if (input.campaign === "reta" && input.couponCode) throw new OrderError("offer_not_combinable");
   const coupon = await applyCoupon(input.couponCode, baseSubtotal);
-  const campaignDiscount = input.campaign === "reta" && bank && currency === "GBP"
+  const campaignDiscount = input.campaign === "reta" && (bank || argent) && currency === "GBP"
     ? lines.reduce((sum, line) => sum + retaPackDiscount(variants.find(v => v.id === line.variantId)!.sku, line.qty, currency, trustedAmount(line.unitCents, rate)), 0)
     : 0;
   const discountCents = campaignDiscount || trustedAmount(coupon.ok ? coupon.discountCents : 0, rate);
@@ -159,7 +165,8 @@ export async function createOrder(input: CreateOrderInput) {
       data: {
         orderNumber,
         status: "PENDING",
-        paymentMethod: bank ? "bank_transfer" : null,
+        paymentMethod: bank ? "bank_transfer" : argent ? "card" : null,
+        paymentProvider: argent ? "argent" : null,
         purchaserId: input.purchaserId,
         locale: input.locale,
         currency,
@@ -185,7 +192,7 @@ export async function createOrder(input: CreateOrderInput) {
             ...(guest ? [{ type: "guest.owner", payload: { id: input.guestCheckoutId! } }] : []),
             ...(bank ? [{ type: "bank_transfer.instructions", payload: { ...bank, reference: orderNumber, deadline: reservedUntil.toISOString() } }] : []),
             { type: "order.created", payload: { subtotalCents, shippingCents, discountCents, totalCents } },
-            ...(avionEnabled() ? [{ type: "avion.pending", payload: avionPayload as unknown as Prisma.InputJsonObject }] : []),
+            ...(syncToAvion ? [{ type: "avion.pending", payload: avionPayload as unknown as Prisma.InputJsonObject }] : []),
             ...(affiliate ? [{ type: "affiliate.attached", payload: affiliate as object }] : []),
           ],
         },
@@ -195,12 +202,16 @@ export async function createOrder(input: CreateOrderInput) {
   }).catch(async (error) => {
     if (input.checkoutId && error instanceof Error && "code" in error && error.code === "P2002") {
       const existing = await db.checkoutSession.findUnique({ where: { token: input.checkoutId }, include: { order: { include: { items: true, sessions: true } } } });
-      if (existing && await ownsExisting(existing.order)) return existing.order;
+      if (existing && (existing.order.paymentProvider === "argent") === Boolean(argent) && await ownsExisting(existing.order) && !["CANCELLED", "EXPIRED", "REFUNDED"].includes(existing.order.status)) return existing.order;
     }
     throw error;
   });
 
   const token = order.sessions[0].token;
+  if (argent) {
+    if (syncToAvion) await syncAvionOrder(order.id);
+    return { order, token, payUrl: receiptUrl(order.locale, token) };
+  }
   if (avionEnabled()) {
     await syncAvionOrder(order.id);
     if (bank) await sendEmail({ to: order.email, subject: `Bank transfer instructions — ${order.orderNumber}`, react: BankTransferEmail({ order, instructions: bank.instructions, deadline: reservedUntil.toISOString() }) })
@@ -241,6 +252,7 @@ async function releaseStock(orderId: string) {
  */
 export async function markPaid(orderId: string, provider: string, providerRef: string) {
   const existing = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
+  if (existing.paymentProvider === "argent") throw new OrderError("argent_verification_required");
   if (existing.purchaserId) {
     if (provider !== "stripe") throw new OrderError("stripe_confirmation_required");
     await assertEligibility(existing.purchaserId, existing.shippingCountry, existing.items.map(i => i.variantId));
@@ -274,7 +286,7 @@ export async function markPaid(orderId: string, provider: string, providerRef: s
 
 export async function markFulfilled(orderId: string, trackingNo?: string) {
   const existing = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
-  if (existing.paymentProvider === "stripe") throw new OrderError("test_orders_cannot_be_fulfilled");
+  if (existing.paymentProvider === "stripe" || (existing.paymentProvider === "argent" && !(await db.argentPayment.findUnique({ where: { orderId } }))?.live)) throw new OrderError("test_orders_cannot_be_fulfilled");
   if (existing.purchaserId) await assertEligibility(existing.purchaserId, existing.shippingCountry, existing.items.map(i => i.variantId));
   const r = await db.order.updateMany({
     where: { id: orderId, status: "PAID" },
@@ -290,6 +302,7 @@ export async function markFulfilled(orderId: string, trackingNo?: string) {
 }
 
 export async function markRefunded(orderId: string, source: "admin" | "webhook", providerRef?: string) {
+  if ((await db.order.findUnique({ where: { id: orderId } }))?.paymentProvider === "argent") throw new OrderError("argent_refund_verification_required");
   const r = await db.order.updateMany({
     where: { id: orderId, status: { in: ["PAID", "FULFILLED"] } },
     data: { status: "REFUNDED" },
@@ -306,7 +319,7 @@ export async function markRefunded(orderId: string, source: "admin" | "webhook",
 async function closeUnpaidOrder(orderId: string, status: "EXPIRED" | "CANCELLED") {
   return db.$transaction(async tx => {
     const claimed = await tx.order.updateMany({
-      where: { id: orderId, status: { in: ["PENDING", "RESERVED"] }, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }] },
+      where: { id: orderId, status: { in: ["PENDING", "RESERVED"] }, OR: [{ paymentProvider: null }, { paymentProvider: { notIn: ["stripe", "argent"] } }] },
       data: { status, reservedUntil: null },
     });
     if (!claimed.count) return null;
@@ -332,7 +345,7 @@ export async function expireOrder(orderId: string, notify = true) {
 export async function expireStaleOrders() {
   const stale = await db.order.findMany({
     // shortcut: bank receipts are reconciled manually; staff must review overdue transfers before releasing stock.
-    where: { AND: [{ OR: [{ paymentMethod: null }, { paymentMethod: { not: "bank_transfer" } }] }], status: { in: ["PENDING", "RESERVED"] }, stripeSessionId: null, OR: [{ paymentProvider: null }, { paymentProvider: { not: "stripe" } }], reservedUntil: { lt: new Date() } },
+    where: { AND: [{ OR: [{ paymentMethod: null }, { paymentMethod: { not: "bank_transfer" } }] }], status: { in: ["PENDING", "RESERVED"] }, stripeSessionId: null, OR: [{ paymentProvider: null }, { paymentProvider: { notIn: ["stripe", "argent"] } }], reservedUntil: { lt: new Date() } },
     select: { id: true },
   });
   for (const o of stale) await expireOrder(o.id);

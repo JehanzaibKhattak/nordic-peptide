@@ -1,0 +1,202 @@
+--- a/src/Controllers/IntakeController.php
++++ b/src/Controllers/IntakeController.php
+@@ -43,6 +43,29 @@
+             $error = in_array($e->getMessage(), ['order_not_found','order_already_reversed','manual_reconciliation_required','payment_sync_failed','postback_not_queued'], true) ? $e->getMessage() : 'reconciliation_failed';
+             return self::out(409, ['ok' => false, 'error' => $error]);
+         }
++    }
++
++    public function argentStatus(): string
++    {
++        header('Content-Type: application/json'); header('Cache-Control: no-store');
++        if (!Source::byApiKey((string)($_SERVER['HTTP_X_AVION_KEY'] ?? ''))) return self::out(401,['ok'=>false,'error'=>'unauthorized']);
++        $ready=getenv('ARGENT_MODE')==='live' && getenv('ARGENT_ALLOW_LIVE')==='true' && (bool)getenv('ARGENT_SECRET_KEY') && (bool)getenv('ARGENT_COMPANY_ID');
++        return self::out(200,['ok'=>true,'configured'=>$ready,'companyId'=>$ready ? getenv('ARGENT_COMPANY_ID') : null]);
++    }
++
++    /** Only the authenticated source can request verification of its own order. */
++    public function argentPayment(): string
++    {
++        header('Content-Type: application/json'); header('Cache-Control: no-store');
++        $source=Source::byApiKey((string)($_SERVER['HTTP_X_AVION_KEY'] ?? ''));
++        if (!$source) return self::out(401,['ok'=>false,'error'=>'unauthorized']);
++        $input=json_decode((string)file_get_contents('php://input',false,null,0,4097),true);
++        if (!is_array($input) || !is_string($input['order_ref'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/D',$input['order_ref']) || !is_string($input['intent_id'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,80}$/D',$input['intent_id']) || !in_array($input['event'] ?? '',['paid','refunded'],true)) return self::out(400,['ok'=>false,'error'=>'invalid_request']);
++        $order=Order::findBySourceRef((int)$source['id'],$input['order_ref']);
++        if (!$order) return self::out(404,['ok'=>false,'error'=>'order_not_found']);
++        try { \Avion\ArgentPayments::reconcile($order,$input['intent_id'],$input['event']); }
++        catch (\Throwable $e) { return self::out(409,['ok'=>false,'error'=>'provider_reconciliation_pending']); }
++        return self::out(200,['ok'=>true]);
+     }
+ 
+     public function postbacks(): string
+--- a/src/Models/Order.php
++++ b/src/Models/Order.php
+@@ -379,8 +379,10 @@
+             TimelineEvent::add((int)$o['customer_id'], 'payment_received', title: 'Payment received',
+                 body: $body, orderId: $orderId, actorId: $actorId);
+             Customer::recalcStats((int)$o['customer_id']);
+-            Notifier::paymentConfirmed($o);
+-            Notifier::logisticsNewOrder($o, self::items($orderId));
++            if (empty($p['skip_notifications'])) {
++                Notifier::paymentConfirmed($o);
++                Notifier::logisticsNewOrder($o, self::items($orderId));
++            }
+             return ['ok' => true, 'error' => null, 'mismatch' => !$within, 'paid_gbp' => $gbp];
+         });
+     }
+--- a/public/index.php
++++ b/public/index.php
+@@ -71,6 +71,8 @@
+ // --- order intake API ---
+ $r->post('/api/v1/orders', [IntakeController::class, 'create']);
+ $r->get('/api/v1/postbacks', [IntakeController::class, 'postbacks']);
++$r->get('/api/v1/payments/argent', [IntakeController::class, 'argentStatus']);
++$r->post('/api/v1/payments/argent', [IntakeController::class, 'argentPayment']);
+ $r->post('/api/v1/postbacks', [IntakeController::class, 'confirmPostback']);
+ 
+ // --- inbound webhooks (providers registered in config integrations.webhooks) ---
+--- /dev/null
++++ b/src/ArgentPayments.php
+@@ -0,0 +1,67 @@
++<?php
++declare(strict_types=1);
++namespace Avion;
++
++use Avion\Models\Order;
++use Avion\Models\TimelineEvent;
++use Avion\Tracking\Keitaro;
++
++/** Independent provider verification at the fulfilment boundary. Test payments are never accepted here. */
++final class ArgentPayments
++{
++    public static function validate(array $intent, array $payment, array $order, string $company): void
++    {
++        $totals = json_decode($order['retail_totals'] ?? 'null', true);
++        $paymentId = is_array($intent['payment'] ?? null) ? ($intent['payment']['id'] ?? null) : ($intent['payment'] ?? null);
++        if (!is_array($totals) || ($totals['currency'] ?? '') !== 'GBP' || ($intent['live'] ?? null) !== true
++            || ($intent['status'] ?? '') !== 'completed' || ($intent['company']['id'] ?? '') !== $company
++            || ($intent['reference'] ?? '') !== ($order['source_order_ref'] ?? '')
++            || ($intent['currency']['code'] ?? '') !== 'GBP' || !is_numeric($intent['amount'] ?? null)
++            || abs((float)$intent['amount'] * 100 - round((float)$intent['amount'] * 100)) > 0.00001
++            || (int)round((float)$intent['amount'] * 100) !== (int)round((float)$totals['total'] * 100)
++            || !is_string($paymentId) || ($payment['id'] ?? '') !== $paymentId
++            || ($payment['payment_intent'] ?? '') !== ($intent['id'] ?? '')
++            || !in_array($payment['status'] ?? '', ['paid','refunded'], true)) {
++            throw new \RuntimeException('argent_payment_mismatch');
++        }
++    }
++
++    public static function reconcile(array $order, string $intentId, string $event, ?callable $retrieve = null): void
++    {
++        $secret = (string)getenv('ARGENT_SECRET_KEY'); $company = (string)getenv('ARGENT_COMPANY_ID');
++        if (getenv('ARGENT_MODE') !== 'live' || getenv('ARGENT_ALLOW_LIVE') !== 'true' || !$secret || !$company) throw new \RuntimeException('argent_not_configured');
++        $retrieve ??= static function (string $path) use ($secret): array {
++            $result = Http::request('GET', 'https://api.argentplatforms.com'.$path, null, ['Authorization'=>'Basic '.base64_encode($secret.':')]);
++            if ($result['status'] !== 200 || !is_array($result['json'])) throw new \RuntimeException('argent_unavailable');
++            return $result['json'];
++        };
++        if (!preg_match('/^[A-Za-z0-9_-]{1,80}$/D', $intentId) || !in_array($event,['paid','refunded'],true)) throw new \RuntimeException('argent_invalid_request');
++        $intent = $retrieve('/payment-intents/'.$intentId);
++        if (($intent['id'] ?? '') !== $intentId) throw new \RuntimeException('argent_payment_mismatch');
++        $paymentId = is_array($intent['payment'] ?? null) ? ($intent['payment']['id'] ?? '') : ($intent['payment'] ?? '');
++        if (!is_string($paymentId) || !preg_match('/^[A-Za-z0-9_-]{1,80}$/D',$paymentId)) throw new \RuntimeException('argent_capture_missing');
++        $payment = $retrieve('/payments/'.$paymentId);
++        self::validate($intent,$payment,$order,$company);
++        if (($event === 'refunded') !== (($payment['status'] ?? '') === 'refunded')) throw new \RuntimeException('argent_event_mismatch');
++        Database::tx(static function () use ($order,$intent,$payment,$event,$company,$paymentId): void {
++            $s=Database::pdo()->prepare('SELECT * FROM orders WHERE id=? FOR UPDATE'); $s->execute([(int)$order['id']]); $locked=$s->fetch();
++            if (!$locked) throw new \RuntimeException('order_not_found');
++            self::validate($intent,$payment,$locked,$company);
++            if ($locked['payment_method'] === 'bank_transfer') throw new \RuntimeException('argent_method_mismatch');
++            $reference='argent:'.$paymentId;
++            if ($locked['paid_at'] && ($locked['payment_ref'] ?? '') !== $reference) throw new \RuntimeException('argent_existing_payment_mismatch');
++            if ($event === 'paid' && $locked['affiliate_reversed_at']) throw new \RuntimeException('argent_already_reversed');
++            if (!$locked['paid_at']) {
++                $totals=json_decode($locked['retail_totals'],true);
++                $result=Order::markPaid((int)$locked['id'],['amount'=>$totals['total'],'ccy'=>'GBP','ref'=>$reference,'method'=>'online','skip_notifications'=>$event==='refunded']);
++                if (!$result['ok']) throw new \RuntimeException('argent_payment_sync_failed');
++            }
++            if ($event === 'refunded' && !$locked['affiliate_reversed_at']) {
++                Keitaro::reverse((int)$locked['id'],null);
++                Database::pdo()->prepare("UPDATE orders SET bucket=IF(bucket='done','attention','cancelled'),cancelled_at=NOW(),cancel_reason='Argent confirmed full refund' WHERE id=?")->execute([(int)$locked['id']]);
++                TimelineEvent::add((int)$locked['customer_id'],'argent_refund',title:'Argent full refund verified',body:$reference,orderId:(int)$locked['id']);
++                Audit::record('order',(int)$locked['id'],'argent_refunded',null,['payment_ref'=>$reference]);
++            }
++        });
++    }
++}
+--- a/tests/run.php
++++ b/tests/run.php
+@@ -766,6 +766,55 @@
+     eq(null,Order::find($id)['paid_at']);eq(0,count(Avion\Tracking\Keitaro::jobs($id)));
+ });
+ 
++function argentFixture(): array {
++    putenv('ARGENT_MODE=live'); putenv('ARGENT_ALLOW_LIVE=true'); putenv('ARGENT_SECRET_KEY=fixture-secret'); putenv('ARGENT_COMPANY_ID=fixture-company');
++    $id=Avion\Models\RetailOrder::create(['customer_id'=>customer(),'payment_method'=>'link','source_order_ref'=>'NPS-ARGENT','affiliate'=>['ktSubid'=>'CLICK-ARGENT','capturedAt'=>gmdate('c')]], [['sku'=>'RET40','qty'=>1,'price'=>209]], ['currency'=>'GBP','total_amount'=>209]);
++    $intent=['id'=>'intent_fixture','status'=>'completed','live'=>true,'company'=>['id'=>'fixture-company'],'reference'=>'NPS-ARGENT','currency'=>['code'=>'GBP'],'amount'=>'209.00','payment'=>'payment_fixture'];
++    $payment=['id'=>'payment_fixture','payment_intent'=>'intent_fixture','status'=>'paid'];
++    return [$id,$intent,$payment];
++}
++test('argent: independently verifies and confirms a live capture exactly once', function () {
++    [$id,$intent,$payment]=argentFixture();
++    $fetch=static fn(string $path): array => str_starts_with($path,'/payments/') ? $payment : $intent;
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',$fetch);
++    $paidAt=Order::find($id)['paid_at']; ok((bool)$paidAt); eq('online',Order::find($id)['payment_method']);
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',$fetch);
++    eq($paidAt,Order::find($id)['paid_at']); eq(1,count(Avion\Tracking\Keitaro::jobs($id)));
++});
++test('argent: rejects test mode, mismatches and unrelated captured payments', function () {
++    [$id,$intent,$payment]=argentFixture();
++    foreach ([['live'=>false],['amount'=>'0.01'],['reference'=>'OTHER'],['company'=>['id'=>'other']],['currency'=>['code'=>'EUR']]] as $change) {
++        throws(fn()=>Avion\ArgentPayments::validate(array_replace($intent,$change),$payment,Order::find($id),'fixture-company'),RuntimeException::class);
++    }
++    throws(fn()=>Avion\ArgentPayments::validate($intent,['id'=>'payment_fixture','payment_intent'=>'other','status'=>'paid'],Order::find($id),'fixture-company'),RuntimeException::class);
++    putenv('ARGENT_MODE=test');
++    throws(fn()=>Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',static fn()=>throw new Fail('Test mode contacted provider')),RuntimeException::class);
++    eq(null,Order::find($id)['paid_at']);eq(0,count(Avion\Tracking\Keitaro::jobs($id)));
++});
++test('argent: verifies refund before local success without queuing fulfilment', function () {
++    [$id,$intent,$payment]=argentFixture(); $payment['status']='refunded';
++    Setting::set('logistics_whatsapp','447700900123');
++    $messages=(int)one('SELECT COUNT(*) FROM messages');
++    $fetch=static fn(string $path): array => str_starts_with($path,'/payments/') ? $payment : $intent;
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','refunded',$fetch);
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','refunded',$fetch);
++    eq($messages,(int)one('SELECT COUNT(*) FROM messages'));
++    eq('cancelled',Order::find($id)['bucket']);ok((bool)Order::find($id)['affiliate_reversed_at']);eq(2,count(Avion\Tracking\Keitaro::jobs($id)));
++    eq(1,(int)one("SELECT COUNT(*) FROM timeline_events WHERE type='argent_refund'"));
++    throws(fn()=>Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',$fetch),RuntimeException::class);
++});
++test('argent: an already shipped refund goes to attention and cannot be replayed as paid', function () {
++    [$id,$intent,$payment]=argentFixture();
++    $fetch=static fn(string $path): array => str_starts_with($path,'/payments/') ? $payment : $intent;
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',$fetch);
++    db()->prepare("UPDATE orders SET bucket='done' WHERE id=?")->execute([$id]);
++    $payment['status']='refunded';
++    $refundFetch=static fn(string $path): array => str_starts_with($path,'/payments/') ? $payment : $intent;
++    Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','refunded',$refundFetch);
++    eq('attention',Order::find($id)['bucket']);
++    throws(fn()=>Avion\ArgentPayments::reconcile(Order::find($id),'intent_fixture','paid',$fetch),RuntimeException::class);
++});
++
+ // ------------------------------------------------------------------ run
+ $filter = $argv[1] ?? '';
+ $pass = $fail = 0;
+--- a/tests/postbacks.php
++++ b/tests/postbacks.php
+@@ -35,5 +35,13 @@
+     putenv('KEITARO_POSTBACK_ENABLED=1'); putenv('KEITARO_POSTBACK_URL=https://example.test/private-token/postback');
+     $body = $controller->postbacks(); $result = json_decode($body, true);
+     if (http_response_code() !== 200 || !$result['configured'] || !$result['enabled'] || $result['jobs'][0]['attempts'] !== 1 || str_contains($body, 'private-token')) throw new \Exception('Invalid or unsafe response');
++    $_SERVER['HTTP_X_AVION_KEY']='wrong-key';
++    $controller->argentStatus(); if (http_response_code()!==401) throw new \Exception('Argent status authentication bypass');
++    $controller->argentPayment(); if (http_response_code()!==401) throw new \Exception('Argent confirmation authentication bypass');
++    $_SERVER['HTTP_X_AVION_KEY']='test-source-key';
++    putenv('ARGENT_MODE=live'); putenv('ARGENT_ALLOW_LIVE=true'); putenv('ARGENT_SECRET_KEY=private-fixture-secret'); putenv('ARGENT_COMPANY_ID=company-fixture');
++    $status=$controller->argentStatus(); $ready=json_decode($status,true);
++    if (!$ready['configured'] || $ready['companyId']!=='company-fixture' || str_contains($status,'private-fixture-secret')) throw new \Exception('Unsafe Argent readiness response');
++    putenv('ARGENT_MODE=test'); if (json_decode($controller->argentStatus(),true)['configured']) throw new \Exception('Back office accepted test mode');
+     echo "Postback monitor auth, source scope, read-only query and response checks passed.\n";
+ }

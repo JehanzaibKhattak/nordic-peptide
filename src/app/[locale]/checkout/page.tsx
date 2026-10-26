@@ -1,3 +1,4 @@
+import { argentEnabled } from "@/lib/payments/argent-config";
 import { guestBankCheckoutEnabled } from "@/lib/guest-checkout";
 import { bankTransferConfig } from "@/lib/bank-transfer";
 import { currentPurchaser } from "@/lib/purchaser-session";
@@ -23,11 +24,12 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
     return <div className="mx-auto max-w-2xl px-4 py-20 text-center"><h1 className="text-2xl font-semibold">{t("title")}</h1><p className="mt-3 text-muted-foreground">{t("browseOnly")}</p><Link href="/shop" className="mt-6 inline-block text-sm font-medium underline">{t("browseCollection")}</Link></div>;
   }
   if (!BROWSE_ONLY) {
-    if (guestBankCheckoutEnabled()) {
-      const bank = bankTransferConfig()!;
-      const rate = await db.checkoutCurrency.findUnique({ where: { code: bank.currency } });
+    if (guestBankCheckoutEnabled() || argentEnabled()) {
+      const bank = bankTransferConfig();
+      const currency = bank?.currency ?? "GBP";
+      const rate = await db.checkoutCurrency.findUnique({ where: { code: currency } });
       if (!rate?.enabled) throw new Error("Bank checkout currency is not configured");
-      return <CheckoutForm paymentCurrencies={[bank.currency]} paymentRates={{ [bank.currency]: rate.eurRate }} avionCheckout bankCurrency={bank.currency} guestBankCheckout />;
+      return <CheckoutForm paymentCurrencies={[currency]} paymentRates={{ [currency]: rate.eurRate }} avionCheckout bankCurrency={bank?.currency ?? null} argentCheckout={argentEnabled()} guestBankCheckout />;
     }
     const purchaser = await currentPurchaser();
     const r = await getTranslations("research");

@@ -1,3 +1,4 @@
+import { argentEnabled } from "@/lib/payments/argent-config";
 import { Montserrat } from "next/font/google";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
@@ -23,5 +24,5 @@ export default async function RetaPage({ params }: { params: Promise<{ locale: s
   const rate = currency?.enabled ? currency.eurRate : 0.8472;
   const variants = product.variants.filter(v => v.priceCents > 0).map(v => ({ id: v.id, sku: v.sku, label: v.label, priceCents: v.priceCents, stock: v.stock, images: (v as typeof v & { images?: string[] }).images ?? product.images as string[] }));
   if (!variants.length) notFound();
-  return <div className={montserrat.variable}><RetaLanding product={{ id: product.id, slug: product.slug }} variants={variants} rate={rate} checkoutEnabled={!BROWSE_ONLY && guestBankCheckoutEnabled() && bank?.currency === "GBP" && Boolean(currency?.enabled)} /></div>;
+  return <div className={montserrat.variable}><RetaLanding product={{ id: product.id, slug: product.slug }} variants={variants} rate={rate} argentCheckout={argentEnabled()} checkoutEnabled={!BROWSE_ONLY && ((guestBankCheckoutEnabled() && bank?.currency === "GBP") || argentEnabled()) && Boolean(currency?.enabled)} /></div>;
 }

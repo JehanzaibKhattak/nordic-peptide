@@ -14,7 +14,7 @@ import { pushEvent } from "@/components/layout/gtm";
 import { Link } from "@/i18n/routing";
 
 type Variant = { id: string; sku: string; label: string; priceCents: number; stock: number; images: string[] };
-export function RetaLanding({ product, variants, rate, checkoutEnabled }: { product: { id: string; slug: string }; variants: Variant[]; rate: number; checkoutEnabled: boolean }) {
+export function RetaLanding({ product, variants, rate, checkoutEnabled, argentCheckout = false }: { product: { id: string; slug: string }; variants: Variant[]; rate: number; checkoutEnabled: boolean; argentCheckout?: boolean }) {
   const [variantId, setVariantId] = useState(variants[0].id);
   const [qty, setQty] = useState(2);
   const checkout = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
 
   const orderItems = campaignCart(items, { productId: product.id, variantId: variant.id, slug: product.slug, name: "Retatrutide Pen", variantLabel: variant.label, image: variant.images[0] ?? "", unitCents: variant.priceCents, qty });
   return <div className="reta-sales">
-    <div className="rs-banner"><span>{offer ? "RETA PACK OFFER" : "THE PEPTBAY RESEARCH COLLECTION"}</span><strong>{offer ? "20% OFF RETATRUTIDE PEN 20 MG" : "RETATRUTIDE PEN 40 MG"}</strong><span>{offer ? "Save 25% with 2 pens · Save 30% with 3 pens" : "One-time order · GBP bank transfer"}</span></div>
+    <div className="rs-banner"><span>{offer ? "RETA PACK OFFER" : "THE PEPTBAY RESEARCH COLLECTION"}</span><strong>{offer ? "20% OFF RETATRUTIDE PEN 20 MG" : "RETATRUTIDE PEN 40 MG"}</strong><span>{offer ? "Save 25% with 2 pens · Save 30% with 3 pens" : (argentCheckout ? "One-time order · Secure GBP checkout" : "One-time order · GBP bank transfer")}</span></div>
     <section className="rs-hero">
       <div className="rs-wrap rs-hero-inner">
         <div><Link href="/" aria-label="Peptbay home" className="rs-logo"><Image src="/sales/peptbay-logo-dark.svg" alt="Peptbay" width={114} height={30} priority style={{ width: "auto", height: 30 }} /></Link><h1>RETATRUTIDE<br /><strong>PEN {variant.label.split(" / ")[0].toUpperCase()}</strong></h1><p>Research-grade · Third-party tested · COA included</p></div>
@@ -48,7 +48,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
       <div className="rs-selection">
         <div className="rs-panel">
           <div className="rs-benefits">{[<>99%+<br />Purity</>, <>Third-party<br />Tested</>, <>COA<br />Included</>, <>Same-day<br />Dispatch</>].map((label, i) => <div key={i}><Image src={`/sales/benefit-${i}.svg`} alt="" width={40} height={40} /><span>{label}</span></div>)}</div>
-          {offer ? <div className="rs-intro"><span className="rs-round rs-offer-round"><strong>{offer.percent}%</strong><span>OFF</span></span><div><h2>Your {offer.percent}% pack discount is applied</h2><p>Retatrutide Pen 20 mg from <s>{money(unit)}</s> <strong className="rs-offer-price">{money(packTotal(qty) / qty)}</strong> per pen with your selected {qty}-pen pack.</p></div></div> : <div className="rs-intro"><span className="rs-round"><Check aria-hidden="true" /></span><div><h2>Your RETA order, in one place</h2><p>Select your pack below, then enter your delivery details. Bank instructions follow after placing your order.</p></div></div>}
+          {offer ? <div className="rs-intro"><span className="rs-round rs-offer-round"><strong>{offer.percent}%</strong><span>OFF</span></span><div><h2>Your {offer.percent}% pack discount is applied</h2><p>Retatrutide Pen 20 mg from <s>{money(unit)}</s> <strong className="rs-offer-price">{money(packTotal(qty) / qty)}</strong> per pen with your selected {qty}-pen pack.</p></div></div> : <div className="rs-intro"><span className="rs-round"><Check aria-hidden="true" /></span><div><h2>Your RETA order, in one place</h2><p>Select your pack below, then enter your delivery details. {argentCheckout ? "Choose card or bank transfer at checkout." : "Bank instructions follow after placing your order."}</p></div></div>}
         </div>
         <div className="rs-panel">
           <h2 className="rs-step"><Image src="/sales/step-0.svg" alt="" width={18} height={20} />Step 1: Select Order quantity</h2>
@@ -69,8 +69,8 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled }: { prod
       </div>
       <div ref={checkout} id="reta-checkout" tabIndex={-1} className="rs-checkout">
         <h2 className="rs-step">Step 2: Complete your order</h2>
-        {checkoutEnabled ? <CheckoutForm paymentCurrencies={["GBP"]} paymentRates={{ GBP: rate }} avionCheckout bankCurrency="GBP" guestBankCheckout orderItems={orderItems} retaOfferVariantId={offerVariantId} embedded /> : <p className="rs-panel">Checkout is not currently available. Please contact Peptbay.</p>}
-        <div className="rs-panel rs-payment-trust"><div className="rs-reassurance"><div><LockKeyhole aria-hidden="true" /><span>HTTPS encrypted connection</span></div><div><Landmark aria-hidden="true" /><span>Pay in your banking app</span></div><div><ShieldCheck aria-hidden="true" /><span>No card details collected</span></div></div><h3><LockKeyhole aria-hidden="true" /> Secure bank-transfer checkout</h3><p>Use the account details and payment reference on your order confirmation. Our team confirms receipt before dispatch.</p><Link href="/testing">View batch documentation <ArrowRight aria-hidden="true" /></Link></div>
+        {checkoutEnabled ? <CheckoutForm paymentCurrencies={["GBP"]} paymentRates={{ GBP: rate }} avionCheckout bankCurrency="GBP" argentCheckout={argentCheckout} guestBankCheckout orderItems={orderItems} retaOfferVariantId={offerVariantId} embedded /> : <p className="rs-panel">Checkout is not currently available. Please contact Peptbay.</p>}
+        <div className="rs-panel rs-payment-trust"><div className="rs-reassurance"><div><LockKeyhole aria-hidden="true" /><span>HTTPS encrypted connection</span></div><div><Landmark aria-hidden="true" /><span>{argentCheckout ? "Hosted card payment" : "Pay in your banking app"}</span></div><div><ShieldCheck aria-hidden="true" /><span>{argentCheckout ? "Card details stay with Argent" : "No card details collected"}</span></div></div><h3><LockKeyhole aria-hidden="true" /> {argentCheckout ? "Secure checkout with Argent" : "Secure bank-transfer checkout"}</h3><p>{argentCheckout ? "Pay on Argent’s secure hosted page, or choose bank transfer at checkout. Payment is verified before dispatch." : "Use the account details and payment reference on your order confirmation. Our team confirms receipt before dispatch."}</p><Link href="/testing">View batch documentation <ArrowRight aria-hidden="true" /></Link></div>
       </div>
     </div>
     <CertificationReports />

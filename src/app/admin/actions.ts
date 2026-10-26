@@ -1,5 +1,7 @@
 "use server";
 
+import { refundArgentPayment } from "@/lib/payments/argent";
+
 import { timingSafeEqual } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -64,6 +66,11 @@ export async function refundAction(fd: FormData) {
   const id = String(fd.get("id"));
   const order = await db.order.findUnique({ where: { id } });
   if (!order) return;
+  if (order.paymentProvider === "argent") {
+    try { await refundArgentPayment(id); } catch { await logEvent(id, "argent.refund_pending_review", {}); }
+    revalidatePath(`/admin/orders/${id}`);
+    return;
+  }
   const adapter = order.paymentProvider === "stripe" ? stripeAdapter : order.paymentProvider ? getAdapter(order.paymentProvider) : undefined;
   if (adapter?.refund) {
     try {

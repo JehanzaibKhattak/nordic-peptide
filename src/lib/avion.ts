@@ -99,7 +99,9 @@ export async function getAvionPostbacks() {
 
 export async function queueAvionPostback(orderId: string, event: "sale" | "rejected") {
   const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
-  if (order.paymentMethod !== "bank_transfer" || (event === "sale" ? !["PAID", "FULFILLED"].includes(order.status) : order.status !== "REFUNDED")) {
+  const argent = order.paymentProvider === "argent" ? await db.argentPayment.findUnique({ where: { orderId } }) : null;
+  const verifiedCard = Boolean(argent?.live && argent.paymentId === order.providerRef && (event === "sale" ? argent.status === "completed" : argent.status === "REFUNDED"));
+  if ((order.paymentMethod !== "bank_transfer" && !verifiedCard) || (event === "sale" ? !["PAID", "FULFILLED"].includes(order.status) : order.status !== "REFUNDED")) {
     throw new AvionError("payment_confirmation_required", false);
   }
   if (!(await syncAvionOrder(orderId))) throw new AvionError("avion_sync_failed", true);
