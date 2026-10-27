@@ -119,3 +119,31 @@
 +$bad=new Parcel2Go(['mode'=>'live','client_id'=>'fixture-id','client_secret'=>'fixture-secret'],fn()=>throw new RuntimeException('fixture-secret'));
 +try {$bad->authenticate();throw new LogicException('Accepted failed transport');}catch(RuntimeException $e){check($e->getMessage()==='Parcel2Go transport failed');}
 +echo "Parcel2Go auth, token reuse, quote binding, validation, and redaction checks passed.\n";
+--- /dev/null
++++ b/config/parcel2go-dispatch.example.json
+@@ -0,0 +1,25 @@
++{
++  "placeholder": true,
++  "live_booking_enabled": false,
++  "preferred_courier": "Royal Mail",
++  "preferred_service": "Tracked 24",
++  "allow_service_substitution": false,
++  "collection": {
++    "ContactName": "TEST DISPATCH — REPLACE BEFORE BOOKING",
++    "Organisation": "Peptbay test configuration",
++    "Email": "dispatch@example.invalid",
++    "Phone": "+447700900123",
++    "Property": "TEST ADDRESS — NOT A COLLECTION LOCATION",
++    "Street": "Test Street",
++    "Town": "London",
++    "Postcode": "SW1A 1AA",
++    "CountryIsoCode": "GBR"
++  },
++  "package_suggestions": [
++    {"min_units": 1, "max_units": 3, "category": "large_letter", "user_requested_max_weight_kg": 1, "max_dimensions_cm": [35.3, 25, 2.5]},
++    {"min_units": 4, "max_units": 5, "category": "small_parcel", "user_requested_max_weight_kg": 2, "max_dimensions_cm": [45, 35, 16]},
++    {"min_units": 6, "max_units": 50, "category": "medium_parcel", "user_requested_max_weight_kg": 20, "max_dimensions_cm": [61, 46, 46]}
++  ],
++  "require_measured_weight_and_dimensions": true,
++  "require_selected_service_limits": true
++}

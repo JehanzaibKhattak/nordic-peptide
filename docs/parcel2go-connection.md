@@ -44,3 +44,9 @@ Packing photo/video delivery and respond.io WhatsApp/email activation are separa
 - https://sandbox.parcel2go.com/api/docs/articles/quickstart.html
 - https://sandbox.parcel2go.com/api/docs/articles/orders.html
 - https://www.parcel2go.com/prohibited-items
+
+## Temporary collection profile
+
+At the user's request, `config/parcel2go-dispatch.example.json` prepares clearly fictional collection/contact details for simulated development. It is an example, not an active warehouse address. `placeholder:true` and `live_booking_enabled:false` explicitly record its status. The current authentication/anonymous quote helper does not create shipments or consume this address. Booking must not be added without enforcing these flags.
+
+The requested preferred service is Royal Mail Tracked 24 through Parcel2Go, with no automatic service substitution. Unit bands suggest a package only: 1–3 large letter, 4–5 small parcel, 6–50 medium parcel. The provided maxima are not measured package values and do not establish Royal Mail acceptance; actual measurements and the selected service's current limits must be checked before booking.
