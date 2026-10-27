@@ -453,6 +453,7 @@ it.each([[1, 16720], [2, 31350], [3, 43890]])("stores and forwards the approved 
   } finally { vi.unstubAllGlobals(); }
 });
 
+const testBrowser = { accept_header: "text/html", language: "en-GB", color_depth: 24, screen: { width: "1440", height: "960" }, timezone_offset: 0, user_agent: "Fixture browser", java_enabled: false, javascript_enabled: true };
 // Argent calls below use fixtures only; no provider or production database is contacted.
 function configureArgent(live = false) {
   for (const [key, value] of Object.entries({ ARGENT_CHECKOUT_ENABLED: "true", ARGENT_CONTRACT_CONFIRMED: "true", ARGENT_MODE: live ? "live" : "test", ARGENT_ALLOW_LIVE: "true", ARGENT_PUBLIC_KEY: "pk_fixture", ARGENT_SECRET_KEY: "sk_fixture", ARGENT_WEBHOOK_SECRET: "webhook_fixture", ARGENT_COMPANY_ID: "company_fixture", ARGENT_HOSTED_ORIGINS: "https://pay.fixture.example", NEXT_PUBLIC_AVION_CHECKOUT: "true", NEXT_PUBLIC_INVENTORY_MODE: "offline", AVION_API_URL: "https://backend.example.com", AVION_API_KEY: "backend_fixture", STORE_BASE_URL: "https://store.example" })) vi.stubEnv(key, value);
@@ -470,7 +471,7 @@ function intentFixture(orderNumber: string, changes: Record<string, unknown> = {
 }
 
 import { startArgentPayment, reconcileArgentPayment, refundArgentPayment, recoverArgentPayment } from "@/lib/payments/argent";
-import { argentEnabled } from "@/lib/payments/argent-config";
+import { argentEnabled, argentConfig } from "@/lib/payments/argent-config";
 import { argentCents, verifyArgentSignature, argentHostedUrl, argentWebhookIntent, argentIntentSchema } from "@/lib/payments/argent-api";
 import { createHmac } from "node:crypto";
 import { POST as argentWebhook } from "@/app/api/checkout/webhook/argent/route";
@@ -502,15 +503,15 @@ it("creates one server-priced hosted intent and keeps test orders out of Avion",
   expect(sendEmail).not.toHaveBeenCalled();
   const fetch = vi.fn(async () => Response.json(intentFixture(order.orderNumber))); vi.stubGlobal("fetch", fetch);
   try {
-    const results = await Promise.allSettled([startArgentPayment(order.id, "https://store.example/en/checkout/argent"), startArgentPayment(order.id, "https://store.example/en/checkout/argent")]);
+    const results = await Promise.allSettled([startArgentPayment(order.id, "https://store.example/en/checkout/argent", testBrowser), startArgentPayment(order.id, "https://store.example/en/checkout/argent", testBrowser)]);
     expect(results.filter(x => x.status === "fulfilled")).toHaveLength(1);
     expect(fetch).toHaveBeenCalledTimes(1);
     const [, request] = (fetch.mock.calls as unknown as [string, RequestInit][])[0];
     const payload = JSON.parse(request.body as string);
-    expect(payload).toMatchObject({ amount: 313.5, currency_code: "GBP", reference: order.orderNumber, merchant_initiated: false, flow: "hosted" });
+    expect(payload).toMatchObject({ amount: 313.5, currency_code: "GBP", reference: order.orderNumber, merchant_initiated: false, flow: "hosted", browser_info: testBrowser });
     expect(payload).not.toHaveProperty("card_number");
     expect(request.headers).toMatchObject({ authorization: `Basic ${Buffer.from("sk_fixture:").toString("base64")}` });
-    const url = await startArgentPayment(order.id, "https://store.example/en/checkout/argent");
+    const url = await startArgentPayment(order.id, "https://store.example/en/checkout/argent", testBrowser);
     expect(new URL(url).searchParams.get("id")).toBe("intent_fixture");
     expect(url).not.toContain("sk_fixture"); expect(fetch).toHaveBeenCalledTimes(1);
     await expect(cancelOrder(order.id)).rejects.toThrow();
@@ -521,8 +522,8 @@ it("locks ambiguous payment creation and permits only verified operator recovery
   const { order } = await argentOrder();
   const fetch = vi.fn().mockRejectedValue(new Error("timeout")); vi.stubGlobal("fetch", fetch);
   try {
-    await expect(startArgentPayment(order.id, "https://store.example/return")).rejects.toThrow("argent_payment_needs_review");
-    await expect(startArgentPayment(order.id, "https://store.example/return")).rejects.toThrow("argent_payment_already_started");
+    await expect(startArgentPayment(order.id, "https://store.example/return", testBrowser)).rejects.toThrow("argent_payment_needs_review");
+    await expect(startArgentPayment(order.id, "https://store.example/return", testBrowser)).rejects.toThrow("argent_payment_already_started");
     expect(fetch).toHaveBeenCalledTimes(1);
     fetch.mockImplementation(async () => Response.json(intentFixture(order.orderNumber, { reference: "wrong" })));
     await expect(recoverArgentPayment(order.id, "intent_fixture")).rejects.toThrow("argent_payment_mismatch");
@@ -546,7 +547,11 @@ it("does not confirm declines, pending payments, or an unrelated capture", async
   vi.stubGlobal("fetch", vi.fn(async (url: string) => Response.json(url.includes("/payments/") ? { id: "payment_fixture", payment_intent: "wrong", status: "paid" } : intentFixture(order.orderNumber, { status, payment: "payment_fixture" }))));
   try {
     expect((await reconcileArgentPayment(order.id)).status).toBe("pending"); status = "failed";
-    expect((await reconcileArgentPayment(order.id)).status).toBe("failed"); status = "completed";
+    expect((await reconcileArgentPayment(order.id)).status).toBe("failed");
+    await reconcileArgentPayment(order.id);
+    expect(await fixture.db.orderEvent.count({ where: { type: "argent.failed" } })).toBe(1);
+    expect((await fixture.db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING");
+    status = "completed";
     await expect(reconcileArgentPayment(order.id)).rejects.toThrow("argent_capture_mismatch");
     expect(sendEmail).not.toHaveBeenCalled();
   } finally { vi.unstubAllGlobals(); }
@@ -554,7 +559,7 @@ it("does not confirm declines, pending payments, or an unrelated capture", async
 it("reconciles a signed payment and its duplicate once, with no test fulfilment or postbacks", async () => {
   const { order } = await argentOrder();
   await fixture.db.argentPayment.create({ data: { orderId: order.id, reference: order.orderNumber, live: false, intentId: "intent_fixture" } });
-  const fetch = vi.fn(async (url: string) => Response.json(url.includes("/payments/") ? { id: "payment_fixture", payment_intent: "intent_fixture", status: "paid" } : intentFixture(order.orderNumber, { status: "completed", payment: "payment_fixture" }))); vi.stubGlobal("fetch", fetch);
+  const fetch = vi.fn(async (url: string) => Response.json(url.includes("/payments/") ? { id: "payment_fixture", payment_intent: { id: "intent_fixture" }, status: "paid" } : intentFixture(order.orderNumber, { status: "completed", payment: "payment_fixture" }))); vi.stubGlobal("fetch", fetch);
   const raw = '{"payment_intent_id":"intent_fixture"}';
   const signature = createHmac("sha256", "webhook_fixture").update(raw).digest("hex");
   try {
@@ -640,10 +645,27 @@ it("checks live back-office readiness before creating a chargeable Argent attemp
   }); vi.stubGlobal('fetch', fetch);
   try {
     const { order } = await argentOrder(true); reference = order.orderNumber;
-    await expect(startArgentPayment(order.id, 'https://store.example/return')).rejects.toThrow('argent_backend_not_ready');
+    await expect(startArgentPayment(order.id, 'https://store.example/return', testBrowser)).rejects.toThrow('argent_backend_not_ready');
     expect(await fixture.db.argentPayment.count()).toBe(0);
     expect(fetch.mock.calls.some(call => String(call[0]).startsWith('https://api.argentplatforms.com/'))).toBe(false);
     ready = true;
-    expect(await startArgentPayment(order.id, 'https://store.example/return')).toContain('https://pay.fixture.example/');
+    expect(await startArgentPayment(order.id, 'https://store.example/return', testBrowser)).toContain('https://pay.fixture.example/');
+  } finally { vi.unstubAllGlobals(); }
+});
+
+it("supports USD only in the isolated test configuration and passes the configured hosted URL", async () => {
+  const { order } = await argentOrder();
+  vi.stubEnv("ARGENT_TEST_CURRENCY", "USD"); vi.stubEnv("ARGENT_HOSTED_PAYMENT_PAGE_URL", "https://pay.fixture.example");
+  await fixture.db.order.update({ where: { id: order.id }, data: { currency: "USD" } });
+  const fetch = vi.fn(async () => Response.json(intentFixture(order.orderNumber, { currency: { code: "USD" } }))); vi.stubGlobal("fetch", fetch);
+  try {
+    await expect(startArgentPayment(order.id, "https://store.example/return")).rejects.toThrow();
+    expect(fetch).not.toHaveBeenCalled();
+    await startArgentPayment(order.id, "https://store.example/return", testBrowser);
+    const payload = JSON.parse((fetch.mock.calls as unknown as [string, RequestInit][])[0][1].body as string);
+    expect(payload).toMatchObject({ currency_code: "USD", hosted_payment_page_url: "https://pay.fixture.example", browser_info: testBrowser });
+    vi.stubEnv("ARGENT_MODE", "live");
+    expect(argentConfig()?.checkoutCurrency).toBe("GBP");
+    vi.stubEnv("ARGENT_HOSTED_PAYMENT_PAGE_URL", "https://untrusted.example"); expect(argentEnabled()).toBe(false);
   } finally { vi.unstubAllGlobals(); }
 });

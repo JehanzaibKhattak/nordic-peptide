@@ -1,3 +1,4 @@
+import { argentBrowserSchema, type ArgentBrowserInfo } from "./argent-browser";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "../db";
@@ -8,11 +9,12 @@ import { argentConfig, argentEnabled } from "./argent-config";
 import { argentRequest, argentIntentSchema, assertArgentIntent, argentHostedUrl, argentCents } from "./argent-api";
 import type { Address } from "../types";
 
-export async function startArgentPayment(orderId: string, returnUrl: string) {
+export async function startArgentPayment(orderId: string, returnUrl: string, browserInfo?: ArgentBrowserInfo) {
   const config = argentConfig();
   if (!argentEnabled() || !config) throw new Error("argent_disabled");
+  const browser = argentBrowserSchema.parse(browserInfo);
   const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
-  if (order.paymentProvider !== "argent" || order.currency !== "GBP" || !["PENDING", "RESERVED"].includes(order.status) || !order.reservedUntil || order.reservedUntil < new Date()) throw new Error("not_payable");
+  if (order.paymentProvider !== "argent" || order.currency !== config.checkoutCurrency || !["PENDING", "RESERVED"].includes(order.status) || !order.reservedUntil || order.reservedUntil < new Date()) throw new Error("not_payable");
   if (config.live) {
     const base = new URL(process.env.AVION_API_URL ?? "");
     if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash) throw new Error("argent_backend_not_configured");
@@ -33,7 +35,8 @@ export async function startArgentPayment(orderId: string, returnUrl: string) {
   try {
     const intent = argentIntentSchema.parse(await argentRequest("/payment-intents", "POST", {
       public_key: config.publicKey, amount: Number((order.totalCents / 100).toFixed(2)), currency_code: order.currency,
-      reference: order.orderNumber, merchant_initiated: false, can_handle_3ds: true, flow: "hosted", return_url: returnUrl,
+      reference: order.orderNumber, merchant_initiated: false, can_handle_3ds: true, flow: "hosted", return_url: returnUrl, browser_info: browser,
+      ...(config.hostedPaymentPageUrl ? { hosted_payment_page_url: config.hostedPaymentPageUrl } : {}),
       customer: { email: order.email, first_name: billing.firstName, last_name: billing.lastName, billing_address: { line_1: billing.line1, line_2: billing.line2 ?? "", city: billing.city, postal_code: billing.postcode, country_code: billing.country } },
       metadata: { order_id: order.id, order_number: order.orderNumber },
     }));
@@ -72,12 +75,15 @@ export async function reconcileArgentPayment(orderId: string) {
   assertArgentIntent(intent, attempt.order, attempt.live);
   if (["EXPIRED", "CANCELLED"].includes(attempt.order.status)) throw new Error("argent_order_needs_review");
   if (intent.status !== "completed") {
-    await db.argentPayment.update({ where: { orderId }, data: { status: intent.status } });
+    await db.$transaction(async tx => {
+      await tx.argentPayment.update({ where: { orderId }, data: { status: intent.status } });
+      if (intent.status === "failed") await tx.orderEvent.upsert({ where: { id: `argent-failed:${intent.id}` }, create: { id: `argent-failed:${intent.id}`, orderId, type: "argent.failed", payload: { intentId: intent.id, live: attempt.live } }, update: {} });
+    });
     return { status: intent.status };
   }
   const paymentId = typeof intent.payment === "string" ? intent.payment : intent.payment?.id;
   if (!paymentId || (attempt.paymentId && attempt.paymentId !== paymentId)) throw new Error("argent_capture_missing");
-  const payment = z.object({ id: z.string(), payment_intent: z.string(), status: z.enum(["paid", "refunded", "partially_refunded"]) }).parse(await argentRequest(`/payments/${paymentId}`));
+  const payment = z.object({ id: z.string(), payment_intent: z.union([z.string(), z.object({ id: z.string() }).transform(v => v.id)]), status: z.enum(["paid", "refunded", "partially_refunded"]) }).parse(await argentRequest(`/payments/${paymentId}`));
   if (payment.id !== paymentId || payment.payment_intent !== intent.id) throw new Error("argent_capture_mismatch");
   if (payment.status === "partially_refunded") throw new Error("argent_partial_refund_needs_review");
   const refunded = payment.status === "refunded";

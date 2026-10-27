@@ -58,6 +58,7 @@ export type CreateOrderInput = {
 export async function createOrder(input: CreateOrderInput) {
   const argent = input.paymentMethod === "card" && argentEnabled();
   const argentTest = argent && !argentConfig()!.live;
+  if (argent && (input.currency ?? "EUR") !== argentConfig()!.checkoutCurrency) throw new OrderError("currency_not_configured");
   const syncToAvion = avionEnabled() && !argentTest;
   const receiptUrl = (locale: string, token: string) => `${storeBase()}/${locale}/checkout/${argent ? "argent" : avionEnabled() ? "received" : "pay"}?session=${token}`;
   const bank = input.paymentMethod === "bank_transfer" ? bankTransferConfig() : null;
