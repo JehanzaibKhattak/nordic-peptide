@@ -1,0 +1,121 @@
+--- /dev/null
++++ b/src/Shipping/Parcel2Go.php
+@@ -0,0 +1,66 @@
++<?php
++declare(strict_types=1);
++
++namespace Avion\Shipping;
++
++use Avion\Http;
++
++/** Server-to-server authentication and quotes. No booking or payment endpoints. */
++final class Parcel2Go
++{
++    private \Closure $request;
++    private string $base;
++    private ?string $token = null;
++    private int $expires = 0;
++
++    public function __construct(private array $credentials, ?callable $request = null)
++    {
++        $mode = $credentials['mode'] ?? '';
++        if (!in_array($mode, ['live', 'sandbox'], true) || empty($credentials['client_id']) || empty($credentials['client_secret'])) {
++            throw new \RuntimeException('Parcel2Go mode, client ID and secret are required');
++        }
++        $this->base = $mode === 'live' ? 'https://www.parcel2go.com' : 'https://sandbox.parcel2go.com';
++        $this->request = $request !== null ? \Closure::fromCallable($request) : Http::request(...);
++    }
++
++    /** Authentication metadata only; the bearer token never leaves this client. */
++    public function authenticate(): array
++    {
++        if ($this->token !== null && time() < $this->expires) return ['connected' => true, 'mode' => $this->credentials['mode']];
++        $response = $this->call('POST', '/auth/connect/token', http_build_query([
++            'grant_type' => 'client_credentials', 'scope' => 'public-api',
++            'client_id' => $this->credentials['client_id'], 'client_secret' => $this->credentials['client_secret'],
++        ]), ['Content-Type' => 'application/x-www-form-urlencoded']);
++        $data = $response['json'] ?? null;
++        if (($response['status'] ?? 0) !== 200 || !is_array($data) || !is_string($data['access_token'] ?? null)
++            || $data['access_token'] === '' || strcasecmp((string)($data['token_type'] ?? ''), 'Bearer') !== 0
++            || !is_numeric($data['expires_in'] ?? null) || (int)$data['expires_in'] < 1) {
++            throw new \RuntimeException('Parcel2Go authentication failed (HTTP ' . (int)($response['status'] ?? 0) . ')');
++        }
++        $this->token = $data['access_token'];
++        $this->expires = time() + max(0, (int)$data['expires_in'] - 30);
++        return ['connected' => true, 'mode' => $this->credentials['mode']];
++    }
++
++    /** Anonymous UK-to-UK quote; kilograms, centimetres and declared GBP value. */
++    public function quotes(float $weight, float $length, float $width, float $height, float $value): array
++    {
++        foreach ([$weight, $length, $width, $height] as $n) if (!is_finite($n) || $n <= 0 || $n > 1000) throw new \InvalidArgumentException('Invalid Parcel2Go parcel measurements');
++        if (!is_finite($value) || $value < 0 || $value > 1000000) throw new \InvalidArgumentException('Invalid Parcel2Go parcel value');
++        $this->authenticate();
++        $body = json_encode(['CollectionAddress' => ['Country' => 'GBR'], 'DeliveryAddress' => ['Country' => 'GBR'],
++            'Parcels' => [['Value' => $value, 'Weight' => $weight, 'Length' => $length, 'Width' => $width, 'Height' => $height]]], JSON_THROW_ON_ERROR);
++        $response = $this->call('POST', '/api/quotes', $body, ['Content-Type' => 'application/json', 'Authorization' => 'Bearer ' . $this->token]);
++        if (($response['status'] ?? 0) === 401) { $this->token = null; $this->expires = 0; }
++        if (($response['status'] ?? 0) !== 200 || !is_array($response['json']['Quotes'] ?? null)) {
++            throw new \RuntimeException('Parcel2Go quotes failed (HTTP ' . (int)($response['status'] ?? 0) . ')');
++        }
++        return $response['json']['Quotes'];
++    }
++
++    private function call(string $method, string $path, string $body, array $headers): array
++    {
++        try { return ($this->request)($method, $this->base . $path, $body, $headers + ['Accept' => 'application/json', 'User-Agent' => 'Peptbay-Avion/1.0'], 25); }
++        catch (\Throwable) { throw new \RuntimeException('Parcel2Go transport failed'); }
++    }
++}
+--- /dev/null
++++ b/bin/parcel2go-check.php
+@@ -0,0 +1,19 @@
++<?php
++declare(strict_types=1);
++
++// CLI only. Reads a private JSON credential file; never prints tokens or credentials.
++require dirname(__DIR__) . '/src/bootstrap.php';
++if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
++try {
++    $path = $argv[1] ?? '';
++    if ($path === '' || !is_file($path)) throw new RuntimeException('Provide the private Parcel2Go JSON credential file path');
++    $credentials = json_decode(file_get_contents($path), true, 16, JSON_THROW_ON_ERROR);
++    $client = new Avion\Shipping\Parcel2Go($credentials);
++    $result = $client->authenticate();
++    if (in_array('--quote', $argv, true)) {
++        // Documentation sample, not the store's actual package or a shipment booking.
++        $quotes = $client->quotes(1, 20, 15, 10, 100);
++        $result['sample_quote_count'] = count($quotes);
++    }
++    echo json_encode($result, JSON_THROW_ON_ERROR), PHP_EOL;
++} catch (Throwable $e) { fwrite(STDERR, $e instanceof JsonException ? "Invalid private credential file\n" : $e->getMessage() . "\n"); exit(1); }
+--- /dev/null
++++ b/tests/parcel2go.php
+@@ -0,0 +1,27 @@
++<?php
++declare(strict_types=1);
++require dirname(__DIR__) . '/src/Shipping/Parcel2Go.php';
++use Avion\Shipping\Parcel2Go;
++function check(bool $ok): void { if (!$ok) throw new RuntimeException('Parcel2Go test failed'); }
++$calls=[];
++$client=new Parcel2Go(['mode'=>'sandbox','client_id'=>'fixture-id','client_secret'=>'fixture-secret'],function($method,$url,$body,$headers) use (&$calls) {
++    $calls[]=[$method,$url,$body,$headers];
++    check(str_starts_with($url,'https://sandbox.parcel2go.com/'));
++    if (str_ends_with($url,'/auth/connect/token')) {
++        parse_str($body,$form);check($form['scope']==='public-api' && $form['client_secret']==='fixture-secret');
++        return ['status'=>200,'json'=>['access_token'=>'fixture-token','token_type'=>'Bearer','expires_in'=>7200]];
++    }
++    check($url==='https://sandbox.parcel2go.com/api/quotes' && $headers['Authorization']==='Bearer fixture-token');
++    check(json_decode($body,true)['Parcels'][0]['Weight']===1);
++    return ['status'=>200,'json'=>['Quotes'=>[['Service'=>['Name'=>'Fixture courier']]]]];
++});
++check($client->authenticate()===['connected'=>true,'mode'=>'sandbox']);
++check(count($client->quotes(1,20,15,10,100))===1);$client->quotes(1,20,15,10,100);check(count($calls)===3);
++foreach ([0,-1,INF,NAN] as $bad) { try {$client->quotes($bad,20,15,10,100);throw new LogicException('Accepted invalid parcel');}catch(InvalidArgumentException){}}
++foreach ([['status'=>403,'json'=>['access_token'=>'fixture-token']],['status'=>200,'json'=>[]]] as $response) {
++    $bad=new Parcel2Go(['mode'=>'live','client_id'=>'fixture-id','client_secret'=>'fixture-secret'],fn()=>$response);
++    try {$bad->authenticate();throw new LogicException('Accepted bad auth');}catch(RuntimeException $e){check(!str_contains($e->getMessage(),'fixture-secret') && !str_contains($e->getMessage(),'fixture-token'));}
++}
++$bad=new Parcel2Go(['mode'=>'live','client_id'=>'fixture-id','client_secret'=>'fixture-secret'],fn()=>throw new RuntimeException('fixture-secret'));
++try {$bad->authenticate();throw new LogicException('Accepted failed transport');}catch(RuntimeException $e){check($e->getMessage()==='Parcel2Go transport failed');}
++echo "Parcel2Go auth, token reuse, quote binding, validation, and redaction checks passed.\n";
