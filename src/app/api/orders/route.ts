@@ -1,3 +1,4 @@
+import { validCheckoutPhone } from "@/lib/checkout-phone";
 import { argentEnabled } from "@/lib/payments/argent-config";
 import { isStoreOrigin } from "@/lib/store-origin";
 import { guestBankCheckoutEnabled, guestCheckoutId } from "@/lib/guest-checkout";
@@ -32,7 +33,7 @@ const body = z.object({
   currency: z.string().length(3).default("EUR"),
   locale: z.enum(LOCALES).default("en"),
   email: z.string().email(),
-  shippingAddress: address,
+  shippingAddress: address.extend({ phone: z.string().trim().refine(validCheckoutPhone, "Enter a valid phone number for order updates") }),
   billingAddress: address,
   shippingMethod: z.enum(["standard", "express"]),
   couponCode: z.string().max(40).optional().nullable(),
