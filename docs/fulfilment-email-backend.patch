@@ -1,0 +1,192 @@
+--- /dev/null
++++ b/src/Messaging/ResendChannel.php
+@@ -0,0 +1,102 @@
++<?php
++declare(strict_types=1);
++
++namespace Avion\Messaging;
++
++use Avion\Http;
++use Avion\Uploads;
++
++/** Transactional fulfilment email; provider acceptance is not inbox delivery. */
++final class ResendChannel implements Channel
++{
++    private array $credentials;
++    private \Closure $transport;
++
++    public function __construct(?array $credentials = null, ?callable $transport = null)
++    {
++        $this->credentials = $credentials ?? (array)\config('integrations.credentials.resend', []);
++        $this->transport = \Closure::fromCallable($transport ?? [Http::class, 'postJson']);
++    }
++
++    public function send(array $message): SendResult
++    {
++        $key = (string)($this->credentials['api_key'] ?? '');
++        $from = (string)($this->credentials['from'] ?? '');
++        if ($key === '' || $from === '' || preg_match('/[\r\n]/', $from)) {
++            return SendResult::fail('Resend sender is not configured');
++        }
++        if (!filter_var($message['to_address'] ?? '', FILTER_VALIDATE_EMAIL)) {
++            return SendResult::fail('Invalid email recipient');
++        }
++        if (($message['template'] ?? '') !== 'shipped' || empty($message['idempotency_key'])) {
++            return SendResult::fail('Unsupported fulfilment email');
++        }
++        $params = $message['params'] ?? [];
++        $order = preg_replace('/[\r\n]/', '', (string)($params['order_number'] ?? ''));
++        $payload = [
++            'from' => $from, 'to' => [$message['to_address']],
++            'subject' => 'Your Peptbay order ' . $order . ' has shipped',
++            'text' => (string)($message['body'] ?? ''),
++        ];
++        try {
++            $attachments = $this->attachments($params['proof_media'] ?? [], (int)($message['order_id'] ?? 0));
++        } catch (\RuntimeException $e) {
++            return SendResult::fail($e->getMessage());
++        }
++        if ($attachments) {
++            $payload['attachments'] = $attachments;
++            $payload['text'] .= "\n\nYour packing photos/videos are attached.";
++        }
++        try {
++            $response = ($this->transport)('https://api.resend.com/emails', $payload, [
++                'Authorization' => 'Bearer ' . $key,
++                'Idempotency-Key' => 'avion-email-' . hash('sha256', (string)$message['idempotency_key']),
++            ], 30);
++        } catch (\Throwable) {
++            return SendResult::retry('Resend transport failed');
++        }
++        $status = (int)$response['status'];
++        $id = $response['json']['id'] ?? null;
++        if ($status >= 200 && $status < 300 && is_string($id) && $id !== '') {
++            return SendResult::sent($id);
++        }
++        // Do not log response bodies: providers can echo credentials, recipients or media.
++        return $status >= 500 || in_array($status, [0, 408, 429], true) || ($status >= 200 && $status < 300)
++            ? SendResult::retry('Resend HTTP ' . $status . ': email not acknowledged')
++            : SendResult::fail('Resend HTTP ' . $status . ': email rejected');
++    }
++
++    private function attachments(array $files, int $orderId): array
++    {
++        if (!$files) {
++            return [];
++        }
++        $root = realpath(Uploads::root() . '/proof/' . $orderId);
++        if ($orderId <= 0 || $root === false) {
++            throw new \RuntimeException('Packing media is unavailable');
++        }
++        $result = [];
++        $encodedBytes = 0;
++        foreach ($files as $file) {
++            $path = realpath(Uploads::root() . '/' . (string)($file['path'] ?? ''));
++            if (!$path || !str_starts_with($path, $root . '/') || !is_file($path) || !is_readable($path)) {
++                throw new \RuntimeException('Packing media is unavailable');
++            }
++            $size = filesize($path);
++            $encodedBytes += 4 * (int)ceil($size / 3);
++            // Resend allows 40 MB including Base64; leave room for MIME/body overhead.
++            if ($encodedBytes > 36 * 1024 * 1024) {
++                throw new \RuntimeException('Packing media exceeds email attachment limit; smaller files required');
++            }
++            if (!hash_equals((string)($file['sha256'] ?? ''), (string)hash_file('sha256', $path))) {
++                throw new \RuntimeException('Packing media changed since approval');
++            }
++            $content = file_get_contents($path);
++            if ($content === false) {
++                throw new \RuntimeException('Packing media is unavailable');
++            }
++            $result[] = ['filename' => basename($path), 'content' => base64_encode($content)];
++        }
++        return $result;
++    }
++}
+--- /dev/null
++++ b/tests/resend.php
+@@ -0,0 +1,48 @@
++<?php
++declare(strict_types=1);
++namespace Avion { final class Uploads { public static function root(): string { return $GLOBALS['media_root']; } } }
++namespace Avion\Models { final class Order { public static function media(int $id): array { return [['path'=>'proof/'.$id.'/fixture.png','sha256'=>'fixture-hash']]; } } }
++namespace Avion\Messaging { final class Outbox { public static function queue(...$args): void {$GLOBALS['queued'][]=$args;} } }
++namespace {
++require dirname(__DIR__) . '/src/Messaging/Channel.php';
++require dirname(__DIR__) . '/src/Messaging/SendResult.php';
++require dirname(__DIR__) . '/src/Messaging/ResendChannel.php';
++require dirname(__DIR__) . '/src/Notifier.php';
++use Avion\Messaging\ResendChannel;
++function check(bool $ok): void { if (!$ok) { throw new \RuntimeException('Resend assertion failed'); } }
++$GLOBALS['media_root'] = sys_get_temp_dir() . '/avion-email-' . bin2hex(random_bytes(6));
++mkdir($GLOBALS['media_root'] . '/proof/7', 0700, true);
++$path = $GLOBALS['media_root'] . '/proof/7/fixture.png';
++file_put_contents($path, 'synthetic packing photo');
++$message = ['template'=>'shipped','order_id'=>7,'to_address'=>'recipient@example.invalid',
++    'body'=>'Synthetic tracking details','idempotency_key'=>'shipped:email:7:TEST',
++    'params'=>['order_number'=>'TEST-7','proof_media'=>[['path'=>'proof/7/fixture.png','sha256'=>hash_file('sha256',$path)]]]];
++$credentials = ['api_key'=>'fixture-secret','from'=>'Peptbay <sender@example.invalid>'];
++$calls=[];
++$channel = new ResendChannel($credentials, function($url,$body,$headers) use (&$calls) {
++    $calls[]=[$url,$body,$headers]; return ['status'=>200,'json'=>['id'=>'fixture-email']];
++});
++try {
++    Avion\Notifier::shipped(['id'=>7,'customer_id'=>1,'order_number'=>'TEST-7','carrier'=>'Royal Mail','tracking_number'=>'TESTONLY','contact_email'=>'recipient@example.invalid','contact_phone'=>'']);
++    check(count($GLOBALS['queued'])===2);
++    check(!isset($GLOBALS['queued'][0][4]['proof_media']));
++    check($GLOBALS['queued'][1][0]==='email' && $GLOBALS['queued'][1][4]['proof_media'][0]['path']==='proof/7/fixture.png');
++    $result=$channel->send($message); check($result->ok && $result->providerMessageId==='fixture-email');
++    check($calls[0][0]==='https://api.resend.com/emails');
++    check(base64_decode($calls[0][1]['attachments'][0]['content'])==='synthetic packing photo');
++    $channel->send($message); check($calls[0][2]['Idempotency-Key']===$calls[1][2]['Idempotency-Key']);
++    foreach ([400=>false,429=>true,500=>true] as $status=>$retry) {
++        $driver=new ResendChannel($credentials,fn()=>['status'=>$status,'json'=>['message'=>'fixture-secret']]);
++        $r=$driver->send($message);check(!$r->ok && $r->retryable===$retry && !str_contains($r->error,'fixture-secret'));
++    }
++    $driver=new ResendChannel($credentials,fn()=>throw new \RuntimeException('fixture-secret'));
++    check($driver->send($message)->error==='Resend transport failed');
++    $bad=$message;$bad['to_address']='invalid';check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['params']['proof_media'][0]['path']='../../etc/passwd';check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['order_id']=8;check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['params']['proof_media'][0]['sha256']=str_repeat('0',64);check(!$channel->send($bad)->ok);
++    $stream=fopen($path,'w');ftruncate($stream,29*1024*1024);fclose($stream);
++    check(str_contains($channel->send($message)->error,'attachment limit'));
++    echo "Resend payload, media ownership/hash/size checks, retries, redaction and idempotency passed.\n";
++} finally { unlink($path);rmdir(dirname($path));rmdir(dirname(dirname($path)));rmdir($GLOBALS['media_root']); }
++}
+--- a/config/config.php
++++ b/config/config.php
+@@ -41,7 +41,8 @@
+         // channel => class implementing Avion\Messaging\Channel
+         'channels' => $local['integrations']['channels'] ?? [
+             'whatsapp' => 'Avion\\Messaging\\LogChannel',
+-            'email'    => 'Avion\\Messaging\\LogChannel',
++            'email'    => getenv('AVION_RESEND_ENABLED') === '1'
++                ? 'Avion\\Messaging\\ResendChannel' : 'Avion\\Messaging\\LogChannel',
+         ],
+         // class implementing Avion\Shipping\Carrier
+         'carrier' => $local['integrations']['carrier'] ?? (getenv('AVION_ROYALMAIL_ENABLED') === '1'
+@@ -50,6 +51,10 @@
+         'webhooks' => $local['integrations']['webhooks'] ?? [],
+         // per-provider credentials, read by the driver classes
+         'credentials' => array_replace_recursive([
++            'resend' => [
++                'api_key' => getenv('AVION_RESEND_API_KEY') ?: '',
++                'from' => getenv('AVION_EMAIL_FROM') ?: '',
++            ],
+             'clickdrop' => [
+                 'api_key' => getenv('AVION_CLICKDROP_API_KEY') ?: '',
+             ],
+--- a/src/Notifier.php
++++ b/src/Notifier.php
+@@ -51,6 +51,10 @@
+         $msg = "Your order {$order['order_number']} has shipped via {$order['carrier']}. "
+              . "Tracking: {$trk} — " . self::royalMailUrl($trk);
+         self::queue($order, 'whatsapp', 'shipped', $params, $msg, 'shipped:wa:' . $order['id'] . ':' . $trk);
++        // Snapshot only this order's approved upload metadata for stable retries.
++        $params['proof_media'] = array_map(static fn(array $file): array => [
++            'path' => $file['path'], 'sha256' => $file['sha256'],
++        ], \Avion\Models\Order::media((int)$order['id']));
+         self::queue($order, 'email', 'shipped', $params, $msg, 'shipped:email:' . $order['id'] . ':' . $trk);
+     }
+ 
