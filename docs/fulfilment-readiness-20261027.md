@@ -25,3 +25,7 @@ The user selected Meta API and already has respond.io. Use respond.io as the sta
 ## Validation
 
 116 storefront tests passed; one optional integration test skipped. TypeScript, touched-file lint and production build passed. At 1440px and 390px the checkout blocks missing/invalid phone numbers, accepts a formatted international number, displays the WhatsApp note, and has no horizontal overflow. No order was submitted. These checkout changes are reviewable code and have not yet been deployed.
+
+## Parcel2Go update
+
+The account owner generated API credentials and added them to the private file. Standard curl and the new PHP backend client successfully authenticated and returned 40 anonymous UK sample quotes. See [the connection report](parcel2go-connection.md). No shipment was booked or paid, and the running production carrier remains unchanged.
