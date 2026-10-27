@@ -1,0 +1,28 @@
+{
+  "environment": "isolated local storefront + real Argent test API/hosted page",
+  "hostedPaymentPageUrl": "https://pay.argentplatforms.com",
+  "orders": [
+    {
+      "orderNumber": "NPS78238296",
+      "status": "PAID",
+      "currency": "USD",
+      "totalCents": 790,
+      "intentId": "pymint_cmvqx6a71003q1op7a1iairv0",
+      "paymentId": "pymt_cmvqx76e7003w1op7hvlgbiqx",
+      "providerStatus": "completed",
+      "live": 0
+    },
+    {
+      "orderNumber": "NPS48947328",
+      "status": "PENDING",
+      "currency": "USD",
+      "totalCents": 790,
+      "intentId": "pymint_cmvqwx003002z1op7izrizvyw",
+      "paymentId": null,
+      "providerStatus": "failed",
+      "live": 0
+    }
+  ],
+  "live_store_changed": false,
+  "production_fulfilment_or_affiliate_reporting": false
+}

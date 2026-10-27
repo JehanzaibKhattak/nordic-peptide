@@ -1,4 +1,4 @@
-import { argentEnabled } from "@/lib/payments/argent-config";
+import { argentEnabled, argentConfig } from "@/lib/payments/argent-config";
 import { guestBankCheckoutEnabled } from "@/lib/guest-checkout";
 import { bankTransferConfig } from "@/lib/bank-transfer";
 import { currentPurchaser } from "@/lib/purchaser-session";
@@ -26,7 +26,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ local
   if (!BROWSE_ONLY) {
     if (guestBankCheckoutEnabled() || argentEnabled()) {
       const bank = bankTransferConfig();
-      const currency = bank?.currency ?? "GBP";
+      const currency = bank?.currency ?? argentConfig()?.checkoutCurrency ?? "GBP";
       const rate = await db.checkoutCurrency.findUnique({ where: { code: currency } });
       if (!rate?.enabled) throw new Error("Bank checkout currency is not configured");
       return <CheckoutForm paymentCurrencies={[currency]} paymentRates={{ [currency]: rate.eurRate }} avionCheckout bankCurrency={bank?.currency ?? null} argentCheckout={argentEnabled()} guestBankCheckout />;

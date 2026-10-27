@@ -1,3 +1,4 @@
+import { argentBrowserSchema } from "@/lib/payments/argent-browser";
 import { BROWSE_ONLY } from "@/lib/deployment-mode";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   const headers = { "cache-control": "no-store" };
   if (!isStoreOrigin(req)) return NextResponse.json({ error: "invalid_origin" }, { status: 403, headers });
   if (!await commerceRateLimit(`argent:${clientIp(req)}`, 30, 60000)) return NextResponse.json({ error: "rate_limited" }, { status: 429, headers });
-  const parsed = z.object({ session: z.string().min(10).max(200), action: z.enum(["start", "refresh"]) }).strict().safeParse(await argentBody(req).then(JSON.parse).catch(() => null));
+  const parsed = z.object({ session: z.string().min(10).max(200), action: z.enum(["start", "refresh"]), browserInfo: argentBrowserSchema.optional() }).strict().safeParse(await argentBody(req).then(JSON.parse).catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid_body" }, { status: 400, headers });
   if (parsed.data.action === "start" && BROWSE_ONLY) return NextResponse.json({ error: "checkout_paused" }, { status: 503, headers });
   const session = await ownedArgentSession(parsed.data.session);
@@ -24,6 +25,6 @@ export async function POST(req: Request) {
     if (base.protocol !== "https:" && process.env.NODE_ENV === "production") throw new Error("store_url_not_configured");
     const returnUrl = new URL(`/${session.order.locale}/checkout/argent`, base);
     returnUrl.searchParams.set("session", session.token);
-    return NextResponse.json({ url: await startArgentPayment(session.orderId, returnUrl.toString()) }, { headers });
+    return NextResponse.json({ url: await startArgentPayment(session.orderId, returnUrl.toString(), parsed.data.browserInfo) }, { headers });
   } catch { return NextResponse.json({ error: "Payment needs verification. Please check its status or contact support before trying again." }, { status: 409, headers }); }
 }

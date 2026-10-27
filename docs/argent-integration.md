@@ -1,6 +1,6 @@
 # Argent hosted checkout integration
 
-Implemented from the supplied PaymentJS guide and the official API schema, with the current official PaymentJS source inspected on 26 October 2026. This is built and fixture-tested, not merchant-tested or activated. Existing bank-transfer checkout stays available.
+Implemented from the supplied PaymentJS guide and the official API schema, with the current official PaymentJS source inspected on 26 October 2026. This is built and fixture-tested, with real-provider USD success/decline testing now recorded in [the USD test report](argent-usd-test-report.md). Live card checkout is not activated. Existing bank-transfer checkout stays available.
 
 Sources:
 - https://api.argentplatforms.com/docs
@@ -10,7 +10,7 @@ Sources:
 
 ## Flow
 
-1. Enabling the configured provider exposes a Card option in standard guest checkout and the RETA lander. Order totals, RETA discounts and currency are calculated on the server. Only GBP is supported by this first integration.
+1. Enabling the configured provider exposes a Card option in standard guest checkout and the RETA lander. Order totals, RETA discounts and currency are calculated on the server. Live mode supports GBP in this first integration; an isolated test environment can set `ARGENT_TEST_CURRENCY=USD` or `EUR`.
 2. The saved private checkout session takes the buyer to `/en/checkout/argent?session=...`. The guest HttpOnly cookie or purchaser login must own the order. An opaque session token alone does not grant access.
 3. Clicking Continue requests a hosted intent through the storefront server. Basic authentication uses the private secret key, with a blank password. The API receives the saved total in decimal GBP, the order number as reference, `merchant_initiated:false`, and `flow:hosted`. No card data touches the storefront.
 4. A unique `ArgentPayment.orderId` is committed before the POST. The server validates reference, amount, currency, company and mode, saves the intent, then constructs the hosted URL using the returned URL, ID, token and public key. These continuation parameters match the official PaymentJS implementation. HTTPS hosted origins must be explicitly allowlisted.
@@ -35,6 +35,8 @@ ARGENT_SECRET_KEY=
 ARGENT_WEBHOOK_SECRET=
 ARGENT_COMPANY_ID=
 ARGENT_HOSTED_ORIGINS=
+ARGENT_HOSTED_PAYMENT_PAGE_URL=https://pay.argentplatforms.com
+ARGENT_TEST_CURRENCY=GBP
 ```
 
 `ARGENT_HOSTED_ORIGINS` is a comma-separated list of exact approved HTTPS origins without trailing slashes. Obtain the actual hosted origin from Argent; do not use a guessed domain. `ARGENT_COMPANY_ID` is the provider's ID for the approved Ace Consumer Electronics merchant account, not its display name.

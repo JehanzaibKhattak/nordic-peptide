@@ -58,7 +58,7 @@
  // --- inbound webhooks (providers registered in config integrations.webhooks) ---
 --- /dev/null
 +++ b/src/ArgentPayments.php
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,68 @@
 +<?php
 +declare(strict_types=1);
 +namespace Avion;
@@ -74,6 +74,7 @@
 +    {
 +        $totals = json_decode($order['retail_totals'] ?? 'null', true);
 +        $paymentId = is_array($intent['payment'] ?? null) ? ($intent['payment']['id'] ?? null) : ($intent['payment'] ?? null);
++        $boundIntent = is_array($payment['payment_intent'] ?? null) ? ($payment['payment_intent']['id'] ?? null) : ($payment['payment_intent'] ?? null);
 +        if (!is_array($totals) || ($totals['currency'] ?? '') !== 'GBP' || ($intent['live'] ?? null) !== true
 +            || ($intent['status'] ?? '') !== 'completed' || ($intent['company']['id'] ?? '') !== $company
 +            || ($intent['reference'] ?? '') !== ($order['source_order_ref'] ?? '')
@@ -81,7 +82,7 @@
 +            || abs((float)$intent['amount'] * 100 - round((float)$intent['amount'] * 100)) > 0.00001
 +            || (int)round((float)$intent['amount'] * 100) !== (int)round((float)$totals['total'] * 100)
 +            || !is_string($paymentId) || ($payment['id'] ?? '') !== $paymentId
-+            || ($payment['payment_intent'] ?? '') !== ($intent['id'] ?? '')
++            || $boundIntent !== ($intent['id'] ?? '')
 +            || !in_array($payment['status'] ?? '', ['paid','refunded'], true)) {
 +            throw new \RuntimeException('argent_payment_mismatch');
 +        }
@@ -200,3 +201,14 @@
 +    putenv('ARGENT_MODE=test'); if (json_decode($controller->argentStatus(),true)['configured']) throw new \Exception('Back office accepted test mode');
      echo "Postback monitor auth, source scope, read-only query and response checks passed.\n";
  }
+--- /dev/null
++++ b/tests/argent-contract.php
+@@ -0,0 +1,8 @@
++<?php
++declare(strict_types=1);
++require dirname(__DIR__).'/src/ArgentPayments.php';
++$intent=['id'=>'intent-test','payment'=>['id'=>'payment-test'],'live'=>true,'status'=>'completed','company'=>['id'=>'company-test'],'reference'=>'ORDER-TEST','currency'=>['code'=>'GBP'],'amount'=>'7.90'];
++$order=['retail_totals'=>json_encode(['currency'=>'GBP','total'=>7.90]),'source_order_ref'=>'ORDER-TEST'];
++foreach (['intent-test',['id'=>'intent-test']] as $binding) Avion\ArgentPayments::validate($intent,['id'=>'payment-test','payment_intent'=>$binding,'status'=>'paid'],$order,'company-test');
++try { Avion\ArgentPayments::validate($intent,['id'=>'payment-test','payment_intent'=>['id'=>'foreign-intent'],'status'=>'paid'],$order,'company-test'); throw new LogicException('Mismatched capture accepted'); } catch (RuntimeException $e) { if ($e->getMessage()!=='argent_payment_mismatch') throw $e; }
++echo "Argent nested capture contract and mismatch rejection passed.\n";
