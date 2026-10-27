@@ -24,7 +24,7 @@ import { processStripeEvent, verifyStripeEvent } from "@/lib/payments/stripe-web
 
 const directory = mkdtempSync(join(tmpdir(), "avion-commerce-"));
 const url = `file:${join(directory, "test.db")}`;
-const address = { firstName: "Research", lastName: "Buyer", line1: "Lab 1", city: "Madrid", postcode: "28001", country: "ES" };
+const address = { firstName: "Research", lastName: "Buyer", line1: "Lab 1", city: "Madrid", postcode: "28001", country: "ES", phone: "+34612345678" };
 const input = { purchaserId: "buyer", email: "buyer@lab.example", locale: "en", shippingAddress: address, billingAddress: address, shippingMethod: "standard" as const, items: [{ variantId: "variant", qty: 2 }] };
 
 beforeAll(async () => {
@@ -115,6 +115,19 @@ describe("approval and trusted order boundary", () => {
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_example"); expect(stripeTestEnabled()).toBe(true);
     vi.stubEnv("LIVE_PAYMENTS_ENABLED", "true"); expect(stripeTestEnabled()).toBe(false);
     vi.unstubAllEnvs();
+  });
+});
+
+describe("checkout contact requirement", () => {
+  it("rejects missing and malformed shipping phone numbers at the API before order creation", async () => {
+    vi.stubEnv("STRIPE_CHECKOUT_ENABLED", "true"); vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_fixture"); vi.stubEnv("LIVE_PAYMENTS_ENABLED", "false");
+    vi.stubEnv("STORE_BASE_URL", "https://store.example");
+    for (const phone of [undefined, "", "   ", "not-a-number", "123"]) {
+      const response = await createOrderRoute(new Request("https://store.example/api/orders", { method: "POST", headers: { origin: "https://store.example", "content-type": "application/json" }, body: JSON.stringify({ ...input, shippingAddress: { ...address, phone } }) }));
+      expect(response.status).toBe(400);
+      expect((await response.json()).error).toBe("invalid_body");
+    }
+    expect(await fixture.db.order.count()).toBe(0);
   });
 });
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { validCheckoutPhone } from "@/lib/checkout-phone";
 import { retaPackDiscount } from "@/lib/reta-offer";
 
 import { CheckoutTrust } from "@/components/store/checkout-trust";
@@ -90,6 +91,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!validCheckoutPhone(ship.phone)) { setError(t("phoneInvalid")); return; }
     if (paymentMethod === "bank_transfer" && !(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency) { setError(t("bankTransferUnavailable")); return; }
 
     if (BROWSE_ONLY && DEMO_CHECKOUT) {
@@ -174,7 +176,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
   const countryName = SHIPPING_COUNTRIES.find((c) => c.code === ship.country)?.name ?? ship.country;
   const buttonClass = "h-12 min-w-0 w-full whitespace-normal leading-tight rounded-[10px] bg-[#2d5b40] font-semibold text-white hover:bg-[#234832] disabled:bg-[#d7dbce] disabled:text-[#9eaf97] disabled:opacity-100";
   const detailsComplete = Boolean(email.trim() && ship.firstName.trim() && ship.lastName.trim());
-  const shippingComplete = Boolean(ship.line1.trim() && ship.city.trim() && ship.postcode.trim() && (billingSame || (bill.firstName.trim() && bill.lastName.trim() && bill.line1.trim() && bill.city.trim() && bill.postcode.trim())));
+  const shippingComplete = Boolean(validCheckoutPhone(ship.phone) && ship.line1.trim() && ship.city.trim() && ship.postcode.trim() && (billingSame || (bill.firstName.trim() && bill.lastName.trim() && bill.line1.trim() && bill.city.trim() && bill.postcode.trim())));
 
   const addressFields = (addr: Address, set: (a: Address) => void, prefix: string) => (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -193,7 +195,12 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
         </select>
       </div>
       {prefix === "ship" && UK_ONLY_SHIPPING && <p className="text-xs text-muted-foreground sm:col-span-2">Royal Mail Tracked 24 delivery within Great Britain. Northern Ireland and Channel Islands are not yet supported.</p>}
-      {prefix === "ship" && <Field id="phone" label={t("phone")} value={addr.phone ?? ""} onChange={(v) => set({ ...addr, phone: v })} type="tel" className="sm:col-span-2" />}
+      {prefix === "ship" && <div className="space-y-2 sm:col-span-2">
+        <Field id="phone" label={t("phone")} value={addr.phone ?? ""} onChange={(v) => set({ ...addr, phone: v })} type="tel" required />
+        <p id="phone-help" className="flex items-start gap-2 text-xs leading-relaxed text-[#536b5c]">
+          <Image src="/sales/whatsapp.svg" alt="" width={16} height={16} className="mt-0.5 shrink-0" />{t("phoneUpdates")}
+        </p>
+      </div>}
     </div>
   );
 
@@ -348,7 +355,7 @@ function Field({
   return (
     <div className={`space-y-1.5 ${className ?? ""}`}>
       <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-[#7c9073]">{label}</Label>
-      <Input id={id} name={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} className="h-[46px] rounded-[10px] border-[#d5cbb9] bg-white px-3.5 text-sm text-[#173b2e] placeholder:text-[#9eaf97]" autoComplete={id} />
+      <Input id={id} name={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} className="h-[46px] rounded-[10px] border-[#d5cbb9] bg-white px-3.5 text-sm text-[#173b2e] placeholder:text-[#9eaf97]" autoComplete={id === "phone" ? "tel" : id} aria-describedby={id === "phone" ? "phone-help" : undefined} />
     </div>
   );
 }
