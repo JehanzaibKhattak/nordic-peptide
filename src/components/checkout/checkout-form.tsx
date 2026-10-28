@@ -198,7 +198,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
       {prefix === "ship" && <div className="space-y-2 sm:col-span-2">
         <Field id="phone" label={t("phone")} value={addr.phone ?? ""} onChange={(v) => set({ ...addr, phone: v })} type="tel" required />
         <p id="phone-help" className="flex items-start gap-2 text-xs leading-relaxed text-[#536b5c]">
-          <Image src="/sales/whatsapp.svg" alt="" width={16} height={16} className="mt-0.5 shrink-0" />{t("phoneUpdates")}
+          <Image src="/sales/whatsapp.svg" alt="" width={16} height={16} className="mt-0.5 shrink-0 rounded-full bg-[#25d366] p-0.5" />{t("phoneUpdates")}
         </p>
       </div>}
     </div>
