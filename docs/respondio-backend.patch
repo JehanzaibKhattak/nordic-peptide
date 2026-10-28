@@ -1,0 +1,539 @@
+--- /dev/null
++++ b/src/Messaging/RespondIoChannel.php
+@@ -0,0 +1,130 @@
++<?php
++declare(strict_types=1);
++namespace Avion\Messaging;
++
++use Avion\Database;
++use Avion\Http;
++
++final class RespondIoChannel implements Channel
++{
++    public const TEMPLATES = [
++        'payment_link' => ['peptbay_payment_link', ['order_number', 'total', 'link']],
++        'payment_confirmed' => ['peptbay_payment_confirmed', ['order_number']],
++        'shipped' => ['peptbay_order_shipped_v2', ['order_number', 'carrier', 'tracking_number', 'tracking_url', 'proof_url']],
++        'logistics_new_order' => ['peptbay_pack_order', ['order_number', 'items', 'pack_url']],
++    ];
++    private array $credentials;
++    private \Closure $transport;
++    private ?array $ready = null;
++
++    public function __construct(?array $credentials = null, ?callable $transport = null)
++    {
++        $this->credentials = $credentials ?? (array)\config('integrations.credentials.respondio', []);
++        $this->transport = \Closure::fromCallable($transport ?? [Http::class, 'request']);
++    }
++
++    public function request(string $method, string $path, ?array $body = null, int $timeout = 10): array
++    {
++        try {
++            return ($this->transport)($method, 'https://api.respond.io/v2' . $path,
++                $body === null ? null : json_encode($body, JSON_THROW_ON_ERROR),
++                ['Authorization' => 'Bearer ' . ($this->credentials['token'] ?? ''), 'Content-Type' => 'application/json'], $timeout);
++        } catch (\Throwable) {
++            throw new \RuntimeException('Respond.io transport failed');
++        }
++    }
++
++    public function readiness(): array
++    {
++        if ($this->ready !== null) { return $this->ready; }
++        $id = (int)($this->credentials['channel_id'] ?? 0);
++        if (empty($this->credentials['token']) || $id < 1) { throw new \RuntimeException('Respond.io is not configured'); }
++        $channels = $this->request('GET', '/space/channel');
++        if ($channels['status'] !== 200 || !in_array($id, array_column($channels['json']['items'] ?? [], 'id'), true)) {
++            throw new \RuntimeException('Respond.io channel access could not be verified');
++        }
++        $templates = $this->request('GET', '/space/channel/' . $id . '/template?limit=100');
++        if ($templates['status'] !== 200) { throw new \RuntimeException('Respond.io templates could not be read'); }
++        $approved = [];
++        foreach ($templates['json']['items'] ?? [] as $t) {
++            if (strtolower((string)($t['status'] ?? '')) === 'approved' && ($t['languageCode'] ?? '') === 'en_GB') { $approved[] = $t['name']; }
++        }
++        return $this->ready = ['channel_id' => $id, 'approved_templates' => $approved,
++            'missing_templates' => array_values(array_diff(array_column(self::TEMPLATES, 0), $approved))];
++    }
++
++    public function send(array $m): SendResult
++    {
++        $phone = (string)($m['to_address'] ?? '');
++        if (!preg_match('/^\+?[1-9]\d{7,14}$/D', $phone)) { return SendResult::fail('Invalid WhatsApp recipient'); }
++        $phone = '+' . ltrim($phone, '+');
++        $mapping = self::TEMPLATES[$m['template'] ?? ''] ?? null;
++        if (!$mapping || empty($m['id']) || empty($m['idempotency_key'])) { return SendResult::fail('Unsupported WhatsApp notification'); }
++        $params = $m['params'] ?? [];
++        $values = [];
++        foreach ($mapping[1] as $field) {
++            $value = trim((string)($params[$field] ?? ''));
++            if ($value === '' || strlen($value) > 1024) { return SendResult::fail('WhatsApp notification is missing a valid ' . $field); }
++            $values[] = ['type' => 'text', 'text' => $value];
++        }
++        try {
++            $ready = $this->readiness();
++            if (in_array($mapping[0], $ready['missing_templates'], true)) { return SendResult::fail('WhatsApp template is not approved: ' . $mapping[0]); }
++            $identifier = 'phone:' . rawurlencode($phone);
++            $contact = $this->request('GET', '/contact/' . $identifier);
++            if ($contact['status'] === 404) {
++                $created = $this->request('POST', '/contact/' . $identifier, ['firstName' => 'Peptbay customer', 'phone' => $phone]);
++                if ($created['status'] < 200 || $created['status'] >= 300) { return SendResult::fail('Respond.io contact could not be created'); }
++            } elseif ($contact['status'] !== 200) { return SendResult::retry('Respond.io contact lookup failed'); }
++        } catch (\RuntimeException) { return SendResult::retry('Respond.io preflight failed'); }
++
++        // The provider documents no idempotency key. Persist intent BEFORE sending;
++        // an ambiguous timeout/crash requires reconciliation, never a blind resend.
++        $pdo = Database::pdo();
++        $claim = $pdo->prepare("UPDATE messages SET provider_message_id = 'respond:pending' WHERE id = ? AND (provider_message_id IS NULL OR provider_message_id = '')");
++        $claim->execute([(int)$m['id']]);
++        if ($claim->rowCount() !== 1) {
++            $q = $pdo->prepare('SELECT provider_message_id FROM messages WHERE id = ?'); $q->execute([(int)$m['id']]); $existing = (string)$q->fetchColumn();
++            return preg_match('/^respond:\d+$/D', $existing) ? SendResult::sent($existing)
++                : SendResult::fail('WhatsApp delivery is uncertain; reconcile in respond.io before retrying');
++        }
++        try {
++            $r = $this->request('POST', '/contact/' . $identifier . '/message', ['channelId' => $ready['channel_id'],
++                'message' => ['type' => 'whatsapp_template', 'template' => ['name' => $mapping[0], 'languageCode' => 'en_GB',
++                    'components' => [['type' => 'body', 'parameters' => $values]]]]]);
++        } catch (\RuntimeException) { return SendResult::fail('WhatsApp delivery is uncertain; reconcile in respond.io before retrying'); }
++        $status = (int)$r['status'];
++        $id = $r['json']['messageId'] ?? null;
++        if ($status >= 200 && $status < 300 && ((is_int($id) && $id > 0) || (is_string($id) && ctype_digit($id) && (int)$id > 0))) {
++            $id = 'respond:' . $id;
++            $pdo->prepare('UPDATE messages SET provider_message_id = ? WHERE id = ?')->execute([$id, (int)$m['id']]);
++            return SendResult::sent($id);
++        }
++        if ($status >= 400 && $status < 500) {
++            $pdo->prepare('UPDATE messages SET provider_message_id = NULL WHERE id = ?')->execute([(int)$m['id']]);
++            return $status === 429 ? SendResult::retry('Respond.io rate limit') : SendResult::fail('Respond.io rejected WhatsApp notification: HTTP ' . $status);
++        }
++        return SendResult::fail('WhatsApp delivery is uncertain; reconcile in respond.io before retrying');
++    }
++
++    public function pollStatuses(): int
++    {
++        $pdo = Database::pdo();
++        $rows = $pdo->query("SELECT id, to_address, provider_message_id FROM messages WHERE channel='whatsapp' AND status='sent' AND provider_message_id REGEXP '^respond:[0-9]+$' AND sent_at > NOW() - INTERVAL 14 DAY AND next_attempt_at <= NOW() ORDER BY next_attempt_at LIMIT 25")->fetchAll();
++        $updated = 0;
++        $started = microtime(true);
++        foreach ($rows as $m) {
++            if (microtime(true) - $started >= 10) { break; }
++            $pdo->prepare('UPDATE messages SET next_attempt_at = NOW() + INTERVAL 15 MINUTE WHERE id = ?')->execute([$m['id']]);
++            try { $r = $this->request('GET', '/contact/phone:' . rawurlencode('+' . ltrim($m['to_address'], '+')) . '/message/' . substr($m['provider_message_id'], 8), null, 4); }
++            catch (\RuntimeException) { continue; }
++            if ($r['status'] !== 200 || (int)($r['json']['channelId'] ?? 0) !== (int)$this->credentials['channel_id']) { continue; }
++            foreach ($r['json']['status'] ?? [] as $status) {
++                if (in_array($status['value'] ?? '', ['delivered', 'read', 'failed'], true)) {
++                    $updated += (int)Outbox::updateStatus($m['provider_message_id'], $status['value'], $status['value'] === 'failed' ? 'WhatsApp provider reported failed delivery' : null);
++                }
++            }
++        }
++        return $updated;
++    }
++}
+--- /dev/null
++++ b/src/Messaging/PackingProof.php
+@@ -0,0 +1,31 @@
++<?php
++declare(strict_types=1);
++namespace Avion\Messaging;
++
++/** An expiring bearer link grants access only to one order's packing media. */
++final class PackingProof
++{
++    public static function url(int $orderId, int $expires): string
++    {
++        $base = (string)\config('app.base_url');
++        $key = (string)\config('integrations.credentials.respondio.proof_secret', '');
++        if ($orderId < 1 || strlen($key) < 32 || !str_starts_with($base, 'https://')) {
++            throw new \RuntimeException('Private packing links are not configured');
++        }
++        $signature = hash_hmac('sha256', $orderId . ':' . $expires, $key);
++        return rtrim($base, '/') . '/packing-proof/' . $orderId . '?expires=' . $expires . '&signature=' . $signature;
++    }
++
++    public static function verify(int $orderId, int $expires, string $signature): bool
++    {
++        if ($expires < time() || $expires > time() + 15 * 86400 || !preg_match('/^[a-f0-9]{64}$/D', $signature)) {
++            return false;
++        }
++        try {
++            parse_str((string)parse_url(self::url($orderId, $expires), PHP_URL_QUERY), $query);
++            return hash_equals($query['signature'], $signature);
++        } catch (\RuntimeException) {
++            return false;
++        }
++    }
++}
+--- a/src/Messaging/ResendChannel.php
++++ b/src/Messaging/ResendChannel.php
+@@ -40,6 +40,14 @@
+         ];
+         try {
+             $attachments = $this->attachments($params['proof_media'] ?? [], (int)($message['order_id'] ?? 0));
++        } catch (\LengthException $e) {
++            $link = (string)($params['proof_url'] ?? '');
++            $base = rtrim((string)\config('app.base_url', ''), '/');
++            if ($base === '' || !str_starts_with($link, $base . '/packing-proof/')) {
++                return SendResult::fail($e->getMessage());
++            }
++            $attachments = [];
++            $payload['text'] .= "\n\nView/download your packing photos/videos using this private link (valid for 14 days): " . $link;
+         } catch (\RuntimeException $e) {
+             return SendResult::fail($e->getMessage());
+         }
+@@ -86,7 +94,7 @@
+             $encodedBytes += 4 * (int)ceil($size / 3);
+             // Resend allows 40 MB including Base64; leave room for MIME/body overhead.
+             if ($encodedBytes > 36 * 1024 * 1024) {
+-                throw new \RuntimeException('Packing media exceeds email attachment limit; smaller files required');
++                throw new \LengthException('Packing media exceeds email attachment limit; smaller files or a private packing link required');
+             }
+             if (!hash_equals((string)($file['sha256'] ?? ''), (string)hash_file('sha256', $path))) {
+                 throw new \RuntimeException('Packing media changed since approval');
+--- /dev/null
++++ b/src/Controllers/PackingProofController.php
+@@ -0,0 +1,53 @@
++<?php
++declare(strict_types=1);
++namespace Avion\Controllers;
++
++use Avion\Database;
++use Avion\Messaging\PackingProof;
++use Avion\Uploads;
++
++final class PackingProofController
++{
++    public function show(string $id): string
++    {
++        header('Cache-Control: private, no-store');
++        header('Referrer-Policy: no-referrer');
++        header('X-Robots-Tag: noindex, nofollow, noarchive');
++        $expiry = $_GET['expires'] ?? '';
++        $signature = $_GET['signature'] ?? '';
++        if (!ctype_digit($id) || !is_string($expiry) || !ctype_digit($expiry) || !is_string($signature)
++            || !PackingProof::verify((int)$id, (int)$expiry, $signature)) {
++            http_response_code(404);
++            return 'This packing link is invalid or has expired.';
++        }
++        $s = Database::pdo()->prepare('SELECT id, path, mime FROM order_media WHERE order_id = ? AND kind = ? ORDER BY id');
++        $s->execute([(int)$id, 'proof']);
++        $files = $s->fetchAll();
++        if (isset($_GET['file'])) {
++            if (!is_string($_GET['file']) || !ctype_digit($_GET['file'])) {
++                http_response_code(404);
++                return 'Packing media is unavailable.';
++            }
++            foreach ($files as $file) {
++                if ((string)$file['id'] !== (string)$_GET['file']) { continue; }
++                $path = Uploads::absolute((string)$file['path']);
++                $root = realpath(Uploads::root() . '/proof/' . (int)$id);
++                if (!$path || !$root || !str_starts_with($path, $root . '/') || !is_file($path) || !is_readable($path) || !isset(Uploads::ALLOWED[$file['mime']])) { break; }
++                header('Content-Type: ' . $file['mime']);
++                header('Content-Length: ' . filesize($path));
++                header('Content-Disposition: attachment; filename="packing-' . (int)$file['id'] . '.' . Uploads::ALLOWED[$file['mime']] . '"');
++                header('X-Content-Type-Options: nosniff');
++                readfile($path);
++                return '';
++            }
++            http_response_code(404);
++            return 'Packing media is unavailable.';
++        }
++        $url = PackingProof::url((int)$id, (int)$_GET['expires']);
++        $html = '<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><title>Peptbay packing photos and videos</title><body><main><h1>Your packing photos and videos</h1><p>This private link expires after 14 days. Please keep it private.</p><ul>';
++        foreach ($files as $n => $file) {
++            $html .= '<li><a href="' . \h($url . '&file=' . (int)$file['id']) . '">Download packing ' . (str_starts_with($file['mime'], 'video/') ? 'video' : 'photo') . ' ' . ($n + 1) . '</a></li>';
++        }
++        return $html . '</ul>' . (!$files ? '<p>No packing media is available for this order.</p>' : '') . '</main></body></html>';
++    }
++}
+--- a/src/Notifier.php
++++ b/src/Notifier.php
+@@ -50,6 +50,9 @@
+         ];
+         $msg = "Your order {$order['order_number']} has shipped via {$order['carrier']}. "
+              . "Tracking: {$trk} — " . self::royalMailUrl($trk);
++        if (strlen((string)\config('integrations.credentials.respondio.proof_secret', '')) >= 32) {
++            $params['proof_url'] = \Avion\Messaging\PackingProof::url((int)$order['id'], time() + 14 * 86400);
++        }
+         self::queue($order, 'whatsapp', 'shipped', $params, $msg, 'shipped:wa:' . $order['id'] . ':' . $trk);
+         // Snapshot only this order's approved upload metadata for stable retries.
+         $params['proof_media'] = array_map(static fn(array $file): array => [
+--- a/config/config.php
++++ b/config/config.php
+@@ -40,7 +40,8 @@
+     'integrations' => [
+         // channel => class implementing Avion\Messaging\Channel
+         'channels' => $local['integrations']['channels'] ?? [
+-            'whatsapp' => 'Avion\\Messaging\\LogChannel',
++            'whatsapp' => getenv('AVION_RESPONDIO_ENABLED') === '1'
++                ? 'Avion\\Messaging\\RespondIoChannel' : 'Avion\\Messaging\\LogChannel',
+             'email'    => getenv('AVION_RESEND_ENABLED') === '1'
+                 ? 'Avion\\Messaging\\ResendChannel' : 'Avion\\Messaging\\LogChannel',
+         ],
+@@ -51,6 +52,11 @@
+         'webhooks' => $local['integrations']['webhooks'] ?? [],
+         // per-provider credentials, read by the driver classes
+         'credentials' => array_replace_recursive([
++            'respondio' => [
++                'token' => getenv('AVION_RESPONDIO_TOKEN') ?: '',
++                'channel_id' => (int)(getenv('AVION_RESPONDIO_CHANNEL_ID') ?: 0),
++                'proof_secret' => getenv('AVION_PACKING_PROOF_SECRET') ?: '',
++            ],
+             'resend' => [
+                 'api_key' => getenv('AVION_RESEND_API_KEY') ?: '',
+                 'from' => getenv('AVION_EMAIL_FROM') ?: '',
+--- /dev/null
++++ b/bin/respondio-check.php
+@@ -0,0 +1,5 @@
++<?php
++declare(strict_types=1);
++require dirname(__DIR__).'/src/bootstrap.php';
++try {echo json_encode((new Avion\Messaging\RespondIoChannel())->readiness(),JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR),PHP_EOL;}
++catch(Throwable $e){fwrite(STDERR,$e->getMessage().PHP_EOL);exit(1);}
+--- /dev/null
++++ b/tests/respondio.php
+@@ -0,0 +1,55 @@
++<?php
++declare(strict_types=1);
++namespace Avion {
++    final class Database {public static function pdo(): object {return $GLOBALS['db'];}}
++}
++namespace {
++require dirname(__DIR__).'/src/Messaging/Channel.php';
++require dirname(__DIR__).'/src/Messaging/SendResult.php';
++require dirname(__DIR__).'/src/Messaging/RespondIoChannel.php';
++require dirname(__DIR__).'/src/Messaging/PackingProof.php';
++use Avion\Messaging\{RespondIoChannel,PackingProof};
++function check(bool $ok): void {if(!$ok)throw new RuntimeException('Respond.io assertion failed');}
++function config(string $path,mixed $default=null): mixed {return ['app.base_url'=>'https://admin.example.invalid','integrations.credentials.respondio.proof_secret'=>str_repeat('k',64)][$path]??$default;}
++final class FakeStatement {
++    private int $count=0;
++    public function __construct(private string $sql) {}
++    public function execute(array $args): void {
++        $db=$GLOBALS['db'];
++        if(str_contains($this->sql,"SET provider_message_id = 'respond:pending'")){
++            $this->count=$db->provider===null?1:0;if($this->count)$db->provider='respond:pending';
++        }elseif(str_contains($this->sql,'SET provider_message_id = NULL')){$db->provider=null;}
++        elseif(str_contains($this->sql,'SET provider_message_id = ?')){$db->provider=$args[0];}
++    }
++    public function rowCount(): int {return $this->count;}
++    public function fetchColumn(): mixed {return $GLOBALS['db']->provider;}
++}
++final class FakeDatabase {public ?string $provider=null;public function prepare(string $sql): FakeStatement{return new FakeStatement($sql);}}
++$GLOBALS['db']=new FakeDatabase();
++$calls=[];$outcome=200;
++$transport=function($method,$url,$body,$headers)use(&$calls,&$outcome){
++    check(str_starts_with($url,'https://api.respond.io/v2/'));check($headers['Authorization']==='Bearer fixture-secret');
++    $calls[]=[$method,$url,$body];
++    if(str_ends_with($url,'/space/channel'))return ['status'=>200,'json'=>['items'=>[['id'=>570416]]]];
++    if(str_contains($url,'/template?'))return ['status'=>200,'json'=>['items'=>array_map(fn($t)=>['name'=>$t[0],'status'=>'APPROVED','languageCode'=>'en_GB'],RespondIoChannel::TEMPLATES)]];
++    if(str_ends_with($url,'/message')){
++        if($outcome===0)throw new RuntimeException('fixture-secret');
++        return ['status'=>$outcome,'json'=>['messageId'=>123]];
++    }
++    return ['status'=>200,'json'=>['id'=>456]];
++};
++$driver=new RespondIoChannel(['token'=>'fixture-secret','channel_id'=>570416],$transport);
++$m=['id'=>1,'idempotency_key'=>'payment_confirmed:1','to_address'=>'447700900123','template'=>'payment_confirmed','params'=>['order_number'=>'TEST-1']];
++$r=$driver->send($m);check($r->ok&&$r->providerMessageId==='respond:123');
++$payload=json_decode($calls[count($calls)-1][2],true);check($payload['channelId']===570416&&$payload['message']['template']['languageCode']==='en_GB');
++$before=count(array_filter($calls,fn($c)=>str_ends_with($c[1],'/message')));check($driver->send($m)->ok);check(count(array_filter($calls,fn($c)=>str_ends_with($c[1],'/message')))===$before);
++$GLOBALS['db']->provider=null;$outcome=0;$r=$driver->send($m);check(!$r->ok&&!$r->retryable&&!str_contains($r->error,'fixture-secret'));
++$before=count($calls);$r=$driver->send($m);check(!$r->ok&&$GLOBALS['db']->provider==='respond:pending');
++check(count(array_filter(array_slice($calls,$before),fn($c)=>str_ends_with($c[1],'/message')))===0);
++$GLOBALS['db']->provider=null;$outcome=429;$r=$driver->send($m);check($r->retryable&&$GLOBALS['db']->provider===null);
++$outcome=403;$r=$driver->send($m);check(!$r->retryable&&$GLOBALS['db']->provider===null);
++$m['to_address']='bad';check(!$driver->send($m)->ok);
++$exp=time()+86400;parse_str(parse_url(PackingProof::url(7,$exp),PHP_URL_QUERY),$q);
++check(PackingProof::verify(7,$exp,$q['signature']));check(!PackingProof::verify(8,$exp,$q['signature']));check(!PackingProof::verify(7,time()-1,$q['signature']));check(!PackingProof::verify(7,$exp,str_repeat('0',64)));
++echo "Respond.io template payload, accepted-send replay, ambiguous-send guard, rejection/retry handling, secret redaction and expiring order links passed.\n";
++}
+--- /dev/null
++++ b/tests/respondio-flow.php
+@@ -0,0 +1,41 @@
++<?php
++declare(strict_types=1);
++if(getenv('AVION_DB_NAME')!=='avion_whatsapp_release_test')throw new RuntimeException('Isolated database required');
++putenv('AVION_STORAGE_PATH=/tmp/whatsapp-check-storage');require dirname(__DIR__).'/src/bootstrap.php';
++use Avion\Models\{Customer,Order,Setting};use Avion\Messaging\{Outbox,RespondIoChannel,PackingProof,ResendChannel};
++function check(bool $ok):void{if(!$ok)throw new RuntimeException('WhatsApp database check failed');}
++$p=Avion\Database::pdo();Setting::set('logistics_whatsapp','');
++$p->exec("INSERT INTO products(sku,name,strength,price_gbp,is_active) VALUES ('WATEST','Synthetic WhatsApp test','',1,1)");
++$c=Customer::resolveOrCreate('Synthetic WhatsApp test','447700900123','test@example.invalid');
++$id=Order::create(['customer_id'=>$c,'contact_phone'=>'447700900123','contact_email'=>'test@example.invalid','ship_address'=>'TEST ONLY'],[['sku'=>'WATEST','qty'=>1]]);
++check(Order::markPaid($id,['amount'=>(float)Order::find($id)['grand_total'],'ccy'=>'GBP'])['ok']);
++$image=tempnam(sys_get_temp_dir(),'wa-png-');file_put_contents($image,base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='));$file=Avion\Uploads::store($image,'test.png','proof/'.$id);unlink($image);check(is_array($file));check(Order::submitProof($id,'TESTWHATS001',[$file])['ok']);
++$counter=0;$payloads=[];
++$transport=function($method,$url,$body)use(&$counter,&$payloads){
++ if(str_ends_with($url,'/space/channel'))return ['status'=>200,'json'=>['items'=>[['id'=>570416]]]];
++ if(str_contains($url,'/template?'))return ['status'=>200,'json'=>['items'=>array_map(fn($t)=>['name'=>$t[0],'status'=>'approved','languageCode'=>'en_GB'],RespondIoChannel::TEMPLATES)]];
++ if(str_ends_with($url,'/message')){$counter++;$payloads[]=json_decode($body,true);return ['status'=>200,'json'=>['messageId'=>1000+$counter]];}
++ if(str_contains($url,'/message/'))return ['status'=>200,'json'=>['channelId'=>570416,'status'=>[['value'=>'delivered','timestamp'=>time()]]]];
++ return ['status'=>200,'json'=>['id'=>123]];
++};
++$driver=new RespondIoChannel(['token'=>'fixture-secret','channel_id'=>570416],$transport);$shipped=null;
++foreach(Outbox::claim('whatsapp-db-check',50) as $m){
++ if((int)$m['order_id']===$id&&$m['channel']==='whatsapp'){
++  Outbox::deliver($m,$driver);check($driver->send($m)->ok);if($m['template']==='shipped')$shipped=$m;
++ }
++}
++check($counter===2&&count($payloads)===2&&$shipped!==null);check($payloads[1]['message']['template']['name']==='peptbay_order_shipped_v2');
++check($driver->pollStatuses()===2);
++$q=$p->prepare("SELECT COUNT(*) FROM messages WHERE order_id=? AND channel='whatsapp' AND status='delivered'");$q->execute([$id]);check((int)$q->fetchColumn()===2);
++parse_str(parse_url($shipped['params']['proof_url'],PHP_URL_QUERY),$query);$_GET=$query;
++$controller=new Avion\Controllers\PackingProofController();ob_start();$html=$controller->show((string)$id);ob_end_clean();check(str_contains($html,'Download packing photo'));
++$media=Order::media($id)[0];$_GET=$query+['file'=>(string)$media['id']];ob_start();$controller->show((string)$id);$content=ob_get_clean();check(hash('sha256',$content)===$file['sha256']);
++$_GET=$query;$_GET['signature']=str_repeat('0',64);check(str_contains($controller->show((string)$id),'invalid'));check(http_response_code()===404);
++$_GET=$query+['file'=>'9999999'];check(str_contains($controller->show((string)$id),'unavailable'));
++$_GET=['expires'=>['bad'],'signature'=>['bad']];check(str_contains($controller->show((string)$id),'invalid'));
++// Oversized email media uses the same signed link instead of omitting proof.
++$abs=Avion\Uploads::absolute($file['path']);$f=fopen($abs,'w');ftruncate($f,29*1024*1024);fclose($f);clearstatcache(true,$abs);$email=null;
++$sender=new ResendChannel(['api_key'=>'fixture','from'=>'sender@example.invalid'],function($u,$body)use(&$email){$email=$body;return ['status'=>200,'json'=>['id'=>'fixture-email']];});
++$m=$shipped;$m['to_address']='test@example.invalid';$m['params']['proof_media']=[['path'=>$file['path'],'sha256'=>$file['sha256']]];
++check($sender->send($m)->ok);check(!isset($email['attachments'])&&str_contains($email['text'],$shipped['params']['proof_url']));
++echo json_encode(['fixture_only'=>true,'packing_to_template'=>true,'duplicate_send_prevented'=>true,'delivery_status_polling'=>true,'signed_gallery_and_download'=>true,'invalid_cross_file_and_malformed_links_denied'=>true,'large_email_media_link_fallback'=>true]),PHP_EOL;
+--- /dev/null
++++ b/tests/resend.php
+@@ -0,0 +1,49 @@
++<?php
++declare(strict_types=1);
++namespace Avion { final class Uploads { public static function root(): string { return $GLOBALS['media_root']; } } }
++namespace Avion\Models { final class Order { public static function media(int $id): array { return [['path'=>'proof/'.$id.'/fixture.png','sha256'=>'fixture-hash']]; } } }
++namespace Avion\Messaging { final class Outbox { public static function queue(...$args): void {$GLOBALS['queued'][]=$args;} } }
++namespace {
++function config(string $path, mixed $default = null): mixed { return $default; }
++require dirname(__DIR__) . '/src/Messaging/Channel.php';
++require dirname(__DIR__) . '/src/Messaging/SendResult.php';
++require dirname(__DIR__) . '/src/Messaging/ResendChannel.php';
++require dirname(__DIR__) . '/src/Notifier.php';
++use Avion\Messaging\ResendChannel;
++function check(bool $ok): void { if (!$ok) { throw new \RuntimeException('Resend assertion failed'); } }
++$GLOBALS['media_root'] = sys_get_temp_dir() . '/avion-email-' . bin2hex(random_bytes(6));
++mkdir($GLOBALS['media_root'] . '/proof/7', 0700, true);
++$path = $GLOBALS['media_root'] . '/proof/7/fixture.png';
++file_put_contents($path, 'synthetic packing photo');
++$message = ['template'=>'shipped','order_id'=>7,'to_address'=>'recipient@example.invalid',
++    'body'=>'Synthetic tracking details','idempotency_key'=>'shipped:email:7:TEST',
++    'params'=>['order_number'=>'TEST-7','proof_media'=>[['path'=>'proof/7/fixture.png','sha256'=>hash_file('sha256',$path)]]]];
++$credentials = ['api_key'=>'fixture-secret','from'=>'Peptbay <sender@example.invalid>'];
++$calls=[];
++$channel = new ResendChannel($credentials, function($url,$body,$headers) use (&$calls) {
++    $calls[]=[$url,$body,$headers]; return ['status'=>200,'json'=>['id'=>'fixture-email']];
++});
++try {
++    Avion\Notifier::shipped(['id'=>7,'customer_id'=>1,'order_number'=>'TEST-7','carrier'=>'Royal Mail','tracking_number'=>'TESTONLY','contact_email'=>'recipient@example.invalid','contact_phone'=>'']);
++    check(count($GLOBALS['queued'])===2);
++    check(!isset($GLOBALS['queued'][0][4]['proof_media']));
++    check($GLOBALS['queued'][1][0]==='email' && $GLOBALS['queued'][1][4]['proof_media'][0]['path']==='proof/7/fixture.png');
++    $result=$channel->send($message); check($result->ok && $result->providerMessageId==='fixture-email');
++    check($calls[0][0]==='https://api.resend.com/emails');
++    check(base64_decode($calls[0][1]['attachments'][0]['content'])==='synthetic packing photo');
++    $channel->send($message); check($calls[0][2]['Idempotency-Key']===$calls[1][2]['Idempotency-Key']);
++    foreach ([400=>false,429=>true,500=>true] as $status=>$retry) {
++        $driver=new ResendChannel($credentials,fn()=>['status'=>$status,'json'=>['message'=>'fixture-secret']]);
++        $r=$driver->send($message);check(!$r->ok && $r->retryable===$retry && !str_contains($r->error,'fixture-secret'));
++    }
++    $driver=new ResendChannel($credentials,fn()=>throw new \RuntimeException('fixture-secret'));
++    check($driver->send($message)->error==='Resend transport failed');
++    $bad=$message;$bad['to_address']='invalid';check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['params']['proof_media'][0]['path']='../../etc/passwd';check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['order_id']=8;check(!$channel->send($bad)->ok);
++    $bad=$message;$bad['params']['proof_media'][0]['sha256']=str_repeat('0',64);check(!$channel->send($bad)->ok);
++    $stream=fopen($path,'w');ftruncate($stream,29*1024*1024);fclose($stream);
++    check(str_contains($channel->send($message)->error,'attachment limit'));
++    echo "Resend payload, media ownership/hash/size checks, retries, redaction and idempotency passed.\n";
++} finally { unlink($path);rmdir(dirname($path));rmdir(dirname(dirname($path)));rmdir($GLOBALS['media_root']); }
++}
+--- /dev/null
++++ b/config/respondio-templates.json
+@@ -0,0 +1,66 @@
++[
++  {
++    "name": "peptbay_payment_link",
++    "category": "UTILITY",
++    "language": "en_GB",
++    "body": "Your Peptbay order {{1}} is awaiting payment. Amount: {{2}}. Complete payment securely using {{3}}. Please use this link only for this order.",
++    "parameters": [
++      "order_number",
++      "total",
++      "link"
++    ],
++    "samples": [
++      "PB-EXAMPLE-1001",
++      "167.20",
++      "https://pay.argentplatforms.com/example"
++    ]
++  },
++  {
++    "name": "peptbay_payment_confirmed",
++    "category": "UTILITY",
++    "language": "en_GB",
++    "body": "Payment received for your Peptbay order {{1}}. We are preparing your parcel and will send tracking details when it ships.",
++    "parameters": [
++      "order_number"
++    ],
++    "samples": [
++      "PB-EXAMPLE-1001"
++    ]
++  },
++  {
++    "name": "peptbay_order_shipped_v2",
++    "category": "UTILITY",
++    "language": "en_GB",
++    "body": "Your Peptbay order {{1}} has shipped via {{2}}. Tracking number: {{3}}. Track your parcel: {{4}}. View your packing photos/videos using this private link (valid for 14 days): {{5}}. Please keep your packing link private. Thank you for your order.",
++    "parameters": [
++      "order_number",
++      "carrier",
++      "tracking_number",
++      "tracking_url",
++      "proof_url"
++    ],
++    "samples": [
++      "PB-EXAMPLE-1001",
++      "Royal Mail",
++      "AB123456789GB",
++      "https://www.royalmail.com/track-your-item#/tracking-results/AB123456789GB",
++      "https://admin.peptbay.com/packing-proof/123?expires=1800000000&signature=example"
++    ]
++  },
++  {
++    "name": "peptbay_pack_order",
++    "category": "UTILITY",
++    "language": "en_GB",
++    "body": "A paid Peptbay order {{1}} is ready for packing. Items: {{2}}. Open your staff packing task: {{3}}. Please upload the packing proof and tracking details in the system.",
++    "parameters": [
++      "order_number",
++      "items",
++      "pack_url"
++    ],
++    "samples": [
++      "PB-EXAMPLE-1001",
++      "2 x RET20",
++      "https://admin.peptbay.com/pack/123"
++    ]
++  }
++]
+--- a/public/index.php
++++ b/public/index.php
+@@ -67,6 +67,7 @@
+ 
+ // --- proof media (private, signed-in only) ---
+ $r->get('/media/{id}', [MediaController::class, 'show']);
++$r->get('/packing-proof/{id}', [\Avion\Controllers\PackingProofController::class, 'show']);
+ 
+ // --- order intake API ---
+ $r->post('/api/v1/orders', [IntakeController::class, 'create']);
+--- a/bin/worker.php
++++ b/bin/worker.php
+@@ -48,6 +48,10 @@
+ };
+ 
+ $started = time();
++if (config('integrations.channels.whatsapp') === \Avion\Messaging\RespondIoChannel::class) {
++    try { (new \Avion\Messaging\RespondIoChannel())->pollStatuses(); }
++    catch (Throwable $e) { ErrorReporter::report($e, ['job' => 'respondio_status']); }
++}
+ $sent = $hooks = 0;
+ do {
+     $did = 0;

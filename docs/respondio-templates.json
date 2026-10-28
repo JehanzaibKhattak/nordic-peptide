@@ -1,0 +1,66 @@
+[
+  {
+    "name": "peptbay_payment_link",
+    "category": "UTILITY",
+    "language": "en_GB",
+    "body": "Your Peptbay order {{1}} is awaiting payment. Amount: {{2}}. Complete payment securely using {{3}}. Please use this link only for this order.",
+    "parameters": [
+      "order_number",
+      "total",
+      "link"
+    ],
+    "samples": [
+      "PB-EXAMPLE-1001",
+      "167.20",
+      "https://pay.argentplatforms.com/example"
+    ]
+  },
+  {
+    "name": "peptbay_payment_confirmed",
+    "category": "UTILITY",
+    "language": "en_GB",
+    "body": "Payment received for your Peptbay order {{1}}. We are preparing your parcel and will send tracking details when it ships.",
+    "parameters": [
+      "order_number"
+    ],
+    "samples": [
+      "PB-EXAMPLE-1001"
+    ]
+  },
+  {
+    "name": "peptbay_order_shipped_v2",
+    "category": "UTILITY",
+    "language": "en_GB",
+    "body": "Your Peptbay order {{1}} has shipped via {{2}}. Tracking number: {{3}}. Track your parcel: {{4}}. View your packing photos/videos using this private link (valid for 14 days): {{5}}. Please keep your packing link private. Thank you for your order.",
+    "parameters": [
+      "order_number",
+      "carrier",
+      "tracking_number",
+      "tracking_url",
+      "proof_url"
+    ],
+    "samples": [
+      "PB-EXAMPLE-1001",
+      "Royal Mail",
+      "AB123456789GB",
+      "https://www.royalmail.com/track-your-item#/tracking-results/AB123456789GB",
+      "https://admin.peptbay.com/packing-proof/123?expires=1800000000&signature=example"
+    ]
+  },
+  {
+    "name": "peptbay_pack_order",
+    "category": "UTILITY",
+    "language": "en_GB",
+    "body": "A paid Peptbay order {{1}} is ready for packing. Items: {{2}}. Open your staff packing task: {{3}}. Please upload the packing proof and tracking details in the system.",
+    "parameters": [
+      "order_number",
+      "items",
+      "pack_url"
+    ],
+    "samples": [
+      "PB-EXAMPLE-1001",
+      "2 x RET20",
+      "https://admin.peptbay.com/pack/123"
+    ]
+  }
+]
