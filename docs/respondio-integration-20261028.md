@@ -30,11 +30,11 @@ The user authorized submission of all four Utility templates, including the form
 |---|---|
 | peptbay_payment_confirmed | Submitted / processing |
 | peptbay_order_shipped | Rejected: trailing variable too close to end |
-| peptbay_order_shipped_v2 | Corrected final wording prepared; not submitted |
-| peptbay_payment_link | Final wording prepared; not submitted |
-| peptbay_pack_order | Final wording prepared; not submitted |
+| peptbay_order_shipped_v2 | Submitted / processing |
+| peptbay_payment_link | Submitted / processing |
+| peptbay_pack_order | Submitted / processing |
 
-The corrected shipping draft adds a complete closing sentence after the last variable. The driver intentionally uses `peptbay_order_shipped_v2`, not the rejected draft. Browser control repeatedly timed out after the initial submissions, including after the user requested another attempt. Finish the three outstanding submissions from the exact manifest and verify Meta's result; preparation is not approval.
+The corrected shipping draft adds a complete closing sentence after the last variable. The driver intentionally uses `peptbay_order_shipped_v2`, not the rejected draft. Browser control was restored on retry. All three outstanding templates were submitted using the manifest and synthetic sample values. The template list showed all four required templates Processing. The older rejected shipping draft is retained and is not used by the driver. Submission is not approval.
 
 The channel still showed Unavailable with a low-funds warning. WABA Balance denied this user permission, so its actual amount and the cause of Unavailable were not verified. An Organization Admin/Billing Admin must check those account details. Top-up alone is not evidence that templates or channel permissions are ready.
 
@@ -46,7 +46,7 @@ Private environment variables: `AVION_RESPONDIO_TOKEN`, `AVION_RESPONDIO_CHANNEL
 
 Post-deployment checks: admin service and worker timer active, worker Result=success/ExecMainStatus=0, public login HTTP 200, unsigned packing-media URL HTTP 404, Resend still selected and WhatsApp still disabled. No production data migration was required. The same targeted changes were copied to the server source directory.
 
-Before enabling: finish submissions, verify every expected template is approved via `php bin/respondio-check.php`, resolve Unavailable/balance/permissions, confirm a WhatsApp test recipient, then enable `AVION_RESPONDIO_ENABLED=1` and perform an authorized end-to-end phone delivery test. Review historical failed/pending messages rather than bulk retrying them. An uncertain `respond:pending` send requires checking respond.io before changing the marker or retrying. Provider acceptance is sent, not delivered; polling confirms later delivery status.
+Before enabling: verify every expected template is approved via `php bin/respondio-check.php`, resolve Unavailable/balance/permissions, confirm a WhatsApp test recipient, then enable `AVION_RESPONDIO_ENABLED=1` and perform an authorized end-to-end phone delivery test. Review historical failed/pending messages rather than bulk retrying them. An uncertain `respond:pending` send requires checking respond.io before changing the marker or retrying. Provider acceptance is sent, not delivered; polling confirms later delivery status.
 
 Rollback service/environment backups: `/etc/containers/systemd/avion-admin.container.pre-whatsapp-20261027235753` and `/opt/avion/env/admin.env.pre-whatsapp-20261027235753` (UTC filename). Stop the worker timer, restore backups, daemon-reload/restart the admin service, and restore the timer. Prior source files are in `/opt/avion/review/whatsapp-20261028/rollback-source`; remove the new files as needed before a later full-source rebuild. Never commit private environment backups.
 
