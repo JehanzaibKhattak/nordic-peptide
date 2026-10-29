@@ -20,3 +20,13 @@ A copied local SQLite database, synthetic customer data and Argent test keys wer
 The local fixture route and database are untracked development-only files; they are excluded from the Git archive used for deployment. They are not production routes.
 
 A controlled real cardholder GBP purchase, issuer 3DS challenge, refunds and production paid-order handoff remain acceptance checks; these are not claimed by the test-mode results.
+
+## Production deployment
+
+- Deployed code `faa4c98` in image `localhost/avion-store:argent-embedded-20261029` (image ID `069977f0b59326e92e25be50e051701d8700729720591449cf532df3570f3dbc`).
+- Preview checks passed: RETA HTTP 200 with updated copy, untracked fixture route absent (404), private payment URL rejected without a valid owned session (404).
+- Rollback snapshot: `/opt/avion/review/argent-embedded-20261029/rollback-20261029104046`.
+- Running image and mirrored source files independently verified after activation. Reconciliation service returned success/exit 0 on the new image.
+- Live RETA browser shows the on-Peptbay payment wording. Existing live credentials, GBP totals, backend, database and bank transfer were unchanged by this UI release.
+- Full suite: 118 passed, one optional integration test skipped. Touched-file lint, TypeScript and production build passed.
+- The real cardholder's production GBP transaction and issuer authentication remain untested. No live card data was entered and no live charge was submitted in this change.
