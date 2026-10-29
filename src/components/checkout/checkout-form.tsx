@@ -298,7 +298,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
               <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="card" />{argentCheckout ? "Card — secure Argent checkout" : t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</label>
               <label className="flex items-center gap-3 rounded-xl border bg-white p-4 text-sm"><RadioGroupItem value="bank_transfer" disabled={!(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency} />{t("bankTransfer")}</label>
             </RadioGroup>}
-            {paymentMethod === "bank_transfer" ? <div className="rounded-xl border bg-white p-4 text-sm"><p>{t("bankTransferBody")}</p>{BROWSE_ONLY && <p className="mt-2 text-xs text-muted-foreground">{t("bankTransferPreview")}</p>}</div> : <>
+            {paymentMethod === "bank_transfer" ? <div className="rounded-xl border bg-white p-4 text-sm"><p>{t("bankTransferBody")}</p>{BROWSE_ONLY && <p className="mt-2 text-xs text-muted-foreground">{t("bankTransferPreview")}</p>}</div> : !argentCheckout && <>
             <div className="rounded-[14px] border-2 border-[#2d5b40] bg-[#f5f1e9] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3"><span className="flex items-center gap-2 text-sm font-semibold"><CreditCard aria-hidden="true" className="size-5 text-[#2d5b40]" />{argentCheckout ? "Card — secure Argent checkout" : t(avionCheckout ? "avionPaymentLink" : "creditDebitCard")}</span><PaymentLogos methods={argentCheckout ? ["Visa", "Mastercard"] : avionCheckout ? ["Visa", "Mastercard", "PayPal", "Apple Pay", "Klarna"] : ["Visa", "Mastercard"]} /></div>
               {!avionCheckout && <p className="mt-2 text-xs text-[#7c9073]">Visa, Mastercard</p>}
@@ -306,7 +306,7 @@ export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], 
             </div>
             </>}
             {!(BROWSE_ONLY && DEMO_CHECKOUT) && bankCurrency !== chargedCurrency && <p className="text-xs text-muted-foreground">{t("bankTransferUnavailable")}</p>}
-            <div className={`rounded-xl border-2 bg-white p-4 transition-colors ${agree ? "border-[#2d5b40]" : "border-[#91a38b]"}`}>
+            <div className={argentCheckout ? "py-2" : `rounded-xl border-2 bg-white p-4 transition-colors ${agree ? "border-[#2d5b40]" : "border-[#91a38b]"}`}>
               <div className="flex items-start gap-3">
                 <input id="checkout-terms" type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} required aria-describedby="checkout-terms-hint" className="mt-0.5 size-6 shrink-0 cursor-pointer accent-[#173b2e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#173b2e]" />
                 <div className="min-w-0">

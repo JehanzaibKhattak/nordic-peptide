@@ -30,3 +30,11 @@ A controlled real cardholder GBP purchase, issuer 3DS challenge, refunds and pro
 - Live RETA browser shows the on-Peptbay payment wording. Existing live credentials, GBP totals, backend, database and bank transfer were unchanged by this UI release.
 - Full suite: 118 passed, one optional integration test skipped. Touched-file lint, TypeScript and production build passed.
 - The real cardholder's production GBP transaction and issuer authentication remain untested. No live card data was entered and no live charge was submitted in this change.
+
+## Simplified payment layout
+
+Removed the duplicate selected-card explanation panel and the border around the Terms block; the required consent checkbox remains. Removed the right-hand payment panel border and explanatory placeholder, loading secure fields automatically instead of requiring an Enter card details click. Added Visa and Mastercard logos beside the actual fields. The saved server attempt status is used on page load, so failed/unknown/terminal payments are not automatically restarted. Preparation is guarded against duplicate initialization.
+
+A new isolated test order LAYOUT-deedeb66 loaded fields automatically with a single test-mode draft intent. Refresh reused intent pymint_cmvth609h00pq1ro7bkvgggkl; the database retained one attempt. No card or charge was submitted for this layout check. All 118 unit tests passed, with one optional integration test skipped; TypeScript and touched-file lint passed.
+
+Accepted-brand investigation: the live dashboard still exposes only the Fake test-only processor and no accepted-brand list. Additional brands, including Amex, could not be confirmed. The logo row is therefore limited to the Visa/Mastercard display already present in Argent's hosted card form; it is not evidence of enabled live acquiring or a completed live capture.
