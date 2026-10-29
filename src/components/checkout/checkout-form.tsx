@@ -31,7 +31,7 @@ const empty: Address = { firstName: "", lastName: "", line1: "", line2: "", city
 
 export function CheckoutForm({ verifiedEmail = "", paymentCurrencies = ["EUR"], paymentRates = { EUR: 1 }, avionCheckout = false, bankCurrency = null, guestBankCheckout = false, orderItems, embedded = false, argentCheckout = false, retaOfferVariantId }: { argentCheckout?: boolean; retaOfferVariantId?: string; verifiedEmail?: string; paymentCurrencies?: string[]; paymentRates?: Record<string, number>; avionCheckout?: boolean; bankCurrency?: string | null; guestBankCheckout?: boolean; orderItems?: CartItem[]; embedded?: boolean }) {
   const r = useTranslations("research");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(guestBankCheckout && bankCurrency ? "bank_transfer" : "card");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank_transfer">(!argentCheckout && guestBankCheckout && bankCurrency ? "bank_transfer" : "card");
   const [paymentCurrency, setPaymentCurrency] = useState(guestBankCheckout ? bankCurrency ?? paymentCurrencies[0] ?? "GBP" : "EUR");
   const t = useTranslations("checkout");
   const tc = useTranslations("cart");
