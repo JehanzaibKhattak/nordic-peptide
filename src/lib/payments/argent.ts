@@ -53,7 +53,7 @@ export async function startArgentPayment(orderId: string, returnUrl: string, bro
 }
 
 /** The back office independently retrieves the same live intent before fulfilment/tracking. */
-async function syncArgentBackend(orderId: string, intentId: string, event: "paid" | "refunded") {
+async function syncArgentBackend(orderId: string, intentId: string, event: "paid" | "refunded" | "failed") {
   if (!(await syncAvionOrder(orderId))) throw new Error("argent_backend_pending");
   const base = new URL(process.env.AVION_API_URL ?? "");
   const key = process.env.AVION_API_KEY;
@@ -79,6 +79,11 @@ export async function reconcileArgentPayment(orderId: string) {
       await tx.argentPayment.update({ where: { orderId }, data: { status: intent.status } });
       if (intent.status === "failed") await tx.orderEvent.upsert({ where: { id: `argent-failed:${intent.id}` }, create: { id: `argent-failed:${intent.id}`, orderId, type: "argent.failed", payload: { intentId: intent.id, live: attempt.live } }, update: {} });
     });
+    if (attempt.live && intent.status === "failed") {
+      // Keep the known failure visible; the reconciliation worker retries backend logging.
+      try { await syncArgentBackend(orderId, intent.id, "failed"); }
+      catch { console.error("argent_failed_backend_sync_pending", { orderId, intentId: intent.id }); }
+    }
     return { status: intent.status };
   }
   const paymentId = typeof intent.payment === "string" ? intent.payment : intent.payment?.id;
