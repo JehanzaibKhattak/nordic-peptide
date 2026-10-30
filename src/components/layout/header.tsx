@@ -34,7 +34,7 @@ export function Header() {
     <header className="sticky top-0 z-40">
       {announcementOpen && (
         <div className="relative flex h-10 items-center justify-center bg-[#173b2e] px-10 text-center text-[11px] font-semibold text-white sm:px-12 sm:text-sm">
-          <span className="whitespace-nowrap"><span className="sm:hidden">Research-grade peptides</span><span className="hidden sm:inline">Research-grade peptides for laboratories</span></span>
+          <span className="whitespace-nowrap"><span className="sm:hidden">Third-party tested peptides</span><span className="hidden sm:inline">Third-party tested peptides with batch documentation</span></span>
           <button type="button" onClick={() => { setGiftSubmitted(false); setGiftOpen(true); }} className="ml-2 whitespace-nowrap rounded-full border border-white/35 px-2 py-1 text-[10px] leading-none hover:bg-white/10 sm:ml-3 sm:px-3 sm:text-sm">Reveal a gift</button>
           <button type="button" onClick={() => setAnnouncementOpen(false)} aria-label="Dismiss announcement" className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-white/90 hover:bg-white/10">
             <X aria-hidden="true" className="size-4" />

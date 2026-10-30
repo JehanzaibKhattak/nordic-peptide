@@ -11,7 +11,7 @@ import { RetaLanding } from "@/components/campaign/reta-landing";
 
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "RETA · Select your research order", description: "Explore Retatrutide Pen presentations and place a GBP bank-transfer research order with Peptbay.", robots: { index: false, follow: false }, alternates: { canonical: "/en/reta" } };
+export const metadata = { title: "RETA · Select your order", description: "Explore Retatrutide Pen presentations and place a GBP bank-transfer order with Peptbay.", robots: { index: false, follow: false }, alternates: { canonical: "/en/reta" } };
 
 export default async function RetaPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

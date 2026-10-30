@@ -16,9 +16,9 @@ const reports = [
 export function CertificationReports() {
   return <section id="certification-reports" className="cert-reports" aria-labelledby="certification-reports-title">
     <div className="cert-reports-inner">
-      <p className="cert-reports-eyebrow">LABORATORY DOCUMENTATION</p>
+      <p className="cert-reports-eyebrow">BATCH DOCUMENTATION</p>
       <h2 id="certification-reports-title">Certificates of Analysis</h2>
-      <p className="cert-reports-intro">Open the product’s report on Janoshik to review its laboratory results. Match the report and batch details to your product.</p>
+      <p className="cert-reports-intro">Open the product’s report on Janoshik to review its results. Match the report and batch details to your product.</p>
       <ul>{reports.map(([name, report]) => <li key={report}>
         <a href={`https://verify.janoshik.com/tests/${report}`} target="_blank" rel="noopener noreferrer">
           <FileText aria-hidden="true" /><span><strong>{name}</strong><span>Janoshik · Report {report.split("-")[0]}</span></span><ArrowUpRight aria-hidden="true" />

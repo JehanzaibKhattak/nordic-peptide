@@ -52,7 +52,7 @@ function Shell({ preview, children }: { preview: string; children: React.ReactNo
           {children}
           <Hr />
           <Text style={styles.muted}>
-            {brand()} · For authorized laboratory research only. Not for human or veterinary administration. This is an automated message; replies are not monitored.
+            {brand()} · This is an automated message; replies are not monitored.
           </Text>
         </Container>
       </Body>
