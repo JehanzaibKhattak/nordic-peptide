@@ -17,13 +17,33 @@ import { BROWSE_ONLY } from "@/lib/deployment-mode";
 
 export function Header() {
   const t = useTranslations();
+  const tw = useTranslations("welcome");
   const pathname = usePathname();
   const itemCount = useCart((state) => cartCount(state.items));
   const openCart = useCart((state) => state.open);
+  const setCoupon = useCart((state) => state.setCoupon);
   const hydrated = useHydrated();
   const [announcementOpen, setAnnouncementOpen] = useState(true);
   const [giftOpen, setGiftOpen] = useState(false);
-  const [giftSubmitted, setGiftSubmitted] = useState(false);
+  const [giftState, setGiftState] = useState<"idle" | "busy" | "sent" | "error">("idle");
+  const [giftCode, setGiftCode] = useState("");
+
+  const submitGift = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (giftState === "busy") return;
+    const email = String(new FormData(event.currentTarget).get("email") ?? "");
+    setGiftState("busy");
+    try {
+      const response = await fetch("/api/welcome-offer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error);
+      setGiftCode(data.code);
+      setCoupon(data.code);
+      setGiftState("sent");
+    } catch {
+      setGiftState("error");
+    }
+  };
   const nav = [
     { href: "/shop", label: t("nav.shop") },
   ];
@@ -35,7 +55,7 @@ export function Header() {
       {announcementOpen && (
         <div className="relative flex h-10 items-center justify-center bg-[#173b2e] px-10 text-center text-[11px] font-semibold text-white sm:px-12 sm:text-sm">
           <span className="whitespace-nowrap"><span className="sm:hidden">Third-party tested peptides</span><span className="hidden sm:inline">Third-party tested peptides with batch documentation</span></span>
-          <button type="button" onClick={() => { setGiftSubmitted(false); setGiftOpen(true); }} className="ml-2 whitespace-nowrap rounded-full border border-white/35 px-2 py-1 text-[10px] leading-none hover:bg-white/10 sm:ml-3 sm:px-3 sm:text-sm">Reveal a gift</button>
+          <button type="button" onClick={() => { setGiftState("idle"); setGiftCode(""); setGiftOpen(true); }} className="ml-2 whitespace-nowrap rounded-full border border-white/35 px-2 py-1 text-[10px] leading-none hover:bg-white/10 sm:ml-3 sm:px-3 sm:text-sm">{tw("reveal")}</button>
           <button type="button" onClick={() => setAnnouncementOpen(false)} aria-label="Dismiss announcement" className="absolute right-4 top-1/2 -translate-y-1/2 rounded p-1 text-white/90 hover:bg-white/10">
             <X aria-hidden="true" className="size-4" />
           </button>
@@ -70,15 +90,24 @@ export function Header() {
       <Dialog open={giftOpen} onOpenChange={setGiftOpen}>
         <DialogContent showCloseButton={false} className="max-h-[calc(100dvh-2rem)] max-w-[calc(100%-1.5rem)] gap-0 overflow-y-auto rounded-2xl border border-[#d9d1c1] bg-[#f6f2e9] p-6 text-[#193b2e] shadow-2xl sm:max-w-[720px] sm:rounded-[20px] sm:p-9">
           <DialogClose render={<button type="button" aria-label="Close welcome offer" className="absolute right-4 top-4 rounded p-1 text-[#637568] hover:bg-[#e8e4dc] sm:right-6 sm:top-6" />}><X aria-hidden="true" className="size-5" /></DialogClose>
-          <DialogTitle className="pr-8 font-serif text-3xl font-semibold leading-tight text-[#193b2e] sm:text-4xl">10% Welcome discount</DialogTitle>
-          <DialogDescription className="mt-3 text-base leading-6 text-[#788c70] sm:text-xl sm:leading-7">Try Peptbay and get 10% off your first order.</DialogDescription>
-          <form className="mt-6 sm:mt-8" onSubmit={(event) => { event.preventDefault(); setGiftSubmitted(true); }}>
-            <label htmlFor="gift-email" className="mb-2 block text-base font-medium text-[#193b2e] sm:text-lg">Email</label>
-            <Input id="gift-email" type="email" autoComplete="email" required className="h-14 rounded-xl border-2 border-[#315b43] bg-white px-4 text-base ring-4 ring-[#aeb9a6]/50 focus-visible:ring-[#aeb9a6]" />
-            <Button type="submit" className="mt-5 h-14 w-full rounded-xl bg-[#28563e] text-base font-semibold text-white shadow-sm hover:bg-[#204a35] sm:text-lg">Get discount</Button>
-            <p className="mt-3 text-center text-xs leading-5 text-[#718073]">Email signup and checkout are not connected in this preview.</p>
-            {giftSubmitted && <p role="status" className="mt-2 text-center text-sm font-medium text-[#28563e]">The welcome offer will be available when signup is enabled.</p>}
-          </form>
+          <DialogTitle className="pr-8 font-serif text-3xl font-semibold leading-tight text-[#193b2e] sm:text-4xl">{giftState === "sent" ? tw("successTitle") : tw("title")}</DialogTitle>
+          <DialogDescription className="mt-3 text-base leading-6 text-[#788c70] sm:text-xl sm:leading-7">{giftState === "sent" ? tw("successBody") : tw("body")}</DialogDescription>
+          {giftState === "sent" ? (
+            <div className="mt-6 sm:mt-8">
+              <p className="rounded-xl border-2 border-dashed border-[#315b43]/40 bg-white py-4 text-center font-mono text-xl font-bold tracking-widest text-[#193b2e]">{giftCode}</p>
+              <p role="status" className="mt-3 text-center text-sm font-medium text-[#28563e]">{tw("applied")}</p>
+              <Button className="mt-5 h-14 w-full rounded-xl bg-[#28563e] text-base font-semibold text-white shadow-sm hover:bg-[#204a35] sm:text-lg" render={<Link href="/shop" />} onClick={() => setGiftOpen(false)}>{tw("shop")}</Button>
+              <p className="mt-3 text-center text-xs leading-5 text-[#718073]">{tw("emailNote")}</p>
+            </div>
+          ) : (
+            <form className="mt-6 sm:mt-8" onSubmit={submitGift}>
+              <label htmlFor="gift-email" className="mb-2 block text-base font-medium text-[#193b2e] sm:text-lg">{tw("email")}</label>
+              <Input id="gift-email" name="email" type="email" autoComplete="email" required className="h-14 rounded-xl border-2 border-[#315b43] bg-white px-4 text-base ring-4 ring-[#aeb9a6]/50 focus-visible:ring-[#aeb9a6]" />
+              <Button type="submit" disabled={giftState === "busy"} className="mt-5 h-14 w-full rounded-xl bg-[#28563e] text-base font-semibold text-white shadow-sm hover:bg-[#204a35] disabled:opacity-60 sm:text-lg">{giftState === "busy" ? tw("busy") : tw("button")}</Button>
+              <p className="mt-3 text-center text-xs leading-5 text-[#718073]">{tw("note")}</p>
+              {giftState === "error" && <p role="alert" className="mt-2 text-center text-sm font-medium text-red-700">{tw("error")}</p>}
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </header>

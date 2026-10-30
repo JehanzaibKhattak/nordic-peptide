@@ -136,6 +136,21 @@ export function ContactEmail({ name, email, message }: { name: string; email: st
   );
 }
 
+export function WelcomeOfferEmail({ code }: { code: string }) {
+  const shopUrl = `${process.env.STORE_BASE_URL ?? "https://peptbay.com"}/en/shop`;
+  return (
+    <Shell preview={`${code} — 10% off your first order`}>
+      <Heading style={styles.h1}>Here is your 10% welcome discount</Heading>
+      <Text style={styles.p}>Use the code below on your first order. It applies 10% off your subtotal and can be used once.</Text>
+      <Text style={{ ...styles.p, fontFamily: "monospace", fontSize: "20px", fontWeight: 700, letterSpacing: "1px" }}>{code}</Text>
+      <Link href={shopUrl} style={styles.button}>
+        Start shopping
+      </Link>
+      <Text style={{ ...styles.muted, marginTop: "16px" }}>Enter the code in the cart or at checkout. The discount is applied before shipping.</Text>
+    </Shell>
+  );
+}
+
 export function BankTransferEmail({ order, instructions, deadline }: { order: OrderWithItems; instructions: string; deadline: string }) {
   return <Shell preview={`Awaiting bank transfer — ${order.orderNumber}`}>
     <Heading style={styles.h1}>Your order is awaiting payment</Heading>

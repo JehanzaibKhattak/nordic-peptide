@@ -4,6 +4,20 @@
     "tagline": "Peptides and blends."
   },
   "banner": "Product catalogue preview",
+  "welcome": {
+    "title": "10% Welcome discount",
+    "body": "Try Peptbay and get 10% off your first order.",
+    "reveal": "Reveal a gift",
+    "email": "Email",
+    "button": "Get discount",
+    "busy": "Getting your code…",
+    "note": "We’ll email your code. It can be used once on your first order.",
+    "successTitle": "Your 10% discount is ready",
+    "successBody": "We’ve applied it to your cart and emailed you the code.",
+    "applied": "10% off applied to your cart",
+    "shop": "Start shopping",
+    "emailNote": "Use it before checkout — it can be used once."
+  },
   "nav": {
     "shop": "Products",
     "serums": "Peptides",

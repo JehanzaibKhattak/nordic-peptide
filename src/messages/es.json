@@ -4,6 +4,20 @@
     "tagline": "Compuestos y combinaciones de péptidos."
   },
   "banner": "Vista previa del catálogo",
+  "welcome": {
+    "title": "10 % de descuento de bienvenida",
+    "body": "Prueba Peptbay y obtén un 10 % en tu primer pedido.",
+    "reveal": "Descubre un regalo",
+    "email": "Correo electrónico",
+    "button": "Obtener descuento",
+    "busy": "Obteniendo tu código…",
+    "note": "Te enviaremos el código por correo. Solo se puede usar una vez en tu primer pedido.",
+    "successTitle": "Tu descuento del 10 % está listo",
+    "successBody": "Lo hemos aplicado a tu carrito y te hemos enviado el código por correo.",
+    "applied": "10 % aplicado a tu carrito",
+    "shop": "Empezar a comprar",
+    "emailNote": "Úsalo antes de pagar; solo se puede usar una vez."
+  },
   "nav": {
     "shop": "Productos",
     "serums": "Péptidos",
