@@ -74,7 +74,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
         <div className="pb-hero-media">
           <Image src="/v2/hex-dark.svg" alt="" width={300} height={300} className="pb-hex" aria-hidden="true" />
-          <Image src="/sales/retatrutide-20mg.jpg" alt="Retatrutide Pen 20 mg kit" width={1200} height={1200} sizes="(max-width: 900px) 100vw, 42vw" priority className="pb-hero-photo pb-hero-photo-reta" />
+          <Image src="/products/20261028/retatrutide-20mg/1.jpg" alt="Retatrutide Pen 20 mg kit" width={1200} height={1200} sizes="(max-width: 900px) 100vw, 42vw" priority className="pb-hero-photo pb-hero-photo-reta" />
         </div>
       </section>
       <section className="border-b border-[#173b2e24] bg-white"><div className="pb-wrap pb-trust">{trustPoints.map(({title,detail}) => <div key={title}><h2 className="text-[22px] font-semibold tracking-tight text-primary">{title}</h2><p className="mt-1.5 text-[15px] text-[#56645d]">{detail}</p></div>)}</div></section>

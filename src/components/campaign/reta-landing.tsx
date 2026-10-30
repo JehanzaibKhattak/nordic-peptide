@@ -20,7 +20,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled, argentCh
   const checkout = useRef<HTMLDivElement>(null);
   const items = useCart(s => s.items);
   const variant = variants.find(v => v.id === variantId) ?? variants[0];
-  const photo = variant.sku === "RET20" ? "/sales/retatrutide-20mg.jpg" : variant.images[0];
+  const photo = variant.images[0];
   const unit = Math.round(variant.priceCents * rate);
   const offer = retaPackOffer(variant.sku, qty, "GBP");
   const packTotal = (n: number) => unit * n - retaPackDiscount(variant.sku, n, "GBP", unit);

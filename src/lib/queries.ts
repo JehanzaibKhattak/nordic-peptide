@@ -24,21 +24,15 @@ function withCatalogImages<T extends { slug: string; images: unknown; variants: 
   const catalogueProduct = staticCatalog.products.find((item) => item.slug === product.slug);
   if (!catalogueProduct) return product;
 
-  const v2Images: Record<string, string[]> = {
-    RET20: ["/v2/retatrutide-20mg.jpg", "/v2/retatrutide-20mg-angle.jpg", "/v2/retatrutide-20mg-kit.jpg"],
-    TIR40: ["/v2/tirzepatide-40mg.jpg"], BPC20TB20: ["/v2/bpc157-tb500-40mg-generated.jpg"],
-    GHK100: ["/v2/ghk-cu-100mg.jpg"], GLOW70: ["/v2/glow-70mg.jpg"], KLOW80: ["/v2/klow-80mg-v2.jpg"],
-    MELII20: ["/v2/melanotan-ii-20mg.jpg"], MOTSC20: ["/v2/mots-c-20mg.jpg"], BPC10: ["/v2/bpc-157-10mg-v2.jpg"],
-  };
   const imagesBySku = new Map(catalogueProduct.variants.map((variant) => [variant.sku, variant.images]));
   const descriptionsBySku = new Map(catalogueProduct.variants.map((variant) => [variant.sku, variant.description]));
   return {
     ...product,
-    images: v2Images[product.variants[0]?.sku] ?? catalogueProduct.images,
+    images: catalogueProduct.images,
     description: catalogueProduct.description,
     variants: product.variants.map((variant) => ({
       ...variant,
-      images: v2Images[variant.sku] ?? imagesBySku.get(variant.sku) ?? catalogueProduct.images,
+      images: imagesBySku.get(variant.sku) ?? catalogueProduct.images,
       description: descriptionsBySku.get(variant.sku) ?? catalogueProduct.description,
     })),
   };
