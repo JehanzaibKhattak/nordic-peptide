@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { ChevronRight, FlaskConical } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getProductBySlug, getProducts } from "@/lib/queries";
 import { t as lt } from "@/lib/types";
@@ -65,10 +65,6 @@ export default async function ProductPage({ params, searchParams }: Props) {
           <h1 className="mt-5 text-primary">{name}</h1>
           <p className="mt-3 text-lg text-muted-foreground">{lt(product.shortDescription, locale)}</p>
           <div className="mt-6"><PurchasePanel key={selectedVariant?.sku ?? "default"} product={{ id: product.id, slug: product.slug, name, image: images[0] ?? "" }} variants={variants.map((variant) => ({ id: variant.id, sku: variant.sku, label: variant.label, concentration: variant.concentration, sizeMl: Number(variant.sizeMl), priceCents: variant.priceCents, stock: variant.stock }))} browseOnly={BROWSE_ONLY} /></div>
-          <aside className="mt-5 flex gap-3 rounded-xl bg-[#f3f0e8] p-4 text-sm leading-6 text-[#596b5e]">
-            <FlaskConical aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-            <p>For laboratory research use only. Not for human or veterinary use, clinical administration, or therapeutic use.</p>
-          </aside>
         </div>
       </div>
       <section className="pb-overview"><h2 className="pb-title">Product overview</h2><p className="text-xl leading-relaxed text-[#3e4c45]">{description}</p></section>

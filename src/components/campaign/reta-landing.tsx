@@ -20,7 +20,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled, argentCh
   const checkout = useRef<HTMLDivElement>(null);
   const items = useCart(s => s.items);
   const variant = variants.find(v => v.id === variantId) ?? variants[0];
-  const photo = variant.sku === "RET20" ? "/sales/retatrutide-20mg.jpg" : variant.images[0];
+  const photo = variant.images[0];
   const unit = Math.round(variant.priceCents * rate);
   const offer = retaPackOffer(variant.sku, qty, "GBP");
   const packTotal = (n: number) => unit * n - retaPackDiscount(variant.sku, n, "GBP", unit);
@@ -37,10 +37,10 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled, argentCh
 
   const orderItems = campaignCart(items, { productId: product.id, variantId: variant.id, slug: product.slug, name: "Retatrutide Pen", variantLabel: variant.label, image: variant.images[0] ?? "", unitCents: variant.priceCents, qty });
   return <div className="reta-sales">
-    <div className="rs-banner"><span>{offer ? "RETA PACK OFFER" : "THE PEPTBAY RESEARCH COLLECTION"}</span><strong>{offer ? "20% OFF RETATRUTIDE PEN 20 MG" : "RETATRUTIDE PEN 40 MG"}</strong><span>{offer ? "Save 25% with 2 pens · Save 30% with 3 pens" : (argentCheckout ? "One-time order · Secure GBP checkout" : "One-time order · GBP bank transfer")}</span></div>
+    <div className="rs-banner"><span>{offer ? "RETA PACK OFFER" : "THE PEPTBAY COLLECTION"}</span><strong>{offer ? "20% OFF RETATRUTIDE PEN 20 MG" : "RETATRUTIDE PEN 40 MG"}</strong><span>{offer ? "Save 25% with 2 pens · Save 30% with 3 pens" : (argentCheckout ? "One-time order · Secure GBP checkout" : "One-time order · GBP bank transfer")}</span></div>
     <section className="rs-hero">
       <div className="rs-wrap rs-hero-inner">
-        <div><Link href="/" aria-label="Peptbay home" className="rs-logo"><Image src="/sales/peptbay-logo-dark.svg" alt="Peptbay" width={114} height={30} priority style={{ width: "auto", height: 30 }} /></Link><h1>RETATRUTIDE<br /><strong>PEN {variant.label.split(" / ")[0].toUpperCase()}</strong></h1><p>Research-grade · Third-party tested · COA included</p></div>
+        <div><Link href="/" aria-label="Peptbay home" className="rs-logo"><Image src="/sales/peptbay-logo-dark.svg" alt="Peptbay" width={114} height={30} priority style={{ width: "auto", height: 30 }} /></Link><h1>RETATRUTIDE<br /><strong>PEN {variant.label.split(" / ")[0].toUpperCase()}</strong></h1><p>Third-party tested · COA included</p></div>
         <div className="rs-hero-photo">{photo && <Image src={photo} alt={`Retatrutide Pen packaging, ${variant.label}`} width={420} height={280} priority sizes="(max-width: 900px) 80vw, 300px" />}</div>
       </div>
     </section>
@@ -70,7 +70,7 @@ export function RetaLanding({ product, variants, rate, checkoutEnabled, argentCh
       <div ref={checkout} id="reta-checkout" tabIndex={-1} className="rs-checkout">
         <h2 className="rs-step">Step 2: Complete your order</h2>
         {checkoutEnabled ? <CheckoutForm paymentCurrencies={["GBP"]} paymentRates={{ GBP: rate }} avionCheckout bankCurrency="GBP" argentCheckout={argentCheckout} guestBankCheckout orderItems={orderItems} retaOfferVariantId={offerVariantId} embedded /> : <p className="rs-panel">Checkout is not currently available. Please contact Peptbay.</p>}
-        <div className="rs-panel rs-payment-trust"><div className="rs-reassurance"><div><LockKeyhole aria-hidden="true" /><span>HTTPS encrypted connection</span></div><div><Landmark aria-hidden="true" /><span>{argentCheckout ? "Hosted card payment" : "Pay in your banking app"}</span></div><div><ShieldCheck aria-hidden="true" /><span>{argentCheckout ? "Card details stay with Argent" : "No card details collected"}</span></div></div><h3><LockKeyhole aria-hidden="true" /> {argentCheckout ? "Secure checkout with Argent" : "Secure bank-transfer checkout"}</h3><p>{argentCheckout ? "Pay on Argent’s secure hosted page, or choose bank transfer at checkout. Payment is verified before dispatch." : "Use the account details and payment reference on your order confirmation. Our team confirms receipt before dispatch."}</p><Link href="/testing">View batch documentation <ArrowRight aria-hidden="true" /></Link></div>
+        <div className="rs-panel rs-payment-trust"><div className="rs-reassurance"><div><LockKeyhole aria-hidden="true" /><span>HTTPS encrypted connection</span></div><div><Landmark aria-hidden="true" /><span>{argentCheckout ? "Secure card fields" : "Pay in your banking app"}</span></div><div><ShieldCheck aria-hidden="true" /><span>{argentCheckout ? "Secure card processing" : "No card details collected"}</span></div></div><h3><LockKeyhole aria-hidden="true" /> {argentCheckout ? "Secure Checkout" : "Secure bank-transfer checkout"}</h3><p>{argentCheckout ? "Pay securely on Peptbay, or choose bank transfer at checkout. Payment is verified before dispatch." : "Use the account details and payment reference on your order confirmation. Our team confirms receipt before dispatch."}</p><Link href="/testing">View batch documentation <ArrowRight aria-hidden="true" /></Link></div>
       </div>
     </div>
     <CertificationReports />
@@ -86,7 +86,6 @@ function RetaFooter() {
       <div><h3>INFO</h3><Link href="/#commitment">Our commitment</Link><Link href="/testing">Batch documents</Link><Link href="/legal/privacy">Privacy Policy</Link><Link href="/#faq">Catalogue questions</Link></div>
       <div><h3>ORDER</h3><Link href="/shop">All products</Link><Link href="/#faq">FAQ</Link><Link href="/contact">Contact</Link></div>
       <div><h3>CUSTOMER SERVICE</h3><Link href="/contact" className="rs-contact"><Image src="/sales/footer-mail-0.svg" alt="" width={16} height={16} />Contact Peptbay</Link><a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer">WhatsApp support</a></div>
-      <p className="rs-disclaimer"><strong>Disclaimer:</strong> The statements on this website have not been evaluated by the European Medicines Agency (EMA) or the U.S. Food and Drug Administration (FDA). The products offered by Peptbay are for research purposes only and are not intended to diagnose, treat, cure, or prevent any disease.</p>
     </div>
     <div className="rs-footer-bottom"><div className="rs-wrap"><span>© 2026 Peptbay. All rights reserved.</span><div className="rs-footer-payments" aria-label="Payment providers"><span className="rs-visa">VISA</span><span className="rs-mastercard" role="img" aria-label="Mastercard"><i /><i /></span><span className="rs-gpay">G Pay</span><span className="rs-applepay">Apple Pay</span><span className="rs-klarna">Klarna</span></div></div></div>
   </footer><a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" className="rs-wa"><span>Need help?</span><span><Image src="/sales/whatsapp.svg" alt="" width={26} height={26} /></span></a></>;

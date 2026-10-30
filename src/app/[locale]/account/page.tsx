@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requestCode, verifyCode, submitResearchApplication, signOut } from "./actions";
 
-export const metadata = { title: "Research account · Peptbay", robots: { index: false } };
+export const metadata = { title: "Account · Peptbay", robots: { index: false } };
 
 export default async function AccountPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ message?: string }> }) {
   const { locale } = await params;
