@@ -26,7 +26,7 @@ export function WhatsAppButton({ phone }: { phone: string }) {
   const productName = productSlug ? productLabels[productSlug] ?? productSlug.replaceAll("-", " ").toUpperCase() : undefined;
   const message = encodeURIComponent(productName
     ? `Hi Peptbay, I have a question about ${productName}.`
-    : "Hi Peptbay, I have a question about your research catalogue.");
+    : "Hi Peptbay, I have a question about your products.");
   const className = "grid size-12 place-items-center rounded-full bg-[#25d366] text-white shadow-[0_4px_14px_rgba(0,0,0,0.2)] ring-4 ring-[#25d366]/10 transition hover:scale-105 hover:bg-[#1fbd5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b2e] focus-visible:ring-offset-4 sm:size-16 sm:ring-8";
   const icon = (
     <svg aria-hidden="true" viewBox="0 0 32 32" className="size-6 fill-current sm:size-8">
