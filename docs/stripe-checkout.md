@@ -17,13 +17,13 @@ The existing Zustand `nps-cart` persists items, quantities and currency in local
 
 Purchaser approval must outlast the hosted session. Before changing approvals or editing a product with open Stripe sessions, expire/reconcile those sessions in Admin → Orders. This also guards application resubmission. A Stripe session that is already open remains controlled by Stripe until expired or completed.
 
-## Vercel environment variables
+## Server environment variables
 
-Set values separately for Development, Preview and Production; use an isolated test database and test Stripe account for Preview. Store credentials as Vercel Secrets, never as `NEXT_PUBLIC_*` values. Redeploy after changing build-time public flags. Do not commit `.env.local`.
+Set values separately for Development, Preview and Production; use an isolated test database and test Stripe account for Preview. Store credentials in private server environment files, never as `NEXT_PUBLIC_*` values. Redeploy after changing build-time public flags. Do not commit `.env.local`.
 
 | Variable | Required value / purpose |
 | --- | --- |
-| `DATABASE_URL` | Persistent PostgreSQL connection URL for Vercel. SQLite files on function storage are not durable. |
+| `DATABASE_URL` | Persistent PostgreSQL connection URL. Container-local SQLite files are not production storage. |
 | `SESSION_SECRET` | Unique cryptographically random secret, at least 32 characters; shared across instances. Rotation invalidates both admin and purchaser sessions. |
 | `ADMIN_PASSWORD` | Strong password for the existing admin authentication system. |
 | `STORE_BASE_URL` | Trusted canonical origin, e.g. `https://preview.example.com`; HTTPS required in production. Do not use request Host to construct payment redirects. |
@@ -44,15 +44,15 @@ No Stripe publishable key is required for hosted Checkout. `PAY_MOCK_ENABLED` an
 
 Local SQLite keeps `prisma/schema.prisma`. Prisma CLI does not load `.env.local` automatically; supply `DATABASE_URL` in your shell/CI environment (or use a local ignored `.env`). For an existing pre-integration SQLite database, take a consistent backup, then apply `prisma/upgrade-commerce.sql` once using `prisma db execute --file prisma/upgrade-commerce.sql --schema prisma/schema.prisma`. It preserves existing products, variants, orders and events; new approvals are intentionally absent. For a fresh local database, `npm run db:push` then `npm run db:seed`. Never seed a production database without reviewing the seed's behavior.
 
-For a **new, empty PostgreSQL database** on Vercel:
+For a **new, empty PostgreSQL database** on DigitalOcean:
 
 ```sh
 # DATABASE_URL must point to the intended persistent Postgres database.
-npm run db:deploy:vercel
-npm run build:vercel
+npm run db:deploy:production
+npm run build:production
 ```
 
-Set Vercel's Build Command to `npm run build:vercel`. Apply migrations as a controlled deployment step before the build. `prisma/postgresql.config.ts` selects `schema.postgresql.prisma` and `migrations-postgresql`. The initial migration is for an empty database. For an existing PostgreSQL installation, baseline its actual schema and generate/review an incremental migration; do not run the initial CREATE TABLE migration over existing tables. Migrating local SQLite data to PostgreSQL is a separate data-copy operation, not accomplished by changing `DATABASE_URL`.
+Build the standalone Docker image using the production build command. Apply migrations as a controlled deployment step before the build. `prisma/postgresql.config.ts` selects `schema.postgresql.prisma` and `migrations-postgresql`. The initial migration is for an empty database. For an existing PostgreSQL installation, baseline its actual schema and generate/review an incremental migration; do not run the initial CREATE TABLE migration over existing tables. Migrating local SQLite data to PostgreSQL is a separate data-copy operation, not accomplished by changing `DATABASE_URL`.
 
 The SQLite and PostgreSQL schema models must remain identical apart from the datasource provider; an automated test checks this. Run `prisma generate` for SQLite again before local tests after a PostgreSQL build.
 

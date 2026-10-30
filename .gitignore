@@ -33,9 +33,6 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -59,3 +56,6 @@ prisma/dev.db*
 # Isolated Next preview/build output (also excluded from Tailwind source scanning)
 /.next-*/
 /output/v2-review/
+
+# Persistent image uploads are stored outside Git
+/uploads/

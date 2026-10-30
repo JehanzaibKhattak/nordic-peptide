@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-session";
 
@@ -23,15 +22,8 @@ export async function POST(request: Request) {
   }
 
   const filename = `${randomUUID()}${extensions[file.type]}`;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(`products/${filename}`, file, { access: "public", addRandomSuffix: true, contentType: file.type });
-    return NextResponse.json({ url: blob.url });
-  }
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Image storage is not configured. Connect Vercel Blob before uploading." }, { status: 503 });
-  }
-
-  const directory = join(process.cwd(), "public", "product-uploads");
+  const directory = process.env.PRODUCT_IMAGE_UPLOAD_DIR || (process.env.NODE_ENV === "development" ? join(process.cwd(), "uploads") : null);
+  if (!directory) return NextResponse.json({ error: "Persistent image storage is not configured." }, { status: 503 });
   await mkdir(directory, { recursive: true });
   await writeFile(join(directory, filename), Buffer.from(await file.arrayBuffer()));
   return NextResponse.json({ url: `/product-uploads/${filename}` });

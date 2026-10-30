@@ -1,5 +1,5 @@
 // In-memory sliding window limiter for dev / single instance. Swap for
-// Upstash or Vercel KV before scaling horizontally.
+// shared Redis storage before scaling horizontally.
 
 const buckets = new Map<string, number[]>();
 

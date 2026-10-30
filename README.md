@@ -42,7 +42,7 @@ pnpm dev
 - Dev emails are written to `tmp/mail/*.eml` and logged to the console
 - Legacy dev Keitaro postbacks require `KEITARO_POSTBACK_ENABLED=true`; they are disabled by default and skipped for Stripe test payments and Avion checkout.
 
-Database-backed checkout now requires a verified, independently approved research account and explicit product/destination approvals. It accepts Stripe **test mode only**. See [Stripe checkout setup and Vercel environment variables](docs/stripe-checkout.md).
+Database-backed checkout now requires a verified, independently approved research account and explicit product/destination approvals. It accepts Stripe **test mode only**. See [Legacy Stripe test checkout configuration](docs/stripe-checkout.md).
 
 ## Scripts
 
@@ -105,13 +105,21 @@ GTM loads only after the visitor accepts analytics cookies. `dataLayer` events: 
 - Catalogue prices are stored in EUR. Checkout defaults to EUR; Admin → Approvals can configure validated payment rates for supported storefront currencies. Display conversions remain estimates.
 - Tax is currently a flat `0` line ("Tax (estimated)"). `TAX_MODE` is reserved in `.env` but only `none` is implemented — add VAT handling before selling.
 
-## Deploying (Vercel)
+## Deploying (GitHub → DigitalOcean)
 
-1. Configure persistent PostgreSQL and follow [the checkout deployment guide](docs/stripe-checkout.md). Use `npm run db:deploy:vercel` for a new database and `npm run build:vercel` as the Vercel Build Command. SQLite remains local-only.
-2. Add a Vercel Blob store and set `BLOB_READ_WRITE_TOKEN` for persistent product image uploads.
-3. Set `DATABASE_URL`, a unique `SESSION_SECRET` of at least 32 characters, and a strong `ADMIN_PASSWORD` in Vercel. Do not use the local preview password in production.
-4. Batch report upload currently writes to `public/` and needs persistent object storage before using that upload on Vercel.
-5. Commerce initiation and sign-in requests use database-backed limits; unrelated legacy endpoints retain their existing in-memory limiter.
+GitHub stores source and runs the checks in `.github/workflows/frontend-checks.yml`.
+Production runs the standalone Docker image on the DigitalOcean droplet under
+Podman/systemd; a GitHub push alone does not deploy it. See
+[DigitalOcean deployment](docs/digitalocean-deployment.md).
+
+Use `npm run build:production` and `npm run db:deploy:production` for PostgreSQL.
+Keep production credentials in private server environment files, not GitHub or
+`NEXT_PUBLIC_*` values. SQLite remains for local development.
+
+Admin product images use `PRODUCT_IMAGE_UPLOAD_DIR` on a persistent host volume.
+That directory must be writable by the container's node user and included in
+backups. Uploaded images are served by `/product-uploads/<filename>` across restarts
+and image replacements. Bundled catalogue images remain versioned in Git.
 
 ## Before launch
 

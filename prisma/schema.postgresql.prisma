@@ -1,4 +1,4 @@
-// Mirror of schema.prisma for Vercel Postgres. Keep models identical.
+// Mirror of schema.prisma for production PostgreSQL. Keep models identical.
 // Nordic Peptide Skin — Prisma schema
 // SQLite in dev. Kept Postgres-compatible: no SQLite-only types, no enums
 // (status/form columns are strings validated in TS, see src/lib/types.ts),

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { db } from "./db";
 
-/** Shared fixed-window limits survive Vercel cold starts and multiple instances. */
+/** Shared fixed-window limits survive container restarts and multiple instances. */
 export async function commerceRateLimit(subject: string, limit: number, windowMs: number) {
   const now = Date.now();
   const window = Math.floor(now / windowMs);

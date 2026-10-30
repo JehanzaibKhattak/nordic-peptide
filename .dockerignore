@@ -1,10 +1,10 @@
 node_modules
 .next*
 .git
-.vercel
 .env*
 tmp
 test-results
 playwright-report
 coverage
 *.tsbuildinfo
+uploads

@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowSVG: true, // seed placeholders are SVG; swap for webp product shots
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    remotePatterns: [{ protocol: "https", hostname: "**.public.blob.vercel-storage.com", pathname: "/**" }],
   },
   serverExternalPackages: ["@prisma/client", "prisma"],
 };
